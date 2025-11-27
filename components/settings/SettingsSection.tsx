@@ -11,7 +11,7 @@ export default function SettingsSection() {
       <div className="mt-6 space-y-4">   {/* NOW CARDS WILL SPACE OUT */}
 
         {/* THEMES */}
-        <Link href="/settings/themes" className="block">
+        <Link href="/ecosystem/settings/themes" className="block">
           <div className="rounded-3xl p-4 bg-[#0b0f17]/80 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.3)] flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
@@ -27,7 +27,7 @@ export default function SettingsSection() {
         </Link>
 
         {/* NOTIFICATIONS */}
-        <Link href="/settings/notifications" className="block">
+        <Link href="/ecosystem/settings/notifications" className="block">
           <div className="rounded-3xl p-4 bg-[#0b0f17]/80 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.3)] flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center">
@@ -43,7 +43,7 @@ export default function SettingsSection() {
         </Link>
 
         {/* PRIVACY */}
-        <Link href="/settings/privacy" className="block">
+        <Link href="/ecosystem/settings/privacy" className="block">
           <div className="rounded-3xl p-4 bg-[#0b0f17]/80 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.3)] flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function SettingsSection() {
         </Link>
 
         {/* POLICIES */}
-        <Link href="/settings/policies" className="block">
+        <Link href="/ecosystem/settings/policies" className="block">
           <div className="rounded-3xl p-4 bg-[#0b0f17]/80 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.3)] flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
@@ -75,7 +75,7 @@ export default function SettingsSection() {
         </Link>
 
         {/* REPORT */}
-        <Link href="/settings/report" className="block">
+        <Link href="/ecosystem/settings/report" className="block">
           <div className="rounded-3xl p-4 bg-[#0b0f17]/80 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.3)] flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
@@ -91,7 +91,7 @@ export default function SettingsSection() {
         </Link>
 
         {/* DELETE ACCOUNT */}
-        <Link href="/settings/delete" className="block">
+        <Link href="/ecosystem/settings/delete" className="block">
           <div className="rounded-3xl p-4 bg-gradient-to-br from-red-700/50 to-red-600/40 border border-red-500/30 shadow-[0_0_20px_rgba(255,0,0,0.2)] flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
