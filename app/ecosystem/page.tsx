@@ -3,6 +3,21 @@ export default function EcosystemPage() {
     <div>
 
       {/* Profile Card */}
+
+useEffect(() => {
+  const loadUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      setUser(res.data);
+    } catch (err) {
+      console.log("Not authenticated");
+      router.push("/auth/login");
+    }
+  };
+
+  loadUser();
+}, []);
+
       <div className="mb-8">
         <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-[2px] rounded-3xl">
           <div className="card-matte rounded-3xl p-5 flex items-center gap-4">

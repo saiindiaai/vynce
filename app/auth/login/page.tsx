@@ -14,6 +14,22 @@ CardTitle,
 } from "@/components/ui/card";
 
 export default function LoginPage() {
+
+const handleLogin = async () => {
+  try {
+    const res = await api.post("/auth/login", {
+      username,
+      password,
+    });
+
+    localStorage.setItem("token", res.data.token);
+
+    router.push("/ecosystem");
+  } catch (err) {
+    setError("Invalid username or password");
+  }
+};
+
 return (
 <div className="flex min-h-screen items-center justify-center bg-black px-4">
 <Card className="w-full max-w-md">

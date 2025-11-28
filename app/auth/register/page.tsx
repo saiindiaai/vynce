@@ -18,10 +18,22 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push("/auth/username");
-  };
+  const handleRegister = async () => {
+  try {
+    const res = await api.post("/auth/register", {
+      username,
+      password,
+      displayName,
+    });
+
+    localStorage.setItem("token", res.data.token);
+
+    router.push("/auth/username");  
+  } catch (err) {
+    console.log(err);
+    setError("Username already used or invalid.");
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
