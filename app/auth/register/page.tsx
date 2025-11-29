@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import { api } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,22 +21,31 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
 
-  const handleRegister = async () => {
-  try {
-    const res = await api.post("/auth/register", {
-      username,
-      password,
-      displayName,
-    });
+  // form state
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-    localStorage.setItem("token", res.data.token);
+  // Submit Handler
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
 
-    router.push("/auth/username");  
-  } catch (err) {
-    console.log(err);
-    setError("Username already used or invalid.");
-  }
-};
+    try {
+      const res = await api.post("/auth/register", {
+        username,
+        password,
+        displayName,
+      });
+
+      localStorage.setItem("token", res.data.token);
+
+      router.push("/auth/username");
+    } catch (err) {
+      console.log(err);
+      setError("Username already used or invalid.");
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
@@ -47,21 +59,34 @@ export default function RegisterPage() {
 
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
+            
+            {/* Display Name */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input id="fullName" type="text" placeholder="John Doe" required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="displayName">Full Name</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
+                id="displayName"
+                type="text"
+                placeholder="Akash Shigwan"
                 required
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
               />
             </div>
 
+            {/* Username */}
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="akash001"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -69,18 +94,14 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="********"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="********"
-                required
-              />
-            </div>
+            {error && (
+              <p className="text-red-500 text-sm">{error}</p>
+            )}
 
             <Button type="submit" className="w-full">
               Create Account

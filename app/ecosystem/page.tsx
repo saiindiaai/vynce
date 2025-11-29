@@ -1,32 +1,48 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+
 export default function EcosystemPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        setUser(res.data);
+      } catch (err) {
+        console.log("Not authenticated");
+        router.push("/auth/login");
+      }
+    };
+
+    loadUser();
+  }, [router]);
+
+  if (!user) {
+    return (
+      <div className="text-white flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="px-4 pb-28">
 
       {/* Profile Card */}
-
-useEffect(() => {
-  const loadUser = async () => {
-    try {
-      const res = await api.get("/auth/me");
-      setUser(res.data);
-    } catch (err) {
-      console.log("Not authenticated");
-      router.push("/auth/login");
-    }
-  };
-
-  loadUser();
-}, []);
-
       <div className="mb-8">
         <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-[2px] rounded-3xl">
           <div className="card-matte rounded-3xl p-5 flex items-center gap-4">
             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold">
-              VS
+              {user.displayName?.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-xl font-bold">VYNCE USER</h2>
-              <p className="text-sm text-gray-300">Level 12 • Starter Tier</p>
+              <h2 className="text-xl font-bold">{user.displayName}</h2>
+              <p className="text-sm text-gray-300">Level {user.level} • Starter Tier</p>
             </div>
           </div>
         </div>
@@ -78,6 +94,7 @@ useEffect(() => {
           <span className="text-green-400">98%</span>
         </div>
       </div>
+
     </div>
   );
 }
