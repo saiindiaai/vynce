@@ -1,7 +1,7 @@
-// src/routes/themeRoutes.js
-const express = require('express');
-
+const express = require("express");
 const router = express.Router();
+const { protect } = require("../middleware/authMiddleware");
+const { setTheme } = require("../controllers/themeController");
 
 // simple static list for now
 router.get('/', (req, res) => {

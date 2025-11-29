@@ -19,11 +19,11 @@ export function ProfileMenu() {
 
             <div>
               <h2 className={`text-2xl font-bold ${theme.textPrimary}`}>
-                VYNCE_USER
-              </h2>
-              <p className={`text-sm ${theme.textSecondary}`}>
-                Level 12 • Explorer
-              </p>
+  {user?.displayName || "Loading..."}
+</h2>
+<p className={`text-sm ${theme.textSecondary}`}>
+  Level {user?.level} • Explorer
+</p>
               <p className={`text-xs ${theme.textAccent} mt-1`}>
                 Member since 2024
               </p>

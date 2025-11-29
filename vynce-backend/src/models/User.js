@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     accountType: { type: String, enum: ["standard", "guest"], default: "standard" },
     level: { type: Number, default: 1 },
     energy: { type: Number, default: 1000 },
+   theme: { type: String, default: "Monochrome Royale"},
   },
   { timestamps: true }
 );

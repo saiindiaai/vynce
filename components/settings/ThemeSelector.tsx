@@ -4,9 +4,17 @@ import { Check } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { themeCategories } from "@/lib/themes";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
 export function ThemeSelector() {
-  const { theme, currentTheme, setTheme } = useTheme();
+  const updateTheme = async (name) => {
+  try {
+    await api.put("/themes", { theme: name });
+    setTheme(name); // frontend + backend synced
+  } catch (e) {
+    console.log("Theme update failed");
+  }
+};
 
   return (
     <div className="px-4 pb-24">
