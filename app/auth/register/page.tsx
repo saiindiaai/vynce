@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -21,29 +21,35 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
 
-  // form state
-  const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | "">("");
+  const [loading, setLoading] = useState(false);
 
-  // Submit Handler
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
+      // For now we send displayName = username so backend doesn't break.
+      // Later the /auth/displayname step will update it properly.
       const res = await api.post("/auth/register", {
         username,
         password,
-        displayName,
+        displayName: username,
       });
 
-      localStorage.setItem("token", res.data.token);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", res.data.token);
+      }
 
-      router.push("/auth/username");
+      router.push("/auth/displayname");
     } catch (err) {
-      console.log(err);
-      setError("Username already used or invalid.");
+      console.error("Register error:", err);
+      setError("Username already used or invalid. Try a different one.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,39 +57,29 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create account</CardTitle>
           <CardDescription>
-            Enter your details to create your Vynce account
+            Pick a unique username and a secure password.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
-            
-            {/* Display Name */}
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Full Name</Label>
-              <Input
-                id="displayName"
-                type="text"
-                placeholder="Akash Shigwan"
-                required
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-              />
-            </div>
-
             {/* Username */}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="akash001"
+                placeholder="vynce_akash"
+                autoComplete="username"
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.trim())}
               />
+              <p className="text-xs text-muted-foreground">
+                This is what people will search for and see as <code>@username</code>.
+              </p>
             </div>
 
             {/* Password */}
@@ -93,18 +89,17 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 placeholder="********"
+                autoComplete="new-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating account..." : "Create account"}
             </Button>
           </form>
         </CardContent>

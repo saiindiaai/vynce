@@ -11,7 +11,7 @@ export default function EcosystemPage() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await api.get("/auth/me");
+        const res = await api.get("/users/me");
         setUser(res.data);
       } catch (err) {
         console.log("Not authenticated");
@@ -35,18 +35,40 @@ export default function EcosystemPage() {
 
       {/* Profile Card */}
       <div className="mb-8">
-        <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-[2px] rounded-3xl">
-          <div className="card-matte rounded-3xl p-5 flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold">
-              {user.displayName?.slice(0, 2).toUpperCase()}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{user.displayName}</h2>
-              <p className="text-sm text-gray-300">Level {user.level} • Starter Tier</p>
-            </div>
-          </div>
-        </div>
+  <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-[2px] rounded-3xl">
+    <div className="card-matte rounded-3xl p-5 flex items-center gap-4">
+      
+      {/* Avatar */}
+      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold">
+        {(user.displayName || user.username || "VN")
+          .slice(0, 2)
+          .toUpperCase()}
       </div>
+
+      <div>
+        {/* Display Name */}
+        <h2 className="text-xl font-bold">
+          {user.displayName || "New User"}
+        </h2>
+
+        {/* Username */}
+        <p className="text-sm text-gray-300">
+          @{user.username}
+        </p>
+
+        {/* UID */}
+        <p className="text-xs text-gray-400">
+          UID: {user.uid || "Loading..."}
+        </p>
+
+        {/* Level */}
+        <p className="text-sm text-gray-300 mt-1">
+          Level {user.level ?? 1} • Starter Tier
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Orbits */}
       <div className="mb-6">

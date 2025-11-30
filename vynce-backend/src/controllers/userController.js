@@ -2,9 +2,17 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const { generateToken } = require("../utils/generateToken");
 
+// Utility: Generate random UID
+function generateUID() {
+  return "uid_" + Math.random().toString(36).substring(2, 10);
+}
+
+/* ================================
+   REGISTER (username + password)
+   ================================ */
 exports.registerUser = async (req, res) => {
   try {
-    const { username, password, displayName } = req.body;
+    const { username, password } = req.body;
 
     if (!username || !password)
       return res.status(400).json({ message: "Missing fields" });
@@ -15,10 +23,14 @@ exports.registerUser = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
+    // Generate UID (8-digit, random, unique)
+    const uid = "U" + Math.floor(10000000 + Math.random() * 90000000);
+
     const newUser = await User.create({
       username,
       password: hashed,
-      displayName: displayName || username,
+      uid,
+      displayName: "",
       accountType: "standard",
     });
 
@@ -31,6 +43,9 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+/* ================================
+   LOGIN
+   ================================ */
 exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -44,14 +59,22 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid username or password" });
 
     res.json({
-      user,
+      user: {
+        uid: user.uid,
+        username: user.username,
+        displayName: user.displayName,
+      },
       token: generateToken(user._id),
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
+/* ================================
+   GUEST LOGIN
+   ================================ */
 exports.guestLogin = async (req, res) => {
   try {
     const random = Math.floor(100000 + Math.random() * 999999);
@@ -61,6 +84,7 @@ exports.guestLogin = async (req, res) => {
       password: "",
       displayName: "Guest User",
       accountType: "guest",
+      uid: null, // guests have no UID
     });
 
     res.json({
@@ -72,28 +96,63 @@ exports.guestLogin = async (req, res) => {
   }
 };
 
+/* ================================
+   GET LOGGED-IN USER
+   ================================ */
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password");
-    res.json(user);
+
+    res.json({
+      uid: user.uid,
+      username: user.username,
+      displayName: user.displayName,
+      level: user.level,
+      energy: user.energy,
+      accountType: user.accountType,
+      createdAt: user.createdAt,
+    });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
+/* ================================
+   UPDATE DISPLAY NAME
+   ================================ */
+exports.updateDisplayName = async (req, res) => {
+  try {
+    const { displayName } = req.body;
+
+    if (!displayName)
+      return res.status(400).json({ message: "Display Name required" });
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { displayName },
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      message: "Display Name updated",
+      user
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* ================================
+   (Optional leftover) Onboarding
+   ================================ */
 exports.updateOnboarding = async (req, res) => {
   try {
-    const { displayName, ageVerified, parentalPasskey } = req.body;
-
-    const updates = {};
-
-    if (displayName) updates.displayName = displayName;
-    if (ageVerified !== undefined) updates.ageVerified = ageVerified;
-    if (parentalPasskey) updates.parentalPasskey = parentalPasskey;
+    const { ageVerified } = req.body;
 
     const updated = await User.findByIdAndUpdate(
       req.userId,
-      updates,
+      { ageVerified },
       { new: true }
     ).select("-password");
 
@@ -101,6 +160,7 @@ exports.updateOnboarding = async (req, res) => {
       message: "Onboarding updated",
       user: updated,
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

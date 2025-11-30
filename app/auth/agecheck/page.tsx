@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +19,30 @@ import {
 
 export default function AgeCheckPage() {
   const router = useRouter();
+  const [age, setAge] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    router.push("/auth/parentalpasskey"); // next page in onboarding flow
+
+    try {
+      const ageNum = Number(age);
+
+      if (ageNum < 13) {
+        setError("You must be at least 13 to use Vynce.");
+        return;
+      }
+
+      // Send age verification to backend
+      await api.patch("/users/onboarding", {
+        ageVerified: true,
+      });
+
+      router.push("/auth/onboarding-complete");
+    } catch (err) {
+      console.log(err);
+      setError("Failed to verify age");
+    }
   };
 
   return (
@@ -42,11 +64,15 @@ export default function AgeCheckPage() {
                 max="120"
                 placeholder="18"
                 required
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
               />
               <p className="text-sm text-muted-foreground">
                 Your age helps us keep Vynce safe for everyone.
               </p>
             </div>
+
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <Button type="submit" className="w-full">
               Continue

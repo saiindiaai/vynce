@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +24,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  // ---- NORMAL LOGIN ----
   const handleLogin = async (e: any) => {
     e.preventDefault();
 
@@ -38,8 +38,21 @@ export default function LoginPage() {
 
       router.push("/ecosystem");
     } catch (err) {
-      console.log(err);
       setError("Invalid username or password");
+    }
+  };
+
+  // ---- GUEST LOGIN ----
+  const handleGuest = async () => {
+    try {
+      const res = await api.post("/auth/guest");
+
+      localStorage.setItem("token", res.data.token);
+
+      // Guest skips onboarding
+      router.push("/auth/onboarding-complete");
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -48,23 +61,17 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardDescription>Access your Vynce account</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form className="space-y-4" onSubmit={handleLogin}>
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="your_username"
+                placeholder="akash001"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -83,36 +90,26 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex justify-end">
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
+            <Button type="submit" className="w-full">Login</Button>
           </form>
+
+          {/* Guest Login Button */}
+          <Button onClick={handleGuest} variant="secondary" className="w-full mt-3">
+            Continue as Guest
+          </Button>
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="text-primary hover:underline font-medium"
-            >
+            <Link href="/auth/register" className="text-primary hover:underline font-medium">
               Register
             </Link>
           </div>
 
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-primary"
-          >
+          <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
             Back
           </Link>
         </CardFooter>
@@ -120,3 +117,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
