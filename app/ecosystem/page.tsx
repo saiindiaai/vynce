@@ -31,11 +31,11 @@ export default function EcosystemPage() {
   }
 
   return (
-    <div className="px-4 pb-28">
+    <div className="px-4 pb-28 matte-bg">
 
       {/* Profile Card */}
       <div className="mb-8">
-  <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-[2px] rounded-3xl">
+  <div className="bg-gradient-to-br from-pink-500/40 via-purple-600/40 to-indigo-600/40 p-[2px] rounded-3xl">
     <div className="card-matte rounded-3xl p-5 flex items-center gap-4">
       
       {/* Avatar */}

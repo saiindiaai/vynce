@@ -4,22 +4,14 @@ import { Check } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { themeCategories } from "@/lib/themes";
 import Link from "next/link";
-import { api } from "@/lib/api";
 
 export function ThemeSelector() {
-  const updateTheme = async (name) => {
-  try {
-    await api.put("/themes", { theme: name });
-    setTheme(name); // frontend + backend synced
-  } catch (e) {
-    console.log("Theme update failed");
-  }
-};
+  const { currentTheme, setTheme, theme } = useTheme();
 
   return (
-    <div className="px-4 pb-24">
+    <div className="px-4 pb-28">
 
-      {/* Back Button */}
+      {/* Back */}
       <Link
         href="/ecosystem/settings"
         className={`text-sm font-semibold ${theme.textAccent}`}
@@ -34,6 +26,7 @@ export function ThemeSelector() {
         Choose your visual style
       </p>
 
+      {/* Category Loop */}
       <div className="space-y-8 mt-6">
         {Object.entries(themeCategories).map(([category, categoryThemes]) => (
           <div key={category}>
@@ -47,31 +40,38 @@ export function ThemeSelector() {
                   key={t.name}
                   onClick={() => setTheme(t.name)}
                   className={`
-                    w-full p-4 rounded-2xl border flex items-center justify-between 
-                    transition-all ${t.cardBg} ${
-                    currentTheme === t.name ? t.borderAccent : t.cardBorder
-                  }
+                    w-full p-4 rounded-2xl border flex items-center justify-between
+                    transition-all bg-black/30
+                    ${
+                      currentTheme === t.name
+                        ? "border-white/40"
+                        : "border-white/10"
+                    }
                   `}
                 >
                   <div className="flex items-center gap-4">
-                    {/* 3 color bars */}
+                    {/* Preview color bars */}
                     <div className="flex gap-1">
-                      <div className={`w-3 h-10 bg-gradient-to-b ${t.primary} rounded-md`} />
-                      <div className={`w-3 h-10 bg-gradient-to-b ${t.secondary} rounded-md`} />
-                      <div className={`w-3 h-10 bg-gradient-to-b ${t.accent} rounded-md`} />
+                      <div className={`w-3 h-10 rounded-md ${t.primary}`} />
+                      <div className={`w-3 h-10 rounded-md ${t.secondary}`} />
+                      <div className={`w-3 h-10 rounded-md ${t.accent}`} />
                     </div>
 
                     <div>
-                      <h4 className={`font-semibold ${t.textPrimary}`}>{t.name}</h4>
+                      <h4 className={`font-semibold ${theme.textPrimary}`}>
+                        {t.name}
+                      </h4>
 
                       {currentTheme === t.name && (
-                        <p className={`text-xs ${t.textSecondary}`}>Current theme</p>
+                        <p className={`text-xs ${theme.textSecondary}`}>
+                          Current theme
+                        </p>
                       )}
                     </div>
                   </div>
 
                   {currentTheme === t.name && (
-                    <Check className={`w-5 h-5 ${t.textAccent}`} />
+                    <Check className={`w-5 h-5 ${theme.textAccent}`} />
                   )}
                 </button>
               ))}
