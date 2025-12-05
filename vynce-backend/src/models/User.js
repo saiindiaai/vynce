@@ -40,44 +40,52 @@ const userSchema = new mongoose.Schema(
       default: 1000,
     },
 
-    // ⭐ NEW: Global Bio
+    /* -------------------------
+       GLOBAL BIO
+    ------------------------- */
     bio: {
       type: String,
       default: "",
       maxlength: 300,
     },
 
-    // ⭐ NEW: Apps Installed
+    /* -------------------------
+       INSTALLED APPS
+    ------------------------- */
     installedApps: {
-      type: [String], // example: ["vynce-social", "vynce-ai"]
+      type: [String],
       default: [],
     },
 
-    // ⭐ NEW: Profile Avatar (future)
+    /* -------------------------
+       PROFILE AVATAR
+    ------------------------- */
     avatar: {
       type: String,
       default: "",
     },
 
-    // ⭐ NEW: Email / Mobile (not required)
+    /* -------------------------
+       ACCOUNT INFO
+    ------------------------- */
     accountInfo: {
       email: { type: String, default: "" },
-      phone: { type: String, default: "" }
+      phone: { type: String, default: "" },
     },
 
-    // ⭐ NEW: Profile updated timestamp
     profileUpdatedAt: {
       type: Date,
       default: null,
     },
 
-    // ⭐ NEW: Country
     country: {
       type: String,
       default: "",
     },
 
-    // ⭐ NEW: Energy Log (future rewards)
+    /* -------------------------
+       ENERGY LOG
+    ------------------------- */
     energyHistory: [
       {
         amount: Number,
@@ -89,6 +97,59 @@ const userSchema = new mongoose.Schema(
     ageVerified: {
       type: Boolean,
       default: false,
+    },
+
+    /* -------------------------
+       THEME SETTINGS  (NEW)
+    ------------------------- */
+    theme: {
+      type: String,
+      default: "Monochrome Royale",
+    },
+
+    /* -------------------------
+       NOTIFICATION SETTINGS (NEW)
+    ------------------------- */
+    notifications: {
+      general: { type: Boolean, default: true },
+      messages: { type: Boolean, default: true },
+      appUpdates: { type: Boolean, default: true },
+      marketing: { type: Boolean, default: false },
+    },
+
+profileVisibility: {
+  type: String,
+  enum: ["public", "friends", "private"],
+  default: "public",
+},
+
+notifications: [
+  {
+    title: String,
+    message: String,
+    date: { type: Date, default: Date.now },
+    read: { type: Boolean, default: false }
+  }
+],
+
+searchVisibility: {
+  type: Boolean,
+  default: true,
+},
+
+dataConsent: {
+  type: Boolean,
+  default: true,
+},
+
+    /* -------------------------
+       PRIVACY SETTINGS (NEW)
+    ------------------------- */
+    privacy: {
+      showProfile: { type: Boolean, default: true },
+      showActivity: { type: Boolean, default: true },
+      showLastSeen: { type: Boolean, default: false },
+      searchable: { type: Boolean, default: true },
     },
   },
   { timestamps: true }
