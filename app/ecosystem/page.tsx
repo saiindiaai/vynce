@@ -9,18 +9,43 @@ export default function EcosystemPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await api.get("/users/me");
-        setUser(res.data);
-      } catch (err) {
-        console.log("Not authenticated");
-        router.push("/auth/login");
-      }
-    };
+  const loadUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    loadUser();
-  }, [router]);
+      // ❌ No token at all → BUT guest login still sets a token!
+      if (!token) {
+        router.push("/auth/login");
+        return;
+      }
+
+      const res = await api.get("/users/me");
+      setUser(res.data);
+
+    } catch (err) {
+      console.log("Auth failed, checking guest account…");
+
+      // ✅ If it’s a guest session, allow entry
+      const guest = localStorage.getItem("guest_mode");
+
+      if (guest === "true") {
+        setUser({
+          username: "guest_user",
+          displayName: "Guest User",
+          level: 1,
+          energy: 1000,
+          uid: null,
+        });
+        return;
+      }
+
+      // ❌ otherwise login required
+      router.push("/auth/login");
+    }
+  };
+
+  loadUser();
+}, [router]);
 
   if (!user) {
     return (
@@ -35,9 +60,9 @@ export default function EcosystemPage() {
 
       {/* Profile Card */}
       <div className="mb-8">
-  <div className="bg-gradient-to-br from-pink-500/40 via-purple-600/40 to-indigo-600/40 p-[2px] rounded-3xl">
+  <div className="bg-gradient-to-br from-pink-500/95 via-purple-600/95 to-indigo-600/95 p-[2px] rounded-3xl">
     <div className="card-matte rounded-3xl p-5 flex items-center gap-4">
-      
+
       {/* Avatar */}
       <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold">
         {(user.displayName || user.username || "VN")
@@ -63,7 +88,7 @@ export default function EcosystemPage() {
 
         {/* Level */}
         <p className="text-sm text-gray-300 mt-1">
-          Level {user.level ?? 1} • Starter Tier
+          Level {user.level ?? 1}    Starter Tier
         </p>
       </div>
     </div>

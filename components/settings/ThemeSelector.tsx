@@ -8,6 +8,19 @@ import Link from "next/link";
 export function ThemeSelector() {
   const { currentTheme, setTheme, theme } = useTheme();
 
+  // 🔥 Add this here
+  const handleTheme = async (name: string) => {
+    try {
+      // instant UI update
+      setTheme(name);
+
+      // sync with backend
+      await api.patch("/users/theme", { theme: name });
+    } catch (err) {
+      console.log("Theme update failed", err);
+    }
+  };
+
   return (
     <div className="px-4 pb-28">
 
@@ -38,7 +51,7 @@ export function ThemeSelector() {
               {Object.values(categoryThemes).map((t) => (
                 <button
                   key={t.name}
-                  onClick={() => setTheme(t.name)}
+                  onClick={() => handleTheme(t.name)}
                   className={`
                     w-full p-4 rounded-2xl border flex items-center justify-between
                     transition-all bg-black/30

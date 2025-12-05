@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 import { useTheme } from "@/hooks/useTheme";
-import { Label } from "@/components/ui/label";
 
 export default function NotificationsPage() {
   const { theme } = useTheme();
@@ -10,6 +10,44 @@ export default function NotificationsPage() {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [systemEnabled, setSystemEnabled] = useState(true);
+
+  const [loading, setLoading] = useState(true);
+
+  // Load from backend
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await api.get("/users/me");
+
+        setPushEnabled(res.data.notifications?.push ?? true);
+        setEmailEnabled(res.data.notifications?.email ?? false);
+        setSystemEnabled(res.data.notifications?.system ?? true);
+      } catch (err) {
+        console.log("Failed to load notifications", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  // Save updates to backend
+  const save = async (updates: any) => {
+    try {
+      await api.patch("/users/notifications", updates);
+    } catch (e) {
+      console.log("Notification save failed", e);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="px-6 pb-28 pt-4 text-gray-400">
+        Loading notification settings...
+      </div>
+    );
+  }
 
   return (
     <div className="px-6 pb-28 pt-4">
@@ -38,7 +76,15 @@ export default function NotificationsPage() {
           <input
             type="checkbox"
             checked={pushEnabled}
-            onChange={() => setPushEnabled(!pushEnabled)}
+            onChange={() => {
+              const newVal = !pushEnabled;
+              setPushEnabled(newVal);
+              save({
+                push: newVal,
+                email: emailEnabled,
+                system: systemEnabled,
+              });
+            }}
             className="w-5 h-5 accent-blue-500"
           />
         </div>
@@ -59,7 +105,15 @@ export default function NotificationsPage() {
           <input
             type="checkbox"
             checked={emailEnabled}
-            onChange={() => setEmailEnabled(!emailEnabled)}
+            onChange={() => {
+              const newVal = !emailEnabled;
+              setEmailEnabled(newVal);
+              save({
+                push: pushEnabled,
+                email: newVal,
+                system: systemEnabled,
+              });
+            }}
             className="w-5 h-5 accent-blue-500"
           />
         </div>
@@ -80,7 +134,15 @@ export default function NotificationsPage() {
           <input
             type="checkbox"
             checked={systemEnabled}
-            onChange={() => setSystemEnabled(!systemEnabled)}
+            onChange={() => {
+              const newVal = !systemEnabled;
+              setSystemEnabled(newVal);
+              save({
+                push: pushEnabled,
+                email: emailEnabled,
+                system: newVal,
+              });
+            }}
             className="w-5 h-5 accent-blue-500"
           />
         </div>

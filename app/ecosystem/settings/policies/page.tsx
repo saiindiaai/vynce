@@ -7,106 +7,117 @@ export default function PoliciesPage() {
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Terms & Conditions – Vynce
+      <h1 className={`text-2xl font-bold mb-1 ${theme.textPrimary}`}>
+        Terms & Policies
       </h1>
+
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>
-        Last Updated: 2025
+        Updated • 2025
       </p>
 
-      <div className="card-matte rounded-2xl p-5 border border-white/10 space-y-5 text-sm leading-relaxed text-gray-300">
+      <div className="card-matte rounded-2xl p-6 border border-white/10 space-y-6 text-sm leading-relaxed text-gray-300">
 
         <p>
-          Welcome to Vynce. By using Vynce Social, Vynce Connect, Promptane, or Vynce Store, 
-          you agree to follow these terms.
+          By using Vynce Social, Vynce Connect, Promptane, or Vynce Store,
+          you are agreeing to the following rules and guidelines.
         </p>
 
-        {/* 1. ELIGIBILITY */}
-        <h3 className={`text-lg font-semibold ${theme.textPrimary}`}>1. ELIGIBILITY</h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Minimum age: No minimum age for Vynce Social & Promptane.</li>
-          <li>Minimum age: No minimum age for Vynce Connect (dating).</li>
-        </ul>
+        {/* SECTION */}
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            1. Eligibility
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>No minimum age for Vynce Social & Promptane.</li>
+            <li>No minimum age for Vynce Connect.</li>
+          </ul>
+        </section>
 
-        {/* 2. USER RESPONSIBILITIES */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          2. USER RESPONSIBILITIES
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>You are responsible for all activity on your account.</li>
-          <li>You can upload NSFW or harmful content by adding a censor or 18+ warning.</li>
-          <li>You can not upload NSFW or harmful content on non NSFW group or chat.</li>
-         <li>People mass reporting your account will ban your account.</li>  
-          <li>APK uploads must be safe, legal, and virus-free.</li>
-          <li>No harassment, abuse, threats, or scams.</li>
-          <li>No impersonation of people, brands, or celebrities.</li>
-          <li>Real identity, real people.</li>
-        </ul>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            2. User Responsibilities
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>You are responsible for all activity on your account.</li>
+            <li>NSFW content allowed only with censor or 18+ warning.</li>
+            <li>No NSFW in non-NSFW groups or chats.</li>
+            <li>Mass reports may trigger account bans.</li>
+            <li>APK uploads must be legal, safe, and virus-free.</li>
+            <li>No harassment, scams, threats, or abuse.</li>
+            <li>No impersonation of people, brands, or celebrities.</li>
+          </ul>
+        </section>
 
-        {/* 3. VYNCE CONNECT RULES */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          3. VYNCE CONNECT RULES
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Dating features require honest information.</li>
-          <li>Fake profiles, catfishing, or romantic scams are banned.</li>
-          <li>Your country identity will be needed before dating anyone.</li>
-          <li>Respect other users and maintain safety.</li>
-        </ul>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            3. Vynce Connect Rules
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Provide honest and real information.</li>
+            <li>No catfishing or romantic scams.</li>
+            <li>Your country identity is required for dating matches.</li>
+            <li>Respectful conduct is mandatory.</li>
+          </ul>
+        </section>
 
-        {/* 4. VYNCE STORE */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          4. VYNCE STORE (APK SHARING)
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Only upload apps you own or have permission to distribute.</li>
-          <li>No malware, illegal tools, hacking apps, or harmful files.</li>
-          <li>Vynce may scan APKs for safety.</li>
-        </ul>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            4. Vynce Store (APK Sharing)
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Upload only apps you own or are allowed to share.</li>
+            <li>No harmful, illegal, or malicious files.</li>
+            <li>Vynce may scan APKs for safety.</li>
+          </ul>
+        </section>
 
-        {/* 5. CONTENT OWNERSHIP */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          5. CONTENT OWNERSHIP
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>You own your content but give Vynce permission to show it.</li>
-          <li>We can remove content violating rules.</li>
-        </ul>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            5. Content Ownership
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>You own your content.</li>
+            <li>Vynce may display or remove content violating rules.</li>
+          </ul>
+        </section>
 
-        {/* 6. SAFETY & ENFORCEMENT */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          6. SAFETY & ENFORCEMENT
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>We may suspend or terminate accounts breaking the rules.</li>
-          <li>Severe cases may be reported to legal authorities.</li>
-        </ul>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            6. Safety & Enforcement
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Accounts violating rules may be suspended or terminated.</li>
+            <li>Severe cases may be escalated to authorities.</li>
+          </ul>
+        </section>
 
-        {/* 7. LIMITATION OF LIABILITY */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          7. LIMITATION OF LIABILITY
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>We are not responsible for losses caused by misuse of the app.</li>
-          <li>Services may face downtime during updates or technical issues.</li>
-        </ul>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            7. Limitation of Liability
+          </h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Vynce is not responsible for losses caused by misuse.</li>
+            <li>Services may temporarily go offline for maintenance.</li>
+          </ul>
+        </section>
 
-        {/* 8. CHANGES */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          8. CHANGES TO TERMS
-        </h3>
-        <p>
-          We may modify these Terms. Continued use means acceptance.
-        </p>
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            8. Changes to Terms
+          </h3>
+          <p>
+            Policies may be updated at any time. Continued use means acceptance.
+          </p>
+        </section>
 
-        {/* 9. CONTACT */}
-        <h3 className={`text-lg font-semibold mt-4 ${theme.textPrimary}`}>
-          9. CONTACT
-        </h3>
-        <p>
-          For support: <span className="text-gray-200">vynce.founders@gmail.com</span>
-        </p>
-
+        <section>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
+            9. Contact
+          </h3>
+          <p>
+            For support: <span className="text-gray-200">vynce.founders@gmail.com</span>
+          </p>
+        </section>
       </div>
     </div>
   );

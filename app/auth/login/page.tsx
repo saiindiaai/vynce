@@ -44,17 +44,18 @@ export default function LoginPage() {
 
   // ---- GUEST LOGIN ----
   const handleGuest = async () => {
-    try {
-      const res = await api.post("/auth/guest");
+  try {
+    const res = await api.post("/auth/guest");
 
-      localStorage.setItem("token", res.data.token);
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("guest_mode", "true");
 
-      // Guest skips onboarding
-      router.push("/auth/onboarding-complete");
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    router.push("/ecosystem");
+  } catch (err) {
+    console.log(err);
+    alert("Guest login failed");
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4">

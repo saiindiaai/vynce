@@ -81,14 +81,24 @@ exports.guestLogin = async (req, res) => {
 
     const user = await User.create({
       username: `guest_${random}`,
-      password: "",
+      password: "guest_temp",       // dummy password to satisfy schema
       displayName: "Guest User",
       accountType: "guest",
-      uid: null, // guests have no UID
+      uid: "G" + random,            // generate UID for guest
+      level: 1,                     // guest must have level
+      energy: 1000,                 // guest must have energy
+      bio: "",
+      installedApps: [],
+      accountInfo: {},
     });
 
     res.json({
-      user,
+      user: {
+        uid: user.uid,
+        username: user.username,
+        displayName: user.displayName,
+        accountType: user.accountType,
+      },
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -103,15 +113,42 @@ exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password");
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.json({
-      uid: user.uid,
+      uid: user.uid || "GUEST",
       username: user.username,
       displayName: user.displayName,
-      level: user.level,
-      energy: user.energy,
+      level: user.level ?? 1,
+      energy: user.energy ?? 1000,
       accountType: user.accountType,
       createdAt: user.createdAt,
     });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// LOGOUT USER (auto-delete guest accounts)
+exports.logoutUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // If guest → delete account fully
+    if (user.accountType === "guest") {
+      await User.findByIdAndDelete(req.userId);
+      return res.json({ message: "Guest account deleted" });
+    }
+
+    // Standard users → just respond success
+    return res.json({ message: "Logout successful" });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -290,6 +327,105 @@ exports.updateEnergy = async (req, res) => {
     ).select("-password");
 
     res.json({ message: "Energy updated", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// notification
+exports.updateNotifications = async (req, res) => {
+  try {
+    const { push, email, system } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { notifications: { push, email, system } },
+      { new: true }
+    ).select("-password");
+
+    res.json({ message: "Notifications updated", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// UPDATE PRIVACY SETTINGS
+exports.updatePrivacy = async (req, res) => {
+  try {
+    const { profileVisibility, searchVisibility, dataConsent } = req.body;
+
+    const updates = {};
+    if (profileVisibility) updates.profileVisibility = profileVisibility;
+    if (typeof searchVisibility === "boolean")
+      updates.searchVisibility = searchVisibility;
+    if (typeof dataConsent === "boolean")
+      updates.dataConsent = dataConsent;
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      updates,
+      { new: true }
+    ).select("-password");
+
+    res.json({ message: "Privacy settings updated", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// DELETE ACCOUNT
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    // Remove user from DB
+    await User.findByIdAndDelete(userId);
+
+    return res.json({ message: "Account deleted successfully" });
+  } catch (err) {
+    console.log("Delete error:", err);
+    res.status(500).json({ message: "Failed to delete account" });
+  }
+};
+
+// search
+exports.searchUsers = async (req, res) => {
+  try {
+    const q = req.query.q;
+    if (!q) return res.json([]);
+
+    const users = await User.find({
+      username: { $regex: q, $options: "i" }
+    }).select("username displayName _id");
+
+    res.json(users);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+// notification
+exports.getNotifications = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("notifications");
+    res.json(user.notifications || []);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+// GET PUBLIC PROFILE
+exports.getPublicProfile = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({ username }).select(
+      "username displayName uid level bio energy"
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
