@@ -16,7 +16,12 @@ const {
   getNotifications,
   getPublicProfile,
   logoutUser,
-  deleteAccount
+  deleteAccount,
+  getProfileCard,
+  updateShowcase,
+  getCelestium,
+  addCelestiumTransaction,
+  updateProfileShowcase
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -69,4 +74,19 @@ router.delete('/apps', protect, removeInstalledApp);
 router.get('/energy', protect, getEnergy);
 router.patch('/energy', protect, updateEnergy);
 
+// CELESTIUM 
+router.get("/celestium", protect, getCelestium);
+
+// Add Celestium earned/spent transaction
+router.post("/celestium/transaction", protect, addCelestiumTransaction);
+
 module.exports = router;
+
+// Profile card data (ecosystem hero card)
+router.get("/profile-card", protect, getProfileCard);
+
+// Update showcase slots (3 inventory, 3 achievements, 3 dares)
+router.put("/profile-card/showcase", protect, updateProfileShowcase);
+
+router.patch("/profile-card/showcase", protect, updateShowcase);
+

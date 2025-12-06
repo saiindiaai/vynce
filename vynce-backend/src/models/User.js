@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    /* -------------------------
+       CORE IDENTITY
+    ------------------------- */
     uid: {
       type: String,
       unique: true,
@@ -30,9 +33,27 @@ const userSchema = new mongoose.Schema(
       default: "standard",
     },
 
+    avatar: {
+      type: String,
+      default: "",
+    },
+
+    country: {
+      type: String,
+      default: "",
+    },
+
+    /* -------------------------
+       LEVELING & ECONOMY
+    ------------------------- */
     level: {
       type: Number,
       default: 1,
+    },
+
+    xp: {
+      type: Number,
+      default: 0,
     },
 
     energy: {
@@ -40,8 +61,64 @@ const userSchema = new mongoose.Schema(
       default: 1000,
     },
 
+    celestium: {
+  type: Number,
+  default: 0,
+},
+
+celestiumTransactions: [
+  {
+    type: { type: String, enum: ["earned", "spent"], required: true },
+    amount: { type: Number, required: true },
+    note: { type: String, default: "" },
+    date: { type: Date, default: Date.now },
+  }
+],
+
+    energyHistory: [
+      {
+        amount: Number,
+        reason: String,
+        date: { type: Date, default: Date.now },
+      },
+    ],
+
+    inventory: [
+      {
+        key: String,
+        name: String,
+        permanent: { type: Boolean, default: false },
+        acquiredAt: { type: Date, default: Date.now },
+        expiresAt: { type: Date, default: null },
+        meta: { type: Object, default: {} },
+      },
+    ],
+
+    badges: {
+      type: [String],
+      default: [],
+    },
+
+  /* -------------------------
+     PROFILE SHOWCASE SLOTS
+     ------------------------- */
+  showcase: {
+    inventory: {
+      type: [String],      // store item keys the user wants to flex
+      default: []
+    },
+    achievements: {
+      type: [String],      // achievement / badge keys to flex
+      default: []
+    },
+    dares: {
+      type: [String],      // completed dare IDs or titles
+      default: []
+    }
+  },
+
     /* -------------------------
-       GLOBAL BIO
+       PROFILE DETAILS
     ------------------------- */
     bio: {
       type: String,
@@ -49,20 +126,64 @@ const userSchema = new mongoose.Schema(
       maxlength: 300,
     },
 
-    /* -------------------------
-       INSTALLED APPS
-    ------------------------- */
     installedApps: {
       type: [String],
       default: [],
     },
 
+    profileUpdatedAt: {
+      type: Date,
+      default: null,
+    },
+
+    ageVerified: {
+      type: Boolean,
+      default: false,
+    },
+
     /* -------------------------
-       PROFILE AVATAR
+       THEME SETTINGS
     ------------------------- */
-    avatar: {
+    theme: {
       type: String,
-      default: "",
+      default: "Monochrome Royale",
+    },
+
+    /* -------------------------
+       NOTIFICATION SYSTEM
+    ------------------------- */
+
+    // USER NOTIFICATION PREFERENCES
+    notificationSettings: {
+      general: { type: Boolean, default: true },
+      messages: { type: Boolean, default: true },
+      appUpdates: { type: Boolean, default: true },
+      marketing: { type: Boolean, default: false },
+    },
+
+    // NOTIFICATION INBOX
+    notifications: [
+      {
+        title: String,
+        message: String,
+        date: { type: Date, default: Date.now },
+        read: { type: Boolean, default: false },
+      },
+    ],
+
+    /* -------------------------
+       PRIVACY SETTINGS
+    ------------------------- */
+    privacy: {
+      visibility: {
+        type: String,
+        enum: ["public", "friends", "private"],
+        default: "public",
+      },
+      searchable: { type: Boolean, default: true },
+      showActivity: { type: Boolean, default: true },
+      showLastSeen: { type: Boolean, default: false },
+      dataConsent: { type: Boolean, default: true },
     },
 
     /* -------------------------
@@ -72,87 +193,9 @@ const userSchema = new mongoose.Schema(
       email: { type: String, default: "" },
       phone: { type: String, default: "" },
     },
-
-    profileUpdatedAt: {
-      type: Date,
-      default: null,
-    },
-
-    country: {
-      type: String,
-      default: "",
-    },
-
-    /* -------------------------
-       ENERGY LOG
-    ------------------------- */
-    energyHistory: [
-      {
-        amount: Number,
-        reason: String,
-        date: { type: Date, default: Date.now },
-      },
-    ],
-
-    ageVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    /* -------------------------
-       THEME SETTINGS  (NEW)
-    ------------------------- */
-    theme: {
-      type: String,
-      default: "Monochrome Royale",
-    },
-
-    /* -------------------------
-       NOTIFICATION SETTINGS (NEW)
-    ------------------------- */
-    notifications: {
-      general: { type: Boolean, default: true },
-      messages: { type: Boolean, default: true },
-      appUpdates: { type: Boolean, default: true },
-      marketing: { type: Boolean, default: false },
-    },
-
-profileVisibility: {
-  type: String,
-  enum: ["public", "friends", "private"],
-  default: "public",
-},
-
-notifications: [
-  {
-    title: String,
-    message: String,
-    date: { type: Date, default: Date.now },
-    read: { type: Boolean, default: false }
-  }
-],
-
-searchVisibility: {
-  type: Boolean,
-  default: true,
-},
-
-dataConsent: {
-  type: Boolean,
-  default: true,
-},
-
-    /* -------------------------
-       PRIVACY SETTINGS (NEW)
-    ------------------------- */
-    privacy: {
-      showProfile: { type: Boolean, default: true },
-      showActivity: { type: Boolean, default: true },
-      showLastSeen: { type: Boolean, default: false },
-      searchable: { type: Boolean, default: true },
-    },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("User", userSchema);
+

@@ -86,29 +86,16 @@ body {
 
 .matte-bg {
   background:
-    /* Remove radial glow — only keep diagonal stripe texture */
     repeating-linear-gradient(
       45deg,
-      rgba(255, 255, 255, 0.015) 0px,
-      rgba(255, 255, 255, 0.015) 2px,
+      rgba(200, 200, 255, 0.015) 0px,   /* bluish-neutral highlight */
+      rgba(200, 200, 255, 0.015) 2px,
       transparent 2px,
       transparent 6px
     ),
-    #0a0a0f; /* Base dark color */
+    #0a0a0f;
 }
 
-/* Soft vignette stays */
-.matte-bg::before {
-  content: "";
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle,
-    transparent 40%,
-    rgba(0, 0, 0, 0.55)
-  );
-}
 
 /* === Matte Texture Layer for Cards === */
 .card-matte {
@@ -124,34 +111,110 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.16; /* matte intensity */
+  opacity: 0.16;
   background:
-    /* diagonal texture */
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.02) 0px,
-      rgba(255, 255, 255, 0.02) 2px,
+      rgba(200, 200, 255, 0.02) 0px,
+      rgba(200, 200, 255, 0.02) 2px,
       transparent 2px,
       transparent 6px
     );
 }
 
-/* optional soft vignette inside the cards */
-.card-matte::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    circle,
-    transparent 40%,
-    rgba(0, 0, 0, 0.35)
-  );
-}
 
 /* === Elevated Card Shadow (Core Apps) === */
 .card-elevated {
   box-shadow:
     0px 4px 12px rgba(0, 0, 0, 0.45),
     0px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* Matte diagonal texture for hero card */
+.card-matte-hero {
+  position: relative;
+  background: #0a0a0d; /* base */
+  overflow: hidden;
+}
+
+/* diagonal texture layer */
+.card-matte-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
+
+/* ========== LIQUID METAL BORDER ========== */
+
+.liquid-metal-border {
+  background: linear-gradient(
+    120deg,
+    #ffffff,
+    #dcdcdc,
+    #9a9a9a,
+    #f0f0f0,
+    #b0b0b0
+  );
+  background-size: 300% 300%;
+  animation: liquid-metal-flow 10s ease-in-out infinite;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.12);
+}
+
+/* If you ever want a subtler variant for small elements */
+.liquid-metal-border-soft {
+  background: linear-gradient(
+    120deg,
+    #f5f5f5,
+    #dadada,
+    #a0a0a0,
+    #e8e8e8
+  );
+  background-size: 260% 260%;
+  animation: liquid-metal-flow 14s ease-in-out infinite;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+@keyframes liquid-metal-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* DARK matte diagonal texture for hero card (back to original vibe) */
+.card-matte-dark {
+  position: relative;
+  background: #0b0b0e; /* deeper dark base */
+  overflow: hidden;
+}
+
+/* subtle diagonal texture */
+.card-matte-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08; /* lowered to avoid visible tint */
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.015) 0px,
+    rgba(255, 255, 255, 0.015) 2px,
+    transparent 2px,
+    transparent 6px
+  );
 }
