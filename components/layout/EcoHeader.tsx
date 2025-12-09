@@ -11,18 +11,14 @@ export default function EcoHeader() {
   return (
     <div className="w-full bg-[#0d0d15]/95 backdrop-blur-xl border-b border-white/10 px-4 py-4">
       <div className="flex items-center justify-between">
-
         {/* LEFT — BRAND */}
         <div>
           <h1 className="text-4xl font-bold text-blue-400">Vynce</h1>
-          <p className="text-sm text-gray-300 -mt-1">
-            Your Multi-App Universe
-          </p>
+          <p className="text-sm text-gray-300 -mt-1">Your Multi-App Universe</p>
         </div>
 
         {/* RIGHT — ICON ACTIONS */}
         <div className="flex items-center gap-5">
-
           {/* SEARCH */}
           <button
             onClick={() => router.push("/ecosystem/search")}
@@ -52,7 +48,6 @@ export default function EcoHeader() {
               1
             </span>
           </button>
-
         </div>
       </div>
     </div>

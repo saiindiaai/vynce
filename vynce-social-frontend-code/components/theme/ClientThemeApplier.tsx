@@ -16,7 +16,7 @@ import { getAllThemes } from "@/config/themes";
 export default function ClientThemeApplier() {
   const currentTheme = useAppStore((s) => s.currentTheme);
   const allThemes = getAllThemes();
-const themeClasses = allThemes[currentTheme] || allThemes['Vynce Nebula'];
+  const themeClasses = allThemes[currentTheme] || allThemes["Vynce Nebula"];
   const prevClassRef = useRef<string | null>(null);
 
   useEffect(() => {

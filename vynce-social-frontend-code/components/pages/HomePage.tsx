@@ -55,7 +55,17 @@ const posts = [
 ];
 
 export default function HomePage() {
-  const { likedPosts, dislikedPosts, savedPosts, toggleLike, toggleDislike, toggleSave, currentCapsuleIndex, setCurrentCapsuleIndex, setCurrentPage } = useAppStore();
+  const {
+    likedPosts,
+    dislikedPosts,
+    savedPosts,
+    toggleLike,
+    toggleDislike,
+    toggleSave,
+    currentCapsuleIndex,
+    setCurrentCapsuleIndex,
+    setCurrentPage,
+  } = useAppStore();
 
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [activeShare, setActiveShare] = useState<number | null>(null);
@@ -77,18 +87,20 @@ export default function HomePage() {
               aria-label={`View story from ${story.username}`}
             >
               {/* Gradient Ring (like Instagram) */}
-              <div className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${story.gradient} p-0.5`}>
+              <div
+                className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${story.gradient} p-0.5`}
+              >
                 {/* Inner Avatar */}
                 <div className="relative w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-2xl font-bold border-2 border-slate-900">
                   {story.isYou ? "👤" : story.username.charAt(0).toUpperCase()}
-                  
+
                   {/* Online Status Indicator (like Instagram) */}
                   {story.hasNew && (
                     <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-slate-900 ring-2 ring-blue-500/30" />
                   )}
                 </div>
               </div>
-              
+
               {/* Username below */}
               <span className="text-xs text-center mt-2 block text-slate-400 group-hover:text-slate-300 truncate w-16">
                 {story.isYou ? "Your story" : story.username.split("_")[0]}
@@ -146,9 +158,15 @@ export default function HomePage() {
 
               {/* Engagement Stats */}
               <div className="text-xs text-slate-400 flex gap-4 mb-3 pb-3 border-b border-slate-700/30">
-                <button className="hover:text-slate-200 transition-colors">{currentAura} Aura</button>
-                <button className="hover:text-slate-200 transition-colors">{post.comments} Replies</button>
-                <button className="hover:text-slate-200 transition-colors">{post.shares} Shares</button>
+                <button className="hover:text-slate-200 transition-colors">
+                  {currentAura} Aura
+                </button>
+                <button className="hover:text-slate-200 transition-colors">
+                  {post.comments} Replies
+                </button>
+                <button className="hover:text-slate-200 transition-colors">
+                  {post.shares} Shares
+                </button>
               </div>
 
               {/* Action Buttons */}
@@ -158,13 +176,19 @@ export default function HomePage() {
                   onClick={() => {
                     toggleLike(post.id);
                     if (!isLiked) {
-                      earnXp(useAppStore.getState(), getXpReward('like_post'), 'Post Liked');
+                      earnXp(useAppStore.getState(), getXpReward("like_post"), "Post Liked");
                     }
                   }}
                   className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${
-                    isLiked ? "bg-slate-800 text-purple-400" : "text-slate-400 hover:bg-slate-800/50 hover:text-purple-300"
+                    isLiked
+                      ? "bg-slate-800 text-purple-400"
+                      : "text-slate-400 hover:bg-slate-800/50 hover:text-purple-300"
                   }`}
-                  aria-label={isLiked ? `Remove Aura from ${post.user}'s post` : `Give Aura to ${post.user}'s post`}
+                  aria-label={
+                    isLiked
+                      ? `Remove Aura from ${post.user}'s post`
+                      : `Give Aura to ${post.user}'s post`
+                  }
                   title="Aura"
                 >
                   <Heart size={14} fill={isLiked ? "currentColor" : "none"} />
@@ -175,9 +199,15 @@ export default function HomePage() {
                 <button
                   onClick={() => toggleDislike(post.id)}
                   className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${
-                    isDisliked ? "bg-slate-800 text-orange-400" : "text-slate-400 hover:bg-slate-800/50 hover:text-orange-300"
+                    isDisliked
+                      ? "bg-slate-800 text-orange-400"
+                      : "text-slate-400 hover:bg-slate-800/50 hover:text-orange-300"
                   }`}
-                  aria-label={isDisliked ? `Remove Lame from ${post.user}'s post` : `Mark ${post.user}'s post as Lame`}
+                  aria-label={
+                    isDisliked
+                      ? `Remove Lame from ${post.user}'s post`
+                      : `Mark ${post.user}'s post as Lame`
+                  }
                   title="Lame"
                 >
                   <ThumbsDown size={14} />
@@ -207,7 +237,9 @@ export default function HomePage() {
                 <button
                   onClick={() => toggleSave(post.id)}
                   className={`flex-1 flex items-center justify-center py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] min-w-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${
-                    isSaved ? "text-yellow-400 bg-slate-800" : "text-slate-400 hover:text-yellow-300 hover:bg-slate-800/50"
+                    isSaved
+                      ? "text-yellow-400 bg-slate-800"
+                      : "text-slate-400 hover:text-yellow-300 hover:bg-slate-800/50"
                   }`}
                   aria-label={isSaved ? "Remove from saved" : "Save this post"}
                   title="Save"

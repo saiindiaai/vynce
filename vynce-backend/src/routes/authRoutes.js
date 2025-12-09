@@ -1,10 +1,5 @@
 const express = require("express");
-const {
-  registerUser,
-  loginUser,
-  guestLogin,
-  getMe,
-} = require("../controllers/userController");
+const { registerUser, loginUser, guestLogin, getMe } = require("../controllers/userController");
 
 const { protect } = require("../middleware/authMiddleware");
 

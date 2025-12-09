@@ -23,27 +23,23 @@ export default function DisplayNamePage() {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: any) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    await api.patch("/users/displayname", { displayName });
-    router.push("/auth/agecheck");
-  } catch (err) {
-    console.log(err);
-    setError("Failed to update display name");
-  }
-};
+    try {
+      await api.patch("/users/displayname", { displayName });
+      router.push("/auth/agecheck");
+    } catch (err) {
+      console.log(err);
+      setError("Failed to update display name");
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Choose Display Name
-          </CardTitle>
-          <CardDescription>
-            Enter the name you want others to see
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold">Choose Display Name</CardTitle>
+          <CardDescription>Enter the name you want others to see</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -58,9 +54,7 @@ export default function DisplayNamePage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
               />
-              <p className="text-sm text-muted-foreground">
-                This is visible publicly.
-              </p>
+              <p className="text-sm text-muted-foreground">This is visible publicly.</p>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -72,10 +66,7 @@ export default function DisplayNamePage() {
         </CardContent>
 
         <CardFooter>
-          <Link
-            href="/auth/register"
-            className="text-sm text-muted-foreground hover:text-primary"
-          >
+          <Link href="/auth/register" className="text-sm text-muted-foreground hover:text-primary">
             Back
           </Link>
         </CardFooter>

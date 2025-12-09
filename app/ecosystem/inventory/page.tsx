@@ -34,12 +34,9 @@ export default function InventoryPage() {
 
   return (
     <div className="px-4 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>
-        Inventory
-      </h1>
+      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>Inventory</h1>
 
       <div className="space-y-6">
-        
         {/* Balance */}
         <div className="card-matte p-4 rounded-2xl border border-white/10">
           <p>⚡ Energy: {energy}</p>
@@ -55,9 +52,7 @@ export default function InventoryPage() {
               className="card-matte p-4 rounded-2xl border border-white/10"
             >
               <p className="font-semibold">{item.name}</p>
-              <p className="text-gray-400 text-sm">
-                {item.permanent ? "Permanent" : "Temporary"}
-              </p>
+              <p className="text-gray-400 text-sm">{item.permanent ? "Permanent" : "Temporary"}</p>
 
               {!item.permanent && item.expiresAt && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -82,7 +77,6 @@ export default function InventoryPage() {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -58,9 +58,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create account</CardTitle>
-          <CardDescription>
-            Pick a unique username and a secure password.
-          </CardDescription>
+          <CardDescription>Pick a unique username and a secure password.</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -107,18 +105,12 @@ export default function RegisterPage() {
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link
-              href="/auth/login"
-              className="text-primary hover:underline font-medium"
-            >
+            <Link href="/auth/login" className="text-primary hover:underline font-medium">
               Login
             </Link>
           </div>
 
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-primary"
-          >
+          <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
             Back
           </Link>
         </CardFooter>

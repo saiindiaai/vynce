@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Heart, MessageCircle, Share2, MoreVertical } from 'lucide-react';
+import React from "react";
+import { Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
 
 interface DropCardProps {
   drop: any;
@@ -14,7 +14,7 @@ interface DropCardProps {
   onComment?: () => void;
   onShare?: () => void;
   onMenu?: () => void;
-  variant?: 'default' | 'compact';
+  variant?: "default" | "compact";
 }
 
 export default function DropCard({
@@ -28,7 +28,7 @@ export default function DropCard({
   onComment,
   onShare,
   onMenu,
-  variant = 'default',
+  variant = "default",
 }: DropCardProps) {
   const currentAura = isLiked ? drop.aura + 1 : isDisliked ? drop.aura - 1 : drop.aura;
 
@@ -39,7 +39,9 @@ export default function DropCard({
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 flex-1">
-          <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${themeClasses.primary} flex-shrink-0`} />
+          <div
+            className={`w-12 h-12 rounded-full bg-gradient-to-br ${themeClasses.primary} flex-shrink-0`}
+          />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className={`font-bold ${themeClasses.textPrimary}`}>{drop.user}</span>
@@ -76,10 +78,10 @@ export default function DropCard({
           <button
             onClick={onLike}
             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-              isLiked ? 'text-red-500' : themeClasses.textSecondary
+              isLiked ? "text-red-500" : themeClasses.textSecondary
             } hover:bg-gray-800/50`}
           >
-            <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} />
+            <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
             <span className="text-sm hidden sm:inline">Aura</span>
           </button>
         )}

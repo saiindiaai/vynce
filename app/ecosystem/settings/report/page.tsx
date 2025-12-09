@@ -9,16 +9,10 @@ export default function ReportPage() {
 
   return (
     <div className="px-6 pb-28 pt-4">
-
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Policies & Reports
-      </h1>
-      <p className={`text-sm mb-6 ${theme.textSecondary}`}>
-        The boring but important stuff.
-      </p>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Policies & Reports</h1>
+      <p className={`text-sm mb-6 ${theme.textSecondary}`}>The boring but important stuff.</p>
 
       <div className="space-y-4">
-
         {/* PRIVACY POLICY */}
         <Link href="/ecosystem/settings/report/privacy-policy" className="block">
           <div className="rounded-3xl p-4 bg-[#0b0f17]/80 border border-white/10 flex items-center justify-between">
@@ -31,7 +25,7 @@ export default function ReportPage() {
                 <p className="text-gray-400 text-sm">How we handle your data.</p>
               </div>
             </div>
-            <span className="text-gray-400"> > </span>
+            <span className="text-gray-400">{">"}</span>
           </div>
         </Link>
 
@@ -47,10 +41,9 @@ export default function ReportPage() {
                 <p className="text-gray-400 text-sm">Report issues or a user.</p>
               </div>
             </div>
-            <span className="text-gray-400"> > </span>
+            <span className="text-gray-400">{">"}</span>
           </div>
         </Link>
-
       </div>
     </div>
   );

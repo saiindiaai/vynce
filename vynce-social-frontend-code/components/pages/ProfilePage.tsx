@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Camera, Plus, FileText, Zap, Bookmark, Heart, Sparkles } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import React, { useState } from "react";
+import { Camera, Plus, FileText, Zap, Bookmark, Heart, Sparkles } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 const profileSections = [
-  { id: 'drops', label: 'Your Drops', icon: FileText, count: 127 },
-  { id: 'moments', label: 'Moments', icon: Zap, count: 89 },
-  { id: 'boards', label: 'Boards', icon: Bookmark, count: 12 },
-  { id: 'saved', label: 'Saved', icon: Heart, count: 234 },
-  { id: 'aura', label: 'Your Aura', icon: Sparkles, count: '12.4K' }
+  { id: "drops", label: "Your Drops", icon: FileText, count: 127 },
+  { id: "moments", label: "Moments", icon: Zap, count: 89 },
+  { id: "boards", label: "Boards", icon: Bookmark, count: 12 },
+  { id: "saved", label: "Saved", icon: Heart, count: 234 },
+  { id: "aura", label: "Your Aura", icon: Sparkles, count: "12.4K" },
 ];
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('drops');
+  const [activeTab, setActiveTab] = useState("drops");
 
   return (
     <div className="animate-fadeIn pb-20">
@@ -37,7 +37,9 @@ export default function ProfilePage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-2xl font-bold text-slate-50">Your Profile</h2>
-            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-xs text-white">✓</div>
+            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-xs text-white">
+              ✓
+            </div>
           </div>
           <p className="text-slate-400 mb-3">@username</p>
           <p className="text-slate-200 text-sm leading-relaxed">
@@ -76,8 +78,8 @@ export default function ProfilePage() {
               onClick={() => setActiveTab(section.id)}
               className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 animate-slideIn ${
                 activeTab === section.id
-                  ? 'bg-slate-800 text-slate-50'
-                  : 'bg-slate-800/50 text-slate-300 hover:bg-slate-800/70'
+                  ? "bg-slate-800 text-slate-50"
+                  : "bg-slate-800/50 text-slate-300 hover:bg-slate-800/70"
               }`}
               style={{ animationDelay: `${idx * 50}ms` }}
             >
@@ -91,20 +93,23 @@ export default function ProfilePage() {
 
         {/* Content Area */}
         <div className="clean-card p-6 min-h-[400px] flex flex-col items-center justify-center">
-          {activeTab === 'drops' && (
+          {activeTab === "drops" && (
             <div className="text-center animate-fadeIn w-full">
               <FileText size={64} className="text-slate-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-50 mb-2">Your Drops</h3>
               <p className="text-slate-400 mb-6">Content coming soon...</p>
               <div className="grid grid-cols-3 gap-2">
-                {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className="aspect-square rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer" />
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer"
+                  />
                 ))}
               </div>
             </div>
           )}
 
-          {activeTab === 'moments' && (
+          {activeTab === "moments" && (
             <div className="text-center animate-fadeIn">
               <Zap size={64} className="text-slate-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-50 mb-2">Moments</h3>
@@ -112,7 +117,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {activeTab === 'boards' && (
+          {activeTab === "boards" && (
             <div className="text-center animate-fadeIn">
               <Bookmark size={64} className="text-slate-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-50 mb-2">Boards</h3>
@@ -120,7 +125,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {activeTab === 'saved' && (
+          {activeTab === "saved" && (
             <div className="text-center animate-fadeIn">
               <Heart size={64} className="text-slate-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-50 mb-2">Saved</h3>
@@ -128,7 +133,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {activeTab === 'aura' && (
+          {activeTab === "aura" && (
             <div className="text-center animate-fadeIn w-full">
               <div className="w-32 h-32 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 mx-auto mb-4 flex items-center justify-center">
                 <Sparkles size={64} className="text-white" />

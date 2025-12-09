@@ -1,33 +1,46 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { X, Home, Zap, Bell, User, MessageCircle, ChevronDown, Code, Activity, Bookmark, AlertCircle, Radio } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import React, { useState } from "react";
+import {
+  X,
+  Home,
+  Zap,
+  Bell,
+  User,
+  MessageCircle,
+  ChevronDown,
+  Code,
+  Activity,
+  Bookmark,
+  AlertCircle,
+  Radio,
+} from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 export default function Sidebar() {
   const { currentPage, setCurrentPage, sidebarOpen, setSidebarOpen } = useAppStore();
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const menuItems = [
-    { id: 'home' as const, label: 'Home', icon: Home },
-    { id: 'capsules' as const, label: 'Capsules', icon: MessageCircle },
-    { id: 'drops' as const, label: 'Drops', icon: MessageCircle },
-    { id: 'fight' as const, label: 'Fight', icon: Zap },
-    { id: 'vynce_house' as const, label: 'Vynce House', icon: Radio },
-    { id: 'explore' as const, label: 'Explore', icon: Home },
-    { id: 'profile' as const, label: 'Profile', icon: User },
+    { id: "home" as const, label: "Home", icon: Home },
+    { id: "capsules" as const, label: "Capsules", icon: MessageCircle },
+    { id: "drops" as const, label: "Drops", icon: MessageCircle },
+    { id: "fight" as const, label: "Fight", icon: Zap },
+    { id: "vynce_house" as const, label: "Vynce House", icon: Radio },
+    { id: "explore" as const, label: "Explore", icon: Home },
+    { id: "profile" as const, label: "Profile", icon: User },
   ];
 
   const moreMenuItems = [
-    { id: 'creator_hub' as const, label: 'Creator Hub', icon: Code },
-    { id: 'activity' as const, label: 'Your Activity', icon: Activity },
-    { id: 'saved' as const, label: 'Saved', icon: Bookmark },
-    { id: 'report' as const, label: 'Report a Problem', icon: AlertCircle },
+    { id: "creator_hub" as const, label: "Creator Hub", icon: Code },
+    { id: "activity" as const, label: "Your Activity", icon: Activity },
+    { id: "saved" as const, label: "Saved", icon: Bookmark },
+    { id: "report" as const, label: "Report a Problem", icon: AlertCircle },
   ];
 
   const handleNavClick = (pageId: typeof currentPage) => {
     setCurrentPage(pageId);
-    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
       setSidebarOpen(false);
     }
   };
@@ -47,9 +60,9 @@ export default function Sidebar() {
       {/* Sidebar */}
       <div
         className={`${
-          sidebarOpen ? 'fixed' : 'hidden sm:block'
+          sidebarOpen ? "fixed" : "hidden sm:block"
         } top-14 left-0 right-0 sm:relative sm:top-0 sm:w-60 w-full h-[calc(100vh-3.5rem-5rem)] sm:h-auto sm:border-r border-b sm:border-b-0 border-slate-700/50 z-30 sm:z-auto bg-slate-900 overflow-y-auto ${
-          sidebarOpen ? 'animate-slideInLeft' : ''
+          sidebarOpen ? "animate-slideInLeft" : ""
         }`}
       >
         <div className="p-4 space-y-6">
@@ -83,10 +96,10 @@ export default function Sidebar() {
                 onClick={() => handleNavClick(id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 min-h-[40px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
                   currentPage === id
-                    ? 'bg-slate-800 text-slate-50 shadow-sm'
-                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-slate-50'
+                    ? "bg-slate-800 text-slate-50 shadow-sm"
+                    : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
                 }`}
-                aria-label={`${label}${currentPage === id ? ' (current)' : ''}`}
+                aria-label={`${label}${currentPage === id ? " (current)" : ""}`}
               >
                 <Icon size={20} className="flex-shrink-0" />
                 <span className="font-medium text-sm">{label}</span>
@@ -103,8 +116,8 @@ export default function Sidebar() {
               onClick={() => setMoreMenuOpen(!moreMenuOpen)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 min-h-[40px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
                 moreMenuOpen
-                  ? 'bg-slate-800 text-slate-50 shadow-sm'
-                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-slate-50'
+                  ? "bg-slate-800 text-slate-50 shadow-sm"
+                  : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
               }`}
               aria-label="More menu"
             >
@@ -113,9 +126,7 @@ export default function Sidebar() {
               </div>
               <ChevronDown
                 size={18}
-                className={`transition-transform duration-200 ${
-                  moreMenuOpen ? 'rotate-180' : ''
-                }`}
+                className={`transition-transform duration-200 ${moreMenuOpen ? "rotate-180" : ""}`}
               />
             </button>
 
@@ -131,10 +142,10 @@ export default function Sidebar() {
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
                       currentPage === id
-                        ? 'bg-slate-700 text-slate-50 shadow-sm'
-                        : 'text-slate-400 hover:bg-slate-700/40 hover:text-slate-300'
+                        ? "bg-slate-700 text-slate-50 shadow-sm"
+                        : "text-slate-400 hover:bg-slate-700/40 hover:text-slate-300"
                     }`}
-                    aria-label={`${label}${currentPage === id ? ' (current)' : ''}`}
+                    aria-label={`${label}${currentPage === id ? " (current)" : ""}`}
                   >
                     <Icon size={16} className="flex-shrink-0" />
                     <span className="font-medium text-xs">{label}</span>

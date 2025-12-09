@@ -5,11 +5,7 @@ exports.setTheme = async (req, res) => {
     const { theme } = req.body;
     const userId = req.user.id;
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { theme },
-      { new: true }
-    );
+    const user = await User.findByIdAndUpdate(userId, { theme }, { new: true });
 
     res.json({ message: "Theme updated", theme: user.theme });
   } catch (err) {

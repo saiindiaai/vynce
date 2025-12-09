@@ -38,7 +38,6 @@ export default function EnergyPage() {
 
   return (
     <div className="px-5 pb-20">
-
       {/* HEADER */}
       <div className="flex items-center gap-3 py-4">
         <Link href="/ecosystem/profile">
@@ -57,15 +56,11 @@ export default function EnergyPage() {
       </div>
 
       {/* HISTORY TITLE */}
-      <h2 className={`text-lg font-semibold mb-3 ${theme.textPrimary}`}>
-        Transaction History
-      </h2>
+      <h2 className={`text-lg font-semibold mb-3 ${theme.textPrimary}`}>Transaction History</h2>
 
       {/* ENERGY HISTORY LIST */}
       <div className="space-y-3">
-        {history.length === 0 && (
-          <p className="text-gray-400 text-sm">No energy logs yet.</p>
-        )}
+        {history.length === 0 && <p className="text-gray-400 text-sm">No energy logs yet.</p>}
 
         {history.map((item, idx) => (
           <div
@@ -84,7 +79,6 @@ export default function EnergyPage() {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

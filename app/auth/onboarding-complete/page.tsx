@@ -33,13 +33,9 @@ export default function OnboardingCompletePage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Welcome to the Vynce Ecosystem.
-          </p>
+          <p className="text-muted-foreground">Welcome to the Vynce Ecosystem.</p>
 
-          <p className="text-sm text-muted-foreground">
-            Redirecting you automatically...
-          </p>
+          <p className="text-sm text-muted-foreground">Redirecting you automatically...</p>
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">

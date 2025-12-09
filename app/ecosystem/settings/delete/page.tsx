@@ -33,12 +33,8 @@ export default function DeleteAccountPage() {
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Delete Account
-      </h1>
-      <p className={`text-sm mb-6 ${theme.textSecondary}`}>
-        This action is permanent.
-      </p>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Delete Account</h1>
+      <p className={`text-sm mb-6 ${theme.textSecondary}`}>This action is permanent.</p>
 
       <div
         className="
@@ -52,11 +48,7 @@ export default function DeleteAccountPage() {
           Your profile, data, and activity will be permanently deleted.
         </p>
 
-        <Button
-          type="button"
-          onClick={handleDelete}
-          className="w-full bg-red-600 hover:bg-red-700"
-        >
+        <Button type="button" onClick={handleDelete} className="w-full bg-red-600 hover:bg-red-700">
           I understand, delete my account
         </Button>
       </div>

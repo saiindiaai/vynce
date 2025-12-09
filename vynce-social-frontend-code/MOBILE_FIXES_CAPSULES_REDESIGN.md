@@ -9,6 +9,7 @@
 ## Overview
 
 **Critical issues fixed:**
+
 1. TopBar overlapping Sidebar on mobile (z-index mess)
 2. CapsulesPage layout completely broken - redesigned as Instagram Stories clone
 3. Layout structure preventing proper responsive design
@@ -18,7 +19,9 @@
 ## PHASE 1: Layout Structure Fix ✅
 
 ### Root Cause Analysis
+
 The VynceSocialUI component had a flawed structure:
+
 - TopBar was fixed (z-40) overlapping content
 - Sidebar was positioned with `inset-y-14` which doesn't work in flex layout
 - Content padding (pt-16) didn't match TopBar height (h-14)
@@ -29,12 +32,15 @@ The VynceSocialUI component had a flawed structure:
 **File**: `components/VynceSocialUI.tsx`
 
 **Before**:
+
 ```tsx
 <div className="min-h-screen ...">
-  <TopBar />  {/* Fixed at top, z-40 */}
+  <TopBar /> {/* Fixed at top, z-40 */}
   <div className="flex flex-col sm:flex-row">
-    <Sidebar />  {/* Was positioned wrong */}
-    <div className="flex-1 pt-16 pb-20 sm:pb-0">  {/* Wrong padding */}
+    <Sidebar /> {/* Was positioned wrong */}
+    <div className="flex-1 pt-16 pb-20 sm:pb-0">
+      {" "}
+      {/* Wrong padding */}
       {/* Content */}
     </div>
   </div>
@@ -43,15 +49,16 @@ The VynceSocialUI component had a flawed structure:
 ```
 
 **After**:
+
 ```tsx
 <div className="min-h-screen ...">
-  <TopBar />  {/* Fixed at top, z-40 */}
-  <div className="pt-14 pb-20 sm:pb-0">  {/* Content respects TopBar */}
+  <TopBar /> {/* Fixed at top, z-40 */}
+  <div className="pt-14 pb-20 sm:pb-0">
+    {" "}
+    {/* Content respects TopBar */}
     <div className="flex flex-col sm:flex-row">
-      <Sidebar />  {/* Modal on mobile, sidebar on desktop */}
-      <div className="flex-1">
-        {/* Content - no extra padding needed */}
-      </div>
+      <Sidebar /> {/* Modal on mobile, sidebar on desktop */}
+      <div className="flex-1">{/* Content - no extra padding needed */}</div>
     </div>
   </div>
   <BottomNav />
@@ -59,11 +66,13 @@ The VynceSocialUI component had a flawed structure:
 ```
 
 ### Key Changes
+
 1. **Moved padding to outer container**: `pt-14` on the main content wrapper (respects TopBar height of 56px)
 2. **Simplified structure**: TopBar → padding container → flex layout
 3. **Sidebar positioning**: Now uses proper mobile modal pattern (not fixed with inset-y)
 
 ### Result
+
 ✅ TopBar no longer overlaps Sidebar  
 ✅ Content properly positioned below TopBar  
 ✅ Clean visual hierarchy  
@@ -78,6 +87,7 @@ The VynceSocialUI component had a flawed structure:
 **File**: `components/layout/Sidebar.tsx`
 
 **Before**:
+
 ```tsx
 <div className={`${
   sidebarOpen ? 'fixed' : 'hidden sm:block'
@@ -85,19 +95,22 @@ The VynceSocialUI component had a flawed structure:
 ```
 
 **After**:
+
 ```tsx
 <div className={`${
   sidebarOpen ? 'fixed' : 'hidden sm:block'
-} top-14 left-0 right-0 sm:relative sm:top-0 sm:w-60 w-full 
+} top-14 left-0 right-0 sm:relative sm:top-0 sm:w-60 w-full
 h-[calc(100vh-3.5rem-5rem)] sm:h-auto sm:border-r border-b sm:border-b-0 ...`}
 ```
 
 ### Key Changes
+
 1. **Mobile**: `top-14` (starts below TopBar), `fixed` positioning, `w-full`, proper height calculation
 2. **Desktop**: `sm:relative` (becomes part of normal flow), proper border setup
 3. **Height management**: Mobile sidebar doesn't exceed viewport (accounts for TopBar + BottomNav)
 
 ### Result
+
 ✅ Sidebar is proper modal on mobile (doesn't hide under TopBar)  
 ✅ Desktop sidebar integrated into layout flow  
 ✅ No scrolling issues on mobile  
@@ -114,6 +127,7 @@ h-[calc(100vh-3.5rem-5rem)] sm:h-auto sm:border-r border-b sm:border-b-0 ...`}
 ### Design Features
 
 #### 1. **Full-Screen Layout**
+
 ```tsx
 <div className="fixed inset-0 bg-black flex flex-col items-center justify-center">
   {/* Full viewport coverage, Instagram style */}
@@ -121,15 +135,15 @@ h-[calc(100vh-3.5rem-5rem)] sm:h-auto sm:border-r border-b sm:border-b-0 ...`}
 ```
 
 #### 2. **Progress Bars (Top)**
+
 Instagram-style individual segments showing progress through stories:
+
 ```tsx
 <div className="absolute top-2 left-0 right-0 flex gap-0.5 px-3 z-20">
   {capsules.map((_, idx) => (
     <div
       className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
-        idx < currentIndex ? 'bg-white' :
-        idx === currentIndex ? 'bg-white' :
-        'bg-white/40'
+        idx < currentIndex ? "bg-white" : idx === currentIndex ? "bg-white" : "bg-white/40"
       }`}
     />
   ))}
@@ -137,11 +151,15 @@ Instagram-style individual segments showing progress through stories:
 ```
 
 #### 3. **User Info Header (Top-Left)**
+
 Quick identification of content creator:
+
 ```tsx
 <div className="absolute top-8 left-4 z-20 flex items-center gap-2">
-  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${capsule.gradient} 
-    flex items-center justify-center text-lg font-bold ring-2 ring-white`}>
+  <div
+    className={`w-10 h-10 rounded-full bg-gradient-to-br ${capsule.gradient} 
+    flex items-center justify-center text-lg font-bold ring-2 ring-white`}
+  >
     {capsule.userAvatar}
   </div>
   <div className="text-white">
@@ -152,14 +170,16 @@ Quick identification of content creator:
 ```
 
 #### 4. **Main Content Card (Center)**
+
 Large, immersive story card:
+
 ```tsx
 <div className="relative w-full max-w-md h-[70vh] sm:h-[85vh] rounded-2xl overflow-hidden">
   {/* Background gradient with overlay */}
   <div className={`absolute inset-0 bg-gradient-to-br ${capsule.gradient}`}>
     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
   </div>
-  
+
   {/* Content - Centered */}
   <div className="relative z-10 flex flex-col items-center justify-center space-y-4 px-6 text-center">
     <div className="text-7xl sm:text-8xl animate-float">{capsule.userAvatar}</div>
@@ -170,18 +190,22 @@ Large, immersive story card:
 ```
 
 #### 5. **Right-Side Action Buttons**
+
 Instagram-style vertical engagement buttons:
+
 ```tsx
 <div className="absolute right-4 bottom-6 z-20 flex flex-col gap-6">
   {/* Like Button */}
   <button className="flex flex-col items-center gap-1">
-    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 
-      flex items-center justify-center hover:bg-white/30 transition-all active:scale-90">
-      <Heart size={24} className={capsule.isLiked ? 'fill-red-500 text-red-500' : 'text-white'} />
+    <div
+      className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 
+      flex items-center justify-center hover:bg-white/30 transition-all active:scale-90"
+    >
+      <Heart size={24} className={capsule.isLiked ? "fill-red-500 text-red-500" : "text-white"} />
     </div>
     <span className="text-white text-xs font-semibold">{capsule.likes}</span>
   </button>
-  
+
   {/* Comment Button */}
   <button>
     <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md ...">
@@ -189,7 +213,7 @@ Instagram-style vertical engagement buttons:
     </div>
     <span className="text-white text-xs font-semibold">{capsule.comments}</span>
   </button>
-  
+
   {/* Share Button */}
   <button>
     <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md ...">
@@ -201,7 +225,9 @@ Instagram-style vertical engagement buttons:
 ```
 
 #### 6. **Swipe Gesture Support**
+
 Natural touch interaction:
+
 ```tsx
 const handleTouchStart = (e: React.TouchEvent) => {
   setTouchStart(e.touches[0].clientY);
@@ -210,7 +236,7 @@ const handleTouchStart = (e: React.TouchEvent) => {
 const handleTouchEnd = (e: React.TouchEvent) => {
   if (!touchStart) return;
   const diff = touchStart - e.changedTouches[0].clientY;
-  
+
   // Swipe down = prev, Swipe up = next
   if (diff > 50 && currentIndex < capsules.length - 1) {
     setCurrentCapsuleIndex(currentCapsuleIndex + 1);
@@ -221,7 +247,9 @@ const handleTouchEnd = (e: React.TouchEvent) => {
 ```
 
 #### 7. **Dot Navigation (Bottom)**
+
 Quick access to specific stories:
+
 ```tsx
 <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
   {capsules.map((_, idx) => (
@@ -229,7 +257,7 @@ Quick access to specific stories:
       key={idx}
       onClick={() => setCurrentCapsuleIndex(idx)}
       className={`transition-all duration-300 rounded-full ${
-        idx === currentIndex ? 'w-8 h-2.5 bg-white' : 'w-2 h-2 bg-white/40'
+        idx === currentIndex ? "w-8 h-2.5 bg-white" : "w-2 h-2 bg-white/40"
       }`}
     />
   ))}
@@ -239,6 +267,7 @@ Quick access to specific stories:
 ### Responsive Design
 
 #### Mobile (< 640px)
+
 - Full viewport (fixed inset-0)
 - Card height: 70vh
 - Single column layout
@@ -246,6 +275,7 @@ Quick access to specific stories:
 - Proper spacing
 
 #### Desktop (640px+)
+
 - Full viewport
 - Card height: 85vh
 - More spacious layout
@@ -253,6 +283,7 @@ Quick access to specific stories:
 - Same Instagram experience
 
 ### Key Features
+
 ✅ Full-screen immersive experience  
 ✅ Progress bars showing position  
 ✅ Creator info clearly visible  
@@ -269,6 +300,7 @@ Quick access to specific stories:
 ## Technical Implementation
 
 ### Styling Approach
+
 - **Black background**: `bg-black` for full immersion
 - **Glass morphism**: `backdrop-blur-md` on action buttons
 - **Gradients**: Per-user gradient backgrounds
@@ -276,12 +308,14 @@ Quick access to specific stories:
 - **Accessibility**: ARIA labels, focus indicators, proper semantics
 
 ### Touch & Interaction
+
 - Swipe detection (50px threshold)
 - Active scale effects on buttons
 - Hover states for desktop
 - Focus-visible outlines for keyboard nav
 
 ### Z-Index Management
+
 ```
 Progress bars: z-20
 User info: z-20
@@ -295,23 +329,25 @@ Modal (when open): z-50+
 ## Before & After
 
 ### Layout Issues
-| Issue | Before | After |
-|-------|--------|-------|
-| TopBar overlap | ❌ Yes | ✅ No |
-| Sidebar visibility | ❌ Hidden behind TopBar | ✅ Proper modal |
-| Content padding | ❌ Inconsistent | ✅ Matches TopBar |
-| Mobile UX | ❌ Broken | ✅ Proper layout |
+
+| Issue              | Before                  | After             |
+| ------------------ | ----------------------- | ----------------- |
+| TopBar overlap     | ❌ Yes                  | ✅ No             |
+| Sidebar visibility | ❌ Hidden behind TopBar | ✅ Proper modal   |
+| Content padding    | ❌ Inconsistent         | ✅ Matches TopBar |
+| Mobile UX          | ❌ Broken               | ✅ Proper layout  |
 
 ### CapsulesPage
-| Aspect | Before | After |
-|--------|--------|-------|
-| Layout | Confusing desktop-focused | Instagram Stories clone |
-| Progress | Single bar | Individual segments |
-| User info | Top-left but poorly styled | Clean header |
-| Actions | Engagement component | Right-side buttons |
-| Navigation | Bottom buttons | Swipe + dot nav |
-| Responsive | Poor | Excellent |
-| Mobile UX | Bad | Professional |
+
+| Aspect     | Before                     | After                   |
+| ---------- | -------------------------- | ----------------------- |
+| Layout     | Confusing desktop-focused  | Instagram Stories clone |
+| Progress   | Single bar                 | Individual segments     |
+| User info  | Top-left but poorly styled | Clean header            |
+| Actions    | Engagement component       | Right-side buttons      |
+| Navigation | Bottom buttons             | Swipe + dot nav         |
+| Responsive | Poor                       | Excellent               |
+| Mobile UX  | Bad                        | Professional            |
 
 ---
 
@@ -327,7 +363,7 @@ Modal (when open): z-50+
    - Proper height calculation
    - Fixed border management
 
-3. **components/pages/CapsulesPage.tsx** *(complete rewrite)*
+3. **components/pages/CapsulesPage.tsx** _(complete rewrite)_
    - Instagram Stories UI
    - Swipe gestures
    - Progress bars
@@ -337,6 +373,7 @@ Modal (when open): z-50+
 ---
 
 ## Build Status
+
 ```
 ✅ Compiled successfully
 ✅ 0 TypeScript errors
@@ -350,6 +387,7 @@ Modal (when open): z-50+
 ## Testing Recommendations
 
 ### Mobile Testing (320px - 640px)
+
 - [ ] Swipe up/down navigation works
 - [ ] Progress bars visible and correct
 - [ ] User info legible
@@ -357,12 +395,14 @@ Modal (when open): z-50+
 - [ ] Dot nav works
 
 ### Tablet Testing (768px - 1024px)
+
 - [ ] Layout properly spaced
 - [ ] Progress bars scale correctly
 - [ ] Card height appropriate
 - [ ] All buttons functional
 
 ### Desktop Testing (1200px+)
+
 - [ ] Large card height (85vh)
 - [ ] Professional appearance
 - [ ] All interactions smooth
@@ -371,6 +411,7 @@ Modal (when open): z-50+
 ---
 
 ## Known Limitations
+
 - No video playback (data-driven for now)
 - Comments/Share modals use existing components
 - No persistence of likes/interactions
@@ -379,6 +420,7 @@ Modal (when open): z-50+
 ---
 
 ## Next Steps (Optional)
+
 - Add animations on page load
 - Implement haptic feedback on swipe
 - Add double-tap to like (Instagram feature)
@@ -391,4 +433,4 @@ Modal (when open): z-50+
 **Status**: ✅ PRODUCTION-READY  
 **Quality**: Instagram-clone level  
 **Mobile UX**: Professional  
-**Build**: Verified passing  
+**Build**: Verified passing

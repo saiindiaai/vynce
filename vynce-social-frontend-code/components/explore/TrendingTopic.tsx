@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { TrendingUp } from 'lucide-react';
+import React from "react";
+import { TrendingUp } from "lucide-react";
 
 interface TrendingTopicProps {
   topic: {
@@ -24,9 +24,14 @@ export default function TrendingTopic({ topic, onClick }: TrendingTopicProps) {
           <h4 className="text-purple-50 font-bold">{topic.name}</h4>
           <p className="text-sm text-purple-200/50">{topic.tag}</p>
         </div>
-        <TrendingUp size={20} className="text-green-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <TrendingUp
+          size={20}
+          className="text-green-400 opacity-0 group-hover:opacity-100 transition-opacity"
+        />
       </div>
-      <p className="text-xs text-purple-200/50">{topic.posts.toLocaleString()} posts • +{topic.trend}%</p>
+      <p className="text-xs text-purple-200/50">
+        {topic.posts.toLocaleString()} posts • +{topic.trend}%
+      </p>
     </div>
   );
 }

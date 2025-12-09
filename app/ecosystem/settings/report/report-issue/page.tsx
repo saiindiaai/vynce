@@ -43,7 +43,8 @@ export default function ReportIssuePage() {
     <div className="px-6 pb-28 pt-4">
       <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Report a Problem / User</h1>
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>
-        Choose whether you're reporting an app issue or a user. Provide details so our moderators can act fast.
+        Choose whether you're reporting an app issue or a user. Provide details so our moderators
+        can act fast.
       </p>
 
       <form onSubmit={submit} className="space-y-4">
@@ -70,7 +71,9 @@ export default function ReportIssuePage() {
               placeholder="victim123 or @victim"
               className="w-full rounded-md bg-black/30 border border-white/10 px-3 py-2 mt-2"
             />
-            <p className="text-xs text-gray-400 mt-1">We will attempt to resolve the username to an account.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              We will attempt to resolve the username to an account.
+            </p>
           </div>
         )}
 
@@ -108,7 +111,7 @@ export default function ReportIssuePage() {
 
         <div className="flex justify-end">
           <Button type="submit" disabled={loading || !reason}>
-            {loading ? 'Sending...' : 'Send Report'}
+            {loading ? "Sending..." : "Send Report"}
           </Button>
         </div>
       </form>

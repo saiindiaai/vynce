@@ -17,9 +17,7 @@ export default function Home() {
       <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-4 animate-pulse">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-xl"></div>
-          <p className="text-white text-lg font-semibold tracking-wide">
-            Vynce Loading…
-          </p>
+          <p className="text-white text-lg font-semibold tracking-wide">Vynce Loading…</p>
         </div>
       </div>
     );
@@ -30,13 +28,13 @@ export default function Home() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
-  Vynce Ecosystem
-</h1>
+            Vynce Ecosystem
+          </h1>
           <p className="text-gray-400 text-sm">Choose how you want to start</p>
         </div>
 
         <div className="space-y-4">
-         <Button asChild className="w-full rounded-md" size="lg">
+          <Button asChild className="w-full rounded-md" size="lg">
             <Link href="/auth/login">Login</Link>
           </Button>
 

@@ -7,26 +7,19 @@ export default function PoliciesPage() {
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-1 ${theme.textPrimary}`}>
-        Terms & Policies
-      </h1>
+      <h1 className={`text-2xl font-bold mb-1 ${theme.textPrimary}`}>Terms & Policies</h1>
 
-      <p className={`text-sm mb-6 ${theme.textSecondary}`}>
-        Updated • 2025
-      </p>
+      <p className={`text-sm mb-6 ${theme.textSecondary}`}>Updated • 2025</p>
 
       <div className="card-matte rounded-2xl p-6 border border-white/10 space-y-6 text-sm leading-relaxed text-gray-300">
-
         <p>
-          By using Vynce Social, Vynce Connect, Promptane, or Vynce Store,
-          you are agreeing to the following rules and guidelines.
+          By using Vynce Social, Vynce Connect, Promptane, or Vynce Store, you are agreeing to the
+          following rules and guidelines.
         </p>
 
         {/* SECTION */}
         <section>
-          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
-            1. Eligibility
-          </h3>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>1. Eligibility</h3>
           <ul className="list-disc list-inside space-y-1">
             <li>No minimum age for Vynce Social & Promptane.</li>
             <li>No minimum age for Vynce Connect.</li>
@@ -102,18 +95,12 @@ export default function PoliciesPage() {
         </section>
 
         <section>
-          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
-            8. Changes to Terms
-          </h3>
-          <p>
-            Policies may be updated at any time. Continued use means acceptance.
-          </p>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>8. Changes to Terms</h3>
+          <p>Policies may be updated at any time. Continued use means acceptance.</p>
         </section>
 
         <section>
-          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>
-            9. Contact
-          </h3>
+          <h3 className={`text-lg font-semibold mb-2 ${theme.textPrimary}`}>9. Contact</h3>
           <p>
             For support: <span className="text-gray-200">vynce.founders@gmail.com</span>
           </p>

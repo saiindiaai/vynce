@@ -62,18 +62,18 @@ const userSchema = new mongoose.Schema(
     },
 
     celestium: {
-  type: Number,
-  default: 0,
-},
+      type: Number,
+      default: 0,
+    },
 
-celestiumTransactions: [
-  {
-    type: { type: String, enum: ["earned", "spent"], required: true },
-    amount: { type: Number, required: true },
-    note: { type: String, default: "" },
-    date: { type: Date, default: Date.now },
-  }
-],
+    celestiumTransactions: [
+      {
+        type: { type: String, enum: ["earned", "spent"], required: true },
+        amount: { type: Number, required: true },
+        note: { type: String, default: "" },
+        date: { type: Date, default: Date.now },
+      },
+    ],
 
     energyHistory: [
       {
@@ -99,23 +99,23 @@ celestiumTransactions: [
       default: [],
     },
 
-  /* -------------------------
+    /* -------------------------
      PROFILE SHOWCASE SLOTS
      ------------------------- */
-  showcase: {
-    inventory: {
-      type: [String],      // store item keys the user wants to flex
-      default: []
+    showcase: {
+      inventory: {
+        type: [String], // store item keys the user wants to flex
+        default: [],
+      },
+      achievements: {
+        type: [String], // achievement / badge keys to flex
+        default: [],
+      },
+      dares: {
+        type: [String], // completed dare IDs or titles
+        default: [],
+      },
     },
-    achievements: {
-      type: [String],      // achievement / badge keys to flex
-      default: []
-    },
-    dares: {
-      type: [String],      // completed dare IDs or titles
-      default: []
-    }
-  },
 
     /* -------------------------
        PROFILE DETAILS
@@ -198,4 +198,3 @@ celestiumTransactions: [
 );
 
 module.exports = mongoose.model("User", userSchema);
-

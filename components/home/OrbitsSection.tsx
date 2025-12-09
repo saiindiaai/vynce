@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from "@/hooks/useTheme";
 
 export default function OrbitsSection() {
   const { theme } = useTheme();
@@ -36,7 +36,9 @@ export default function OrbitsSection() {
 
         <div className="flex flex-col items-center min-w-[100px]">
           <div className="relative">
-            <div className={`w-20 h-20 bg-gradient-to-br ${theme.accent} rounded-2xl mb-2 shadow-lg`}></div>
+            <div
+              className={`w-20 h-20 bg-gradient-to-br ${theme.accent} rounded-2xl mb-2 shadow-lg`}
+            ></div>
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-white shadow-lg"></div>
           </div>
           <span className={`text-xs font-medium ${theme.textPrimary}`}>Maya_X</span>
@@ -45,7 +47,9 @@ export default function OrbitsSection() {
 
         <div className="flex flex-col items-center min-w-[100px]">
           <div className="relative">
-            <div className={`w-20 h-20 bg-gradient-to-br ${theme.secondary} rounded-2xl mb-2 shadow-lg`}></div>
+            <div
+              className={`w-20 h-20 bg-gradient-to-br ${theme.secondary} rounded-2xl mb-2 shadow-lg`}
+            ></div>
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gray-400 rounded-full border-3 border-white"></div>
           </div>
           <span className={`text-xs font-medium ${theme.textPrimary}`}>Jay_K</span>

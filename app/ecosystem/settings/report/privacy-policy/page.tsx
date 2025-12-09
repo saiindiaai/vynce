@@ -7,17 +7,14 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Privacy Policy – Vynce
-      </h1>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Privacy Policy – Vynce</h1>
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>Last Updated: 2025</p>
 
       <div className="card-matte rounded-2xl p-5 border border-white/10 space-y-5 text-gray-300 text-sm leading-relaxed">
-
         <p>
-          Vynce ("we", "our", "us") provides social features through Vynce Social,
-          dating features through Vynce Connect, and AI tools through Promptane.
-          By using our services, you agree to this Privacy Policy.
+          Vynce ("we", "our", "us") provides social features through Vynce Social, dating features
+          through Vynce Connect, and AI tools through Promptane. By using our services, you agree to
+          this Privacy Policy.
         </p>
 
         <h3 className="text-lg font-semibold text-white">1. INFORMATION WE COLLECT</h3>
@@ -76,7 +73,6 @@ export default function PrivacyPolicyPage() {
 
         <h3 className="text-lg font-semibold text-white">9. CONTACT</h3>
         <p>For privacy concerns: vynce.founders@gmail.com</p>
-
       </div>
     </div>
   );

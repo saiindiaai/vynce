@@ -24,9 +24,7 @@ export default function AchievementPage() {
 
   return (
     <div className="px-4 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>
-        Achievements
-      </h1>
+      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>Achievements</h1>
 
       <div className="space-y-4">
         {catalog.map((a) => {
@@ -50,9 +48,7 @@ export default function AchievementPage() {
                 {a.rewardCelestium > 0 && ` • 💠 ${a.rewardCelestium} Celestium`}
               </p>
 
-              {unlocked && (
-                <p className="text-green-400 text-xs mt-2">Unlocked</p>
-              )}
+              {unlocked && <p className="text-green-400 text-xs mt-2">Unlocked</p>}
             </div>
           );
         })}

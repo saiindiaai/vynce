@@ -5,12 +5,15 @@
 ### **What Was Fixed**
 
 #### 1. **FightEngagement Component Issues** ✅
-**Problem**: 
+
+**Problem**:
+
 - Component expected `themeClasses` prop but FightPage wasn't passing it
 - Component wasn't imported or used in FightPage
 - No voting capabilities
 
 **Solution**:
+
 - Rewrote component to be standalone and self-contained
 - Removed dependency on `themeClasses` prop
 - Added `isFight` flag to switch between standard engagement and fight voting UI
@@ -23,6 +26,7 @@
 ## 1. **Voting System** 🗳️
 
 ### Store Updates (`lib/store.ts`)
+
 ```typescript
 // New state properties
 fightVotes: Record<number, { teamA: number; teamB: number; userVote?: 'teamA' | 'teamB' }>;
@@ -30,6 +34,7 @@ toggleFightVote: (fightId: number, team: 'teamA' | 'teamB') => void;
 ```
 
 **Features**:
+
 - Users can vote for either teamA or teamB
 - Clicking same team removes vote
 - Switching teams automatically updates counts
@@ -37,6 +42,7 @@ toggleFightVote: (fightId: number, team: 'teamA' | 'teamB') => void;
 - User's vote preference stored (`userVote`)
 
 **UI Components**:
+
 - Vote buttons on fight cards showing real-time vote counts
 - Highlighted buttons when user has voted for that team
 - Voting section in WatchFightModal with detailed vote display
@@ -47,9 +53,11 @@ toggleFightVote: (fightId: number, team: 'teamA' | 'teamB') => void;
 ## 2. **Team-Based Chat System** 💬
 
 ### New Component: `TeamChat.tsx`
+
 **Location**: `components/PostActions/fight/TeamChat.tsx`
 
 **Features**:
+
 - Separate chat channels for each team in a fight
 - Messages filtered by fightId + team
 - Auto-scroll to latest messages
@@ -58,6 +66,7 @@ toggleFightVote: (fightId: number, team: 'teamA' | 'teamB') => void;
 - Sender information tracked
 
 **Message Structure**:
+
 ```typescript
 {
   id: string;              // Unique message ID
@@ -71,6 +80,7 @@ toggleFightVote: (fightId: number, team: 'teamA' | 'teamB') => void;
 ```
 
 **UI Elements**:
+
 - Team-themed header with gradient matching team color
 - Scrollable message feed
 - Input field with Send button
@@ -82,21 +92,25 @@ toggleFightVote: (fightId: number, team: 'teamA' | 'teamB') => void;
 ## 3. **Fight Type System** 🎬📝
 
 ### Fight Types Added
+
 ```typescript
-fightType: 'visual' | 'text'
+fightType: "visual" | "text";
 ```
 
 **Visual Fights** (🎥):
+
 - Shows video/play indicator placeholder
 - Combat-focused
 - Energy bars show real-time battle status
 
 **Text Fights** (💬):
+
 - Shows text debate indicator
 - Argument/discussion focused
 - Different media area with Type icon
 
 **Implementation**:
+
 - Fight type badge on all fight cards
 - Conditional rendering in WatchFightModal
 - Different media displays based on type
@@ -107,6 +121,7 @@ fightType: 'visual' | 'text'
 ## 4. **Enhanced Watch Fight Modal** 🎪
 
 ### New Features
+
 1. **Fight Type Display**
    - Shows fight type (Visual 🎥 / Text 💬)
    - Different media rendering per type
@@ -130,6 +145,7 @@ fightType: 'visual' | 'text'
 ## **Technical Architecture**
 
 ### Data Flow
+
 ```
 User clicks Vote button
   ↓
@@ -143,6 +159,7 @@ UI re-renders with new vote counts + user vote highlight
 ```
 
 ### Team Chat Flow
+
 ```
 User clicks "Team Chat" button in WatchFightModal
   ↓
@@ -164,6 +181,7 @@ Display updates with new message
 ## **Files Modified**
 
 ### 1. `lib/store.ts`
+
 - Added `fightVotes` state
 - Added `toggleFightVote()` action with vote switching logic
 - Added `teamMessages` state array
@@ -171,6 +189,7 @@ Display updates with new message
 - Added `getTeamMessages()` helper (for filtering)
 
 ### 2. `components/PostActions/fight/Engagement.tsx`
+
 - Complete rewrite for standalone operation
 - Added `isFight` flag to switch UI modes
 - Added voting props: `onVoteTeamA`, `onVoteTeamB`, `teamAVotes`, `teamBVotes`, `userVote`
@@ -179,6 +198,7 @@ Display updates with new message
 - Color-coded team voting buttons
 
 ### 3. `components/pages/FightPage.tsx`
+
 - Updated fight data with `fightType` property
 - Enhanced WatchFightModal with voting + team chat
 - Added fight type conditional rendering in modal
@@ -189,6 +209,7 @@ Display updates with new message
 - Fight type badges on all cards
 
 ### 4. `components/PostActions/fight/TeamChat.tsx` (NEW)
+
 - Complete new component
 - Team-specific chat modal
 - Message filtering by fightId + team
@@ -202,6 +223,7 @@ Display updates with new message
 ## **Component Interactions**
 
 ### FightPage → WatchFightModal
+
 ```
 fight data → modal props
 ├── fightId → voting system
@@ -211,6 +233,7 @@ fight data → modal props
 ```
 
 ### WatchFightModal → TeamChat
+
 ```
 Modal opens → User clicks team chat button
   ├── fightId passed to TeamChat
@@ -220,6 +243,7 @@ Modal opens → User clicks team chat button
 ```
 
 ### FightPage → Vote Buttons
+
 ```
 Fight card / Modal vote button clicked
   ↓
@@ -237,6 +261,7 @@ UI re-renders with new counts
 ## **State Management Details**
 
 ### Fight Votes State
+
 ```typescript
 fightVotes: {
   1: { teamA: 45, teamB: 32, userVote: 'teamA' },  // User voted for team A
@@ -246,19 +271,20 @@ fightVotes: {
 ```
 
 ### Team Messages State
+
 ```typescript
 teamMessages: [
   {
-    id: 'msg_1701700000000',
+    id: "msg_1701700000000",
     fightId: 1,
-    team: 'teamA',
-    sender: 'You',
-    text: 'Go team A! 🔥',
-    timestamp: '2:30 PM',
-    avatar: undefined
+    team: "teamA",
+    sender: "You",
+    text: "Go team A! 🔥",
+    timestamp: "2:30 PM",
+    avatar: undefined,
   },
   // ... more messages
-]
+];
 ```
 
 ---
@@ -266,6 +292,7 @@ teamMessages: [
 ## **UI Features**
 
 ### Vote Buttons
+
 - **Inactive**: Gray background, Flame outline
 - **Active**: Colored gradient (blue for teamA, red for teamB), filled Flame icon
 - Click same team = remove vote
@@ -273,6 +300,7 @@ teamMessages: [
 - Vote counts update in real-time
 
 ### Team Chat
+
 - Modal with team-themed header (gradient background)
 - Scrollable message history
 - Timestamps for each message
@@ -283,6 +311,7 @@ teamMessages: [
 - Auto-scroll to latest message
 
 ### Fight Type Indicators
+
 - Visual fights: 🎥 Badge + Play button placeholder
 - Text fights: 💬 Badge + Type icon in media area
 - Badges shown on all fight cards
@@ -293,11 +322,13 @@ teamMessages: [
 ## **Error Handling**
 
 ### Voting System
+
 - Handles missing vote data (defaults to { teamA: 0, teamB: 0 })
 - Prevents double-counting when switching votes
 - No vote duplicates (vote toggle removes or switches)
 
 ### Team Chat
+
 - Empty state message when no chat messages
 - Prevents sending empty messages (trimmed + checked)
 - Handles simultaneous message sends
@@ -308,11 +339,13 @@ teamMessages: [
 ## **Performance Optimizations**
 
 ### Voting
+
 - Direct state updates (no API calls)
 - Minimal re-renders (only affected component)
 - Efficient vote switching logic
 
 ### Team Chat
+
 - Messages filtered client-side
 - Ref-based auto-scroll (no full list re-renders)
 - Timestamp generation at message creation
@@ -362,6 +395,7 @@ teamMessages: [
 ## **Summary**
 
 All requested features have been implemented:
+
 - ✅ **Fixed** FightEngagement component issues
 - ✅ **Added** Complete voting system with team support
 - ✅ **Added** Team-based chat with filtering

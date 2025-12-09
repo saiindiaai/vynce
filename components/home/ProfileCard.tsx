@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { TrendingUp } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
+import { TrendingUp } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function ProfileCard() {
   const { theme } = useTheme();
@@ -10,8 +10,9 @@ export default function ProfileCard() {
     <div className="mx-6 mb-6">
       <div className={`${theme.cardBg} rounded-2xl p-5 border ${theme.border}`}>
         <div className="flex items-center gap-4">
-          
-          <div className={`w-16 h-16 bg-gradient-to-br ${theme.primary} rounded-full flex items-center justify-center`}>
+          <div
+            className={`w-16 h-16 bg-gradient-to-br ${theme.primary} rounded-full flex items-center justify-center`}
+          >
             {/* Avatar Placeholder */}
             <span className="text-white font-bold text-lg">A</span>
           </div>

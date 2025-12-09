@@ -8,11 +8,7 @@ export default function ShowcaseSelector({ type, onClose, onSelect }) {
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get(
-        type === "inventory"
-          ? "/store/inventory"
-          : "/achievements"
-      );
+      const res = await api.get(type === "inventory" ? "/store/inventory" : "/achievements");
 
       if (type === "inventory") setItems(res.data.inventory || []);
       if (type === "achievements") setItems(res.data || []);
@@ -25,10 +21,7 @@ export default function ShowcaseSelector({ type, onClose, onSelect }) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50">
       <div className="w-80 bg-[#0E0E12] rounded-2xl p-5 border border-white/10">
-
-        <h2 className="text-lg font-semibold mb-4">
-          Select {type}
-        </h2>
+        <h2 className="text-lg font-semibold mb-4">Select {type}</h2>
 
         <div className="space-y-3 max-h-80 overflow-y-auto">
           {items.map((item, idx) => (
@@ -42,13 +35,9 @@ export default function ShowcaseSelector({ type, onClose, onSelect }) {
           ))}
         </div>
 
-        <button
-          className="mt-4 w-full py-2 rounded-xl bg-red-600 text-white"
-          onClick={onClose}
-        >
+        <button className="mt-4 w-full py-2 rounded-xl bg-red-600 text-white" onClick={onClose}>
           Close
         </button>
-
       </div>
     </div>
   );

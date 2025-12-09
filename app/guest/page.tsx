@@ -16,12 +16,8 @@ export default function GuestPage() {
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Continue as Guest
-          </CardTitle>
-          <CardDescription>
-            Join Vynce with limited features
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold">Continue as Guest</CardTitle>
+          <CardDescription>Join Vynce with limited features</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -38,18 +34,12 @@ export default function GuestPage() {
           </Button>
 
           <div className="text-sm text-muted-foreground">
-            <Link
-              href="/auth/register"
-              className="text-primary hover:underline font-medium"
-            >
+            <Link href="/auth/register" className="text-primary hover:underline font-medium">
               Create an account instead
             </Link>
           </div>
 
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-primary"
-          >
+          <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
             Back
           </Link>
         </CardFooter>

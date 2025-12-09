@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { Check, X, AlertCircle, Info } from 'lucide-react';
+import React, { useEffect } from "react";
+import { Check, X, AlertCircle, Info } from "lucide-react";
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = "success" | "error" | "warning" | "info";
 
 interface ToastProps {
   message: string;
@@ -14,7 +14,14 @@ interface ToastProps {
   onAction?: (() => void) | null;
 }
 
-export default function Toast({ message, type = 'info', duration = 3000, onClose, actionLabel, onAction }: ToastProps) {
+export default function Toast({
+  message,
+  type = "info",
+  duration = 3000,
+  onClose,
+  actionLabel,
+  onAction,
+}: ToastProps) {
   useEffect(() => {
     if (duration && onClose) {
       const timer = setTimeout(onClose, duration);
@@ -23,10 +30,20 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
   }, [duration, onClose]);
 
   const typeConfig = {
-    success: { bg: 'bg-green-900/90', border: 'border-green-700', icon: Check, text: 'text-green-100' },
-    error: { bg: 'bg-red-900/90', border: 'border-red-700', icon: X, text: 'text-red-100' },
-    warning: { bg: 'bg-yellow-900/90', border: 'border-yellow-700', icon: AlertCircle, text: 'text-yellow-100' },
-    info: { bg: 'bg-blue-900/90', border: 'border-blue-700', icon: Info, text: 'text-blue-100' },
+    success: {
+      bg: "bg-green-900/90",
+      border: "border-green-700",
+      icon: Check,
+      text: "text-green-100",
+    },
+    error: { bg: "bg-red-900/90", border: "border-red-700", icon: X, text: "text-red-100" },
+    warning: {
+      bg: "bg-yellow-900/90",
+      border: "border-yellow-700",
+      icon: AlertCircle,
+      text: "text-yellow-100",
+    },
+    info: { bg: "bg-blue-900/90", border: "border-blue-700", icon: Info, text: "text-blue-100" },
   };
 
   const config = typeConfig[type];

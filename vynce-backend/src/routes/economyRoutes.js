@@ -1,10 +1,6 @@
 // src/routes/economyRoutes.js
 const express = require("express");
-const {
-  awardXP,
-  awardCelestium,
-  getEconomyState
-} = require("../controllers/economyController");
+const { awardXP, awardCelestium, getEconomyState } = require("../controllers/economyController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();

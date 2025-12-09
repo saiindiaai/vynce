@@ -38,16 +38,13 @@ export default function AccountInfoPage() {
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Account Info
-      </h1>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Account Info</h1>
 
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>
         Basic details about your Vynce account.
       </p>
 
       <div className="space-y-3">
-
         {/* DISPLAY NAME — editable */}
         <div className="card-matte rounded-2xl p-4 border border-white/10">
           <p className={`text-xs ${theme.textSecondary}`}>Display Name</p>
@@ -58,18 +55,11 @@ export default function AccountInfoPage() {
             className="mt-1 bg-white/5 border border-white/10"
           />
 
-          <Button
-            className="mt-3 w-full"
-            onClick={updateDisplayName}
-          >
+          <Button className="mt-3 w-full" onClick={updateDisplayName}>
             Save Changes
           </Button>
 
-          {message && (
-            <p className="text-center text-xs mt-2 text-green-400">
-              {message}
-            </p>
-          )}
+          {message && <p className="text-center text-xs mt-2 text-green-400">{message}</p>}
         </div>
 
         {/* USERNAME */}
@@ -83,9 +73,7 @@ export default function AccountInfoPage() {
         {/* UID */}
         <div className="card-matte rounded-2xl p-4 border border-white/10">
           <p className={`text-xs ${theme.textSecondary}`}>UID</p>
-          <p className={`text-base font-semibold ${theme.textPrimary}`}>
-            {user?.uid ?? "---"}
-          </p>
+          <p className={`text-base font-semibold ${theme.textPrimary}`}>{user?.uid ?? "---"}</p>
         </div>
 
         {/* ACCOUNT TYPE */}
@@ -95,7 +83,6 @@ export default function AccountInfoPage() {
             {user?.accountType ?? "standard"}
           </p>
         </div>
-
       </div>
     </div>
   );

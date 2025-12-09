@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import React from "react";
+import { Heart, MessageCircle, Share2 } from "lucide-react";
 
 interface CapsulesEngagementProps {
   aura: number;
@@ -35,11 +35,11 @@ export default function CapsulesEngagement({
       <button
         onClick={onLike}
         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${
-          isLiked ? 'text-red-500' : 'text-slate-400'
+          isLiked ? "text-red-500" : "text-slate-400"
         } hover:bg-slate-800/50`}
         aria-label={isLiked ? "Remove like" : "Like this"}
       >
-        <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} />
+        <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
         <span className="text-sm">{aura}</span>
       </button>
       <button

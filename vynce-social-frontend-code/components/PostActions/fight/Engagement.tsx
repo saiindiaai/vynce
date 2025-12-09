@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Heart, MessageCircle, Share2, Flame } from 'lucide-react';
+import React from "react";
+import { Heart, MessageCircle, Share2, Flame } from "lucide-react";
 
 interface FightEngagementProps {
   fightId: number;
@@ -17,7 +17,7 @@ interface FightEngagementProps {
   onVoteTeamB?: () => void;
   teamAVotes?: number;
   teamBVotes?: number;
-  userVote?: 'teamA' | 'teamB';
+  userVote?: "teamA" | "teamB";
 }
 
 export default function FightEngagement({
@@ -42,12 +42,12 @@ export default function FightEngagement({
         <button
           onClick={onVoteTeamA}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-2 rounded-lg transition-all duration-200 ${
-            userVote === 'teamA'
-              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white'
-              : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            userVote === "teamA"
+              ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+              : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
           }`}
         >
-          <Flame size={16} fill={userVote === 'teamA' ? 'white' : 'none'} />
+          <Flame size={16} fill={userVote === "teamA" ? "white" : "none"} />
           <span className="text-xs font-semibold">{teamAVotes}</span>
         </button>
         <div className="flex items-center gap-1 text-xs text-slate-500">
@@ -57,12 +57,12 @@ export default function FightEngagement({
         <button
           onClick={onVoteTeamB}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-2 rounded-lg transition-all duration-200 ${
-            userVote === 'teamB'
-              ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white'
-              : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            userVote === "teamB"
+              ? "bg-gradient-to-r from-red-600 to-orange-600 text-white"
+              : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
           }`}
         >
-          <Flame size={16} fill={userVote === 'teamB' ? 'white' : 'none'} />
+          <Flame size={16} fill={userVote === "teamB" ? "white" : "none"} />
           <span className="text-xs font-semibold">{teamBVotes}</span>
         </button>
       </div>
@@ -75,10 +75,10 @@ export default function FightEngagement({
       <button
         onClick={onLike}
         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-          isLiked ? 'text-red-500' : 'text-slate-400 hover:text-slate-200'
+          isLiked ? "text-red-500" : "text-slate-400 hover:text-slate-200"
         } hover:bg-slate-800/50`}
       >
-        <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} />
+        <Heart size={16} fill={isLiked ? "currentColor" : "none"} />
         <span className="text-xs">{aura}</span>
       </button>
       <button

@@ -48,22 +48,17 @@ exports.purchaseItem = async (req, res) => {
     if (method === "celestium") {
       const price = Number(item.priceCelestium || 0);
 
-      if (price <= 0)
-        return res.status(400).json({ message: "Invalid store item price" });
+      if (price <= 0) return res.status(400).json({ message: "Invalid store item price" });
 
       if (user.celestium < price) {
         return res.status(400).json({ message: "Not enough celestium" });
       }
 
       // Prevent duplicate permanent items
-      const alreadyOwned = user.inventory.some(
-        (i) => i.key === item.key && i.permanent === true
-      );
+      const alreadyOwned = user.inventory.some((i) => i.key === item.key && i.permanent === true);
 
       if (alreadyOwned) {
-        return res
-          .status(400)
-          .json({ message: "You already own this permanently" });
+        return res.status(400).json({ message: "You already own this permanently" });
       }
 
       // Deduct
@@ -90,8 +85,7 @@ exports.purchaseItem = async (req, res) => {
     else if (method === "energy") {
       const price = Number(item.priceEnergy || 0);
 
-      if (price <= 0)
-        return res.status(400).json({ message: "Invalid store item price" });
+      if (price <= 0) return res.status(400).json({ message: "Invalid store item price" });
 
       if (user.energy < price) {
         return res.status(400).json({ message: "Not enough energy" });
@@ -102,9 +96,7 @@ exports.purchaseItem = async (req, res) => {
       xpReward = 10;
 
       // Expiration timestamp
-      const expiresAt = new Date(
-        Date.now() + (item.durationHours || 48) * 3600 * 1000
-      );
+      const expiresAt = new Date(Date.now() + (item.durationHours || 48) * 3600 * 1000);
 
       // Add temporary inventory item
       user.inventory.push({
@@ -141,10 +133,7 @@ exports.purchaseItem = async (req, res) => {
       item: item.key,
       method,
       xpGained: xpReward,
-      spent:
-        method === "energy"
-          ? item.priceEnergy
-          : item.priceCelestium,
+      spent: method === "energy" ? item.priceEnergy : item.priceCelestium,
     });
 
     // Achievement: first purchase
@@ -166,9 +155,7 @@ exports.purchaseItem = async (req, res) => {
 // GET /api/store/inventory
 exports.getInventory = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select(
-      "inventory celestium energy xp badges"
-    );
+    const user = await User.findById(req.userId).select("inventory celestium energy xp badges");
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });

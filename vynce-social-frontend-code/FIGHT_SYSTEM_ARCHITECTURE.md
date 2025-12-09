@@ -49,6 +49,7 @@
 ## Feature Flow Diagrams
 
 ### Vote System Flow
+
 ```
 Fight Card Vote Button
         ↓
@@ -68,6 +69,7 @@ Fight Card Vote Button
 ```
 
 ### Team Chat Flow
+
 ```
 "Team Chat" Button in Watch Modal
         ↓
@@ -93,6 +95,7 @@ Fight Card Vote Button
 ```
 
 ### Fight Type Display Flow
+
 ```
 Fight Data Has fightType Property
         ↓
@@ -117,6 +120,7 @@ Fight Data Has fightType Property
 ## Data Structure Examples
 
 ### Fight Card Data
+
 ```typescript
 {
   id: 1,
@@ -136,6 +140,7 @@ Fight Data Has fightType Property
 ```
 
 ### Vote Data Structure
+
 ```typescript
 // In store.fightVotes
 {
@@ -148,6 +153,7 @@ Fight Data Has fightType Property
 ```
 
 ### Team Message Structure
+
 ```typescript
 // In store.teamMessages array
 {
@@ -164,6 +170,7 @@ Fight Data Has fightType Property
 ## UI States & Transitions
 
 ### Vote Button States
+
 ```
 ┌─────────────────────────────────────────┐
 │         Not Voted (Initial)             │
@@ -180,6 +187,7 @@ Fight Data Has fightType Property
 ```
 
 ### Team Chat States
+
 ```
 ┌──────────────────────────┐
 │   Modal Closed (Hidden)  │
@@ -273,6 +281,7 @@ FightEngagement.tsx (ENHANCED)
 ## Browser Interactions Supported
 
 ### Desktop
+
 - Click vote buttons → update votes
 - Click team chat → modal opens
 - Type message → send with Enter or button
@@ -280,6 +289,7 @@ FightEngagement.tsx (ENHANCED)
 - All animations smooth
 
 ### Mobile
+
 - Vote buttons with touch feedback
 - Team chat responsive width
 - Input field focuses properly

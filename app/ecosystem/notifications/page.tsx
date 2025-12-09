@@ -26,9 +26,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="px-4 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-3 ${theme.textPrimary}`}>
-        Notifications
-      </h1>
+      <h1 className={`text-2xl font-bold mb-3 ${theme.textPrimary}`}>Notifications</h1>
 
       {loading && <p className="text-sm text-gray-400">Loading...</p>}
 
@@ -41,21 +39,15 @@ export default function NotificationsPage() {
             <Bell className="w-6 h-6 text-blue-400" />
 
             <div>
-              <p className={`${theme.textPrimary} font-semibold`}>
-                {n.title}
-              </p>
-              <p className={`${theme.textSecondary} text-xs`}>
-                {n.message}
-              </p>
+              <p className={`${theme.textPrimary} font-semibold`}>{n.title}</p>
+              <p className={`${theme.textSecondary} text-xs`}>{n.message}</p>
             </div>
           </div>
         ))}
       </div>
 
       {!loading && notifications.length === 0 && (
-        <p className="text-gray-500 text-sm mt-6">
-          No notifications yet.
-        </p>
+        <p className="text-gray-500 text-sm mt-6">No notifications yet.</p>
       )}
     </div>
   );

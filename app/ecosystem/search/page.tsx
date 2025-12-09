@@ -28,9 +28,7 @@ export default function EcosystemSearchPage() {
 
   return (
     <div className="px-4 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>
-        Search
-      </h1>
+      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>Search</h1>
 
       {/* Search Input */}
       <div className="flex items-center gap-3 mb-6">
@@ -40,18 +38,13 @@ export default function EcosystemSearchPage() {
           placeholder="Search users..."
           className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none"
         />
-        <button
-          onClick={handleSearch}
-          className="p-3 rounded-xl bg-blue-600 hover:bg-blue-700"
-        >
+        <button onClick={handleSearch} className="p-3 rounded-xl bg-blue-600 hover:bg-blue-700">
           <Search className="w-5 h-5 text-white" />
         </button>
       </div>
 
       {/* Results */}
-      {loading && (
-        <p className="text-gray-400 text-sm">Searching...</p>
-      )}
+      {loading && <p className="text-gray-400 text-sm">Searching...</p>}
 
       {!loading && results.length === 0 && query.length > 0 && (
         <p className="text-gray-500 text-sm">No users found</p>
@@ -65,9 +58,7 @@ export default function EcosystemSearchPage() {
               <p className={`${theme.textPrimary} font-semibold`}>
                 {user.displayName || user.username}
               </p>
-              <p className={`${theme.textSecondary} text-sm`}>
-                @{user.username}
-              </p>
+              <p className={`${theme.textSecondary} text-sm`}>@{user.username}</p>
             </div>
           </Link>
         ))}

@@ -59,14 +59,8 @@ const drops = [
 ];
 
 export default function DropsPage() {
-  const {
-    likedPosts,
-    dislikedPosts,
-    savedPosts,
-    toggleLike,
-    toggleDislike,
-    toggleSave,
-  } = useAppStore();
+  const { likedPosts, dislikedPosts, savedPosts, toggleLike, toggleDislike, toggleSave } =
+    useAppStore();
 
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [activeShare, setActiveShare] = useState<number | null>(null);
@@ -74,7 +68,6 @@ export default function DropsPage() {
 
   return (
     <div className="animate-fadeIn pb-24 sm:pb-0 w-full bg-slate-900">
-
       {/* Posts Feed */}
       <div className="max-w-2xl mx-auto w-full">
         {drops.map((drop, idx) => {
@@ -118,7 +111,10 @@ export default function DropsPage() {
                 {drop.tags?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {drop.tags.map((tag) => (
-                      <button key={tag} className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
+                      <button
+                        key={tag}
+                        className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                      >
                         {tag}
                       </button>
                     ))}
@@ -129,7 +125,9 @@ export default function DropsPage() {
               {/* Engagement Stats */}
               <div className="px-4 py-2 text-xs text-gray-500 flex gap-4 font-medium">
                 <button className="hover:text-white transition-colors">{currentAura} Aura</button>
-                <button className="hover:text-white transition-colors">{drop.comments} Replies</button>
+                <button className="hover:text-white transition-colors">
+                  {drop.comments} Replies
+                </button>
                 <button className="hover:text-white transition-colors">{drop.shares} Shares</button>
               </div>
 
@@ -139,7 +137,9 @@ export default function DropsPage() {
                 <button
                   onClick={() => toggleLike(drop.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg transition-all duration-200 font-medium text-xs ${
-                    isLiked ? "bg-purple-500/20 text-purple-300" : "text-gray-400 hover:bg-purple-500/10 hover:text-purple-300"
+                    isLiked
+                      ? "bg-purple-500/20 text-purple-300"
+                      : "text-gray-400 hover:bg-purple-500/10 hover:text-purple-300"
                   }`}
                   aria-label="Give Aura"
                   title="Aura"
@@ -152,7 +152,9 @@ export default function DropsPage() {
                 <button
                   onClick={() => toggleDislike(drop.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg transition-all duration-200 font-medium text-xs ${
-                    isDisliked ? "bg-orange-500/20 text-orange-300" : "text-gray-400 hover:bg-orange-500/10 hover:text-orange-300"
+                    isDisliked
+                      ? "bg-orange-500/20 text-orange-300"
+                      : "text-gray-400 hover:bg-orange-500/10 hover:text-orange-300"
                   }`}
                   aria-label="Lame"
                   title="Lame"
@@ -184,7 +186,9 @@ export default function DropsPage() {
                 <button
                   onClick={() => toggleSave(drop.id)}
                   className={`flex-1 flex items-center justify-center py-2 px-2 rounded-lg transition-all duration-200 font-medium text-xs ${
-                    isSaved ? "text-yellow-300 bg-yellow-500/20" : "text-gray-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                    isSaved
+                      ? "text-yellow-300 bg-yellow-500/20"
+                      : "text-gray-400 hover:text-yellow-300 hover:bg-yellow-500/10"
                   }`}
                   aria-label="Save"
                   title="Save"

@@ -44,18 +44,18 @@ export default function LoginPage() {
 
   // ---- GUEST LOGIN ----
   const handleGuest = async () => {
-  try {
-    const res = await api.post("/auth/guest");
+    try {
+      const res = await api.post("/auth/guest");
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("guest_mode", "true");
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("guest_mode", "true");
 
-    router.push("/ecosystem");
-  } catch (err) {
-    console.log(err);
-    alert("Guest login failed");
-  }
-};
+      router.push("/ecosystem");
+    } catch (err) {
+      console.log(err);
+      alert("Guest login failed");
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
@@ -93,7 +93,9 @@ export default function LoginPage() {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button type="submit" className="w-full">Login</Button>
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
           </form>
 
           {/* Guest Login Button */}
@@ -118,4 +120,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

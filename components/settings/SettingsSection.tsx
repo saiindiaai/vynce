@@ -47,7 +47,6 @@ export default function SettingsSection() {
 
   return (
     <div className="px-6 pb-28 mt-6 space-y-4">
-
       {/* LOOP CARDS */}
       {cards.map((card) => (
         <Link key={card.title} href={card.href} className="block">
@@ -67,12 +66,8 @@ export default function SettingsSection() {
               </div>
 
               <div>
-                <h3 className={`font-semibold ${theme.textPrimary} text-base`}>
-                  {card.title}
-                </h3>
-                <p className={`${theme.textSecondary} text-sm`}>
-                  {card.desc}
-                </p>
+                <h3 className={`font-semibold ${theme.textPrimary} text-base`}>{card.title}</h3>
+                <p className={`${theme.textSecondary} text-sm`}>{card.desc}</p>
               </div>
             </div>
 

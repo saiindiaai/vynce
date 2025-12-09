@@ -18,6 +18,7 @@ A modern, production-ready social media platform built with Next.js, React, and 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 
@@ -87,7 +88,7 @@ c:\dev\vynce-social\
 Uses Zustand for global state:
 
 ```typescript
-import { useAppStore } from '@/lib/store';
+import { useAppStore } from "@/lib/store";
 
 const { currentPage, setCurrentPage } = useAppStore();
 ```
@@ -97,7 +98,7 @@ const { currentPage, setCurrentPage } = useAppStore();
 All API calls go through the `apiClient`:
 
 ```typescript
-import { apiClient } from '@/lib/api';
+import { apiClient } from "@/lib/api";
 
 const response = await apiClient.getPosts(1, 20);
 ```
@@ -105,18 +106,15 @@ const response = await apiClient.getPosts(1, 20);
 For custom hooks with automatic loading/error handling:
 
 ```typescript
-import { useApi } from '@/lib/hooks';
+import { useApi } from "@/lib/hooks";
 
-const { data, loading, error, execute } = useApi(
-  () => apiClient.getPosts(),
-  { autoFetch: true }
-);
+const { data, loading, error, execute } = useApi(() => apiClient.getPosts(), { autoFetch: true });
 ```
 
 ## Form Validation
 
 ```typescript
-import { validators, validateForm } from '@/lib/validation';
+import { validators, validateForm } from "@/lib/validation";
 
 const errors = validateForm(formData, {
   username: validators.username,
@@ -128,15 +126,16 @@ const errors = validateForm(formData, {
 ## Analytics
 
 ```typescript
-import { trackPageView, trackUserAction } from '@/lib/analytics';
+import { trackPageView, trackUserAction } from "@/lib/analytics";
 
-trackPageView('home');
-trackUserAction('post_liked', { postId: 123 });
+trackPageView("home");
+trackUserAction("post_liked", { postId: 123 });
 ```
 
 ## Themes
 
 Available themes:
+
 - **Vynce Nebula** (Premium)
 - **Cosmos Dark** (Cosmic)
 - **Neon Dream** (Vibrant)

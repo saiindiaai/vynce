@@ -15,6 +15,7 @@ Comprehensive redesign and navigation restructuring across 4 major phases, addre
 ## PHASE 1: TopBar Restructure ✅
 
 ### Changes Made
+
 - **Removed Search Bar**: Eliminated centered search input from TopBar
 - **Added App Name**: "Vynce Social" displayed on desktop (left side)
 - **Added Messages Button**: New button in TopBar with blue indicator dot
@@ -22,9 +23,11 @@ Comprehensive redesign and navigation restructuring across 4 major phases, addre
 - **Mobile-First Design**: Menu button (mobile) + app name (desktop) on left, messages/notifications on right
 
 ### File Modified
+
 - `components/layout/TopBar.tsx`
 
 ### Code Changes
+
 ```tsx
 // Added app name (desktop only)
 <div className="hidden sm:flex items-center gap-2">
@@ -53,6 +56,7 @@ Comprehensive redesign and navigation restructuring across 4 major phases, addre
 ```
 
 ### Impact
+
 - ✅ Cleaner TopBar with essential information only
 - ✅ Quick access to Messages and Notifications from any page
 - ✅ App branding visible on desktop
@@ -65,6 +69,7 @@ Comprehensive redesign and navigation restructuring across 4 major phases, addre
 ### Changes Made
 
 #### Sidebar Updates
+
 - **Removed**: Messages from main navigation (now in TopBar)
 - **Removed**: Settings button (secondary actions)
 - **Removed**: Logout button (secondary actions)
@@ -72,23 +77,27 @@ Comprehensive redesign and navigation restructuring across 4 major phases, addre
 - **Reordered**: Menu items follow logical flow
 
 #### BottomNav Updates
+
 - **Removed**: Messages from bottom navigation
 - **Added**: Explore page
 - **Reordered**: Items consistent with Sidebar
 
 ### Files Modified
+
 - `components/layout/Sidebar.tsx`
 - `components/layout/BottomNav.tsx`
 
 ### Navigation Structure
 
 **Before**:
+
 ```
 Home → Capsules → Messages → Drops → Fight → Notifications → Profile
 [Settings / Logout in secondary section]
 ```
 
 **After**:
+
 ```
 Home → Capsules → Drops → Fight → Explore → Profile
 [Messages moved to TopBar]
@@ -97,15 +106,16 @@ Home → Capsules → Drops → Fight → Explore → Profile
 ```
 
 ### Code Changes
+
 ```tsx
 // Updated menu items array
 const menuItems = [
-  { id: 'home' as const, label: 'Home', icon: Home },
-  { id: 'capsules' as const, label: 'Capsules', icon: MessageCircle },
-  { id: 'drops' as const, label: 'Drops', icon: MessageCircle },
-  { id: 'fight' as const, label: 'Fight', icon: Zap },
-  { id: 'explore' as const, label: 'Explore', icon: Home },
-  { id: 'profile' as const, label: 'Profile', icon: User },
+  { id: "home" as const, label: "Home", icon: Home },
+  { id: "capsules" as const, label: "Capsules", icon: MessageCircle },
+  { id: "drops" as const, label: "Drops", icon: MessageCircle },
+  { id: "fight" as const, label: "Fight", icon: Zap },
+  { id: "explore" as const, label: "Explore", icon: Home },
+  { id: "profile" as const, label: "Profile", icon: User },
 ];
 
 // Removed secondary actions section entirely
@@ -113,6 +123,7 @@ const menuItems = [
 ```
 
 ### Impact
+
 - ✅ Cleaner navigation hierarchy
 - ✅ Messages and Notifications in single accessible location (TopBar)
 - ✅ Consistent navigation across mobile (BottomNav) and desktop (Sidebar)
@@ -126,6 +137,7 @@ const menuItems = [
 ### Critical Issues Addressed
 
 #### 1. Z-Index Overlap Issue
+
 **Problem**: Sidebar (z-30) overlapped with TopBar (z-40) on mobile  
 **Solution**: Reorganized z-index hierarchy
 
@@ -137,6 +149,7 @@ Modals: z-50+ (when needed, above everything)
 ```
 
 #### 2. Sidebar Scrolling Issue
+
 **Problem**: Mobile sidebar allowed vertical scrolling, making content inaccessible  
 **Solution**: Disabled overflow on mobile
 
@@ -148,6 +161,7 @@ Modals: z-50+ (when needed, above everything)
 ```
 
 #### 3. Sidebar Positioning
+
 **Problem**: Sidebar started at viewport top, hiding under TopBar  
 **Solution**: Changed positioning to start below TopBar
 
@@ -158,6 +172,7 @@ Modals: z-50+ (when needed, above everything)
 ```
 
 #### 4. Touch Target Size
+
 **Problem**: Buttons too small for mobile users  
 **Solution**: Standardized to 40px minimum
 
@@ -168,11 +183,13 @@ Modals: z-50+ (when needed, above everything)
 ```
 
 ### Files Modified
+
 - `components/layout/TopBar.tsx` (z-index)
 - `components/layout/Sidebar.tsx` (z-index, overflow, positioning)
 - `components/layout/BottomNav.tsx` (z-index)
 
 ### Code Changes
+
 ```tsx
 // Mobile Backdrop z-index fix
 <div className="fixed inset-0 bg-black/50 z-20 animate-fadeIn sm:hidden" />
@@ -187,6 +204,7 @@ Modals: z-50+ (when needed, above everything)
 ```
 
 ### Impact
+
 - ✅ Sidebar no longer hides behind TopBar
 - ✅ Mobile users can't accidentally scroll sidebar
 - ✅ Touch targets meet WCAG AA standards (40px+)
@@ -200,6 +218,7 @@ Modals: z-50+ (when needed, above everything)
 ### New Design Features
 
 #### Layout
+
 - **Vertical Single-Card**: Full-screen, centered content card
 - **Instagram Stories Style**: One capsule at a time, vertical navigation
 - **Responsive**: Adapts from mobile (compact) to desktop (spacious)
@@ -241,6 +260,7 @@ Modals: z-50+ (when needed, above everything)
    - ARIA labels for accessibility
 
 ### Files Modified
+
 - `components/pages/CapsulesPage.tsx`
 
 ### Design Improvements
@@ -262,7 +282,7 @@ Modals: z-50+ (when needed, above everything)
   <div className={`absolute inset-0 bg-gradient-to-br ${capsule.gradient}`}>
     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40" />
   </div>
-  
+
   <div className="relative w-full h-full flex flex-col items-center justify-center p-6 sm:p-8 space-y-4">
     <div className="text-6xl sm:text-7xl animate-float">{capsule.userAvatar}</div>
     <h2 className="text-3xl sm:text-4xl font-black text-white drop-shadow-lg">
@@ -300,16 +320,17 @@ Modals: z-50+ (when needed, above everything)
 
 ### Desktop vs Mobile
 
-| Feature | Mobile | Desktop |
-|---------|--------|---------|
-| Layout | Full-screen vertical | Full-screen with side buttons |
-| Navigation | Bottom buttons + dots | Side chevron buttons + dots |
-| User Info | Hidden (space) | Visible top-left |
-| Download | Hidden | Top-right |
-| Progress | Segment bars (responsive) | Segment bars (same) |
-| Spacing | Compact (p-6) | Spacious (p-8) |
+| Feature    | Mobile                    | Desktop                       |
+| ---------- | ------------------------- | ----------------------------- |
+| Layout     | Full-screen vertical      | Full-screen with side buttons |
+| Navigation | Bottom buttons + dots     | Side chevron buttons + dots   |
+| User Info  | Hidden (space)            | Visible top-left              |
+| Download   | Hidden                    | Top-right                     |
+| Progress   | Segment bars (responsive) | Segment bars (same)           |
+| Spacing    | Compact (p-6)             | Spacious (p-8)                |
 
 ### Impact
+
 - ✅ Modern Stories/Reels UI matching image references
 - ✅ Better visual hierarchy
 - ✅ Improved mobile experience with bottom navigation
@@ -322,16 +343,17 @@ Modals: z-50+ (when needed, above everything)
 
 ## Summary of Changes
 
-| Phase | Area | Changes | Impact |
-|-------|------|---------|--------|
-| 1 | TopBar | Removed search, added app name, added Messages | Cleaner interface, quick access to messages |
-| 2 | Navigation | Removed Messages/Settings/Logout from sidebar, added Explore | Simplified navigation hierarchy |
-| 3 | Mobile A11y | Fixed z-index, disabled scroll, improved touch targets | Better mobile UX, no overlaps, WCAG compliant |
-| 4 | Capsules | Vertical layout, progress bar, centered card, side buttons | Modern UI matching references |
+| Phase | Area        | Changes                                                      | Impact                                        |
+| ----- | ----------- | ------------------------------------------------------------ | --------------------------------------------- |
+| 1     | TopBar      | Removed search, added app name, added Messages               | Cleaner interface, quick access to messages   |
+| 2     | Navigation  | Removed Messages/Settings/Logout from sidebar, added Explore | Simplified navigation hierarchy               |
+| 3     | Mobile A11y | Fixed z-index, disabled scroll, improved touch targets       | Better mobile UX, no overlaps, WCAG compliant |
+| 4     | Capsules    | Vertical layout, progress bar, centered card, side buttons   | Modern UI matching references                 |
 
 ---
 
 ## Files Modified (4 files)
+
 1. `components/layout/TopBar.tsx` - Restructured layout and navigation
 2. `components/layout/Sidebar.tsx` - Removed items, fixed z-index and scroll
 3. `components/layout/BottomNav.tsx` - Updated menu items to match sidebar
@@ -340,6 +362,7 @@ Modals: z-50+ (when needed, above everything)
 ---
 
 ## Accessibility Improvements
+
 - ✅ Better z-index hierarchy (no overlapping elements)
 - ✅ Improved touch targets (40px minimum)
 - ✅ Proper ARIA labels on all buttons
@@ -351,6 +374,7 @@ Modals: z-50+ (when needed, above everything)
 ---
 
 ## Build Status
+
 ```
 ✅ Compiled successfully
 ✅ 0 TypeScript errors
@@ -361,6 +385,7 @@ Modals: z-50+ (when needed, above everything)
 ---
 
 ## Next Steps (Optional)
+
 - Test on real devices (mobile, tablet, desktop)
 - Verify navigation flow
 - Check Explore page styling
@@ -372,6 +397,7 @@ Modals: z-50+ (when needed, above everything)
 ## Technical Notes
 
 ### Z-Index Hierarchy
+
 ```
 Modals/Sheets:     z-50+
 TopBar:            z-40
@@ -381,11 +407,13 @@ Content:           z-10 or z-0
 ```
 
 ### Responsive Breakpoints Used
+
 - Mobile: < 640px (sm:)
 - Tablet: 640px - 1024px
 - Desktop: 1024px+ (lg:)
 
 ### Removed Components
+
 - Search from TopBar
 - Settings button from Sidebar
 - Logout button from Sidebar

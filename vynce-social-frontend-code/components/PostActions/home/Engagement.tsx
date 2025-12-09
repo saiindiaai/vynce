@@ -42,7 +42,9 @@ export default function HomeEngagement({
           aria-label="Give Aura"
           className={`flex flex-col items-center gap-1 transition transform hover:scale-105`}
         >
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isLiked ? "bg-gradient-to-br from-purple-500 to-pink-500 text-white" : "bg-white/5"}`}>
+          <div
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isLiked ? "bg-gradient-to-br from-purple-500 to-pink-500 text-white" : "bg-white/5"}`}
+          >
             <Heart size={20} className={isLiked ? "fill-white text-white" : "text-gray-200"} />
           </div>
           <span className="text-xs font-semibold">{aura}</span>
@@ -54,28 +56,47 @@ export default function HomeEngagement({
           aria-label="Call it Lame"
           className={`flex flex-col items-center gap-1 transition transform hover:scale-105`}
         >
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDisliked ? "bg-gradient-to-br from-orange-500 to-red-500 text-white" : "bg-white/5"}`}>
-            <ThumbsDown size={20} className={isDisliked ? "fill-white text-white" : "text-gray-200"} />
+          <div
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDisliked ? "bg-gradient-to-br from-orange-500 to-red-500 text-white" : "bg-white/5"}`}
+          >
+            <ThumbsDown
+              size={20}
+              className={isDisliked ? "fill-white text-white" : "text-gray-200"}
+            />
           </div>
           <span className="text-xs font-semibold">{isDisliked ? "Lame" : ""}</span>
         </button>
 
-        <button onClick={onComment} aria-label="Comments" className="flex flex-col items-center gap-1 transition hover:scale-105">
+        <button
+          onClick={onComment}
+          aria-label="Comments"
+          className="flex flex-col items-center gap-1 transition hover:scale-105"
+        >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5">
             <MessageCircle size={20} className="text-gray-200" />
           </div>
           <span className="text-xs font-semibold">{comments}</span>
         </button>
 
-        <button onClick={onShare} aria-label="Share" className="flex flex-col items-center gap-1 transition hover:scale-105">
+        <button
+          onClick={onShare}
+          aria-label="Share"
+          className="flex flex-col items-center gap-1 transition hover:scale-105"
+        >
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5">
             <Share2 size={20} className="text-gray-200" />
           </div>
           <span className="text-xs font-semibold">{shares}</span>
         </button>
 
-        <button onClick={onSave} aria-label="Save" className="flex flex-col items-center gap-1 transition hover:scale-105">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSaved ? "bg-yellow-500/20" : "bg-white/5"}`}>
+        <button
+          onClick={onSave}
+          aria-label="Save"
+          className="flex flex-col items-center gap-1 transition hover:scale-105"
+        >
+          <div
+            className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSaved ? "bg-yellow-500/20" : "bg-white/5"}`}
+          >
             <Bookmark size={18} className={isSaved ? "text-yellow-400" : "text-gray-200"} />
           </div>
         </button>
@@ -84,7 +105,9 @@ export default function HomeEngagement({
   }
 
   return (
-    <div className={`flex items-center justify-between border-t ${themeClasses.cardBorder || "border-white/10"} pt-3`}>
+    <div
+      className={`flex items-center justify-between border-t ${themeClasses.cardBorder || "border-white/10"} pt-3`}
+    >
       <button
         onClick={onLike}
         className={`flex items-center gap-2 py-2 px-3 rounded-lg transition-colors ${isLiked ? "text-red-500" : themeClasses.textSecondary || "text-gray-300"} hover:bg-white/5`}

@@ -61,8 +61,7 @@ exports.awardXP = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const xpGain = Number(amount);
-    if (isNaN(xpGain) || xpGain <= 0)
-      return res.status(400).json({ message: "Invalid XP amount" });
+    if (isNaN(xpGain) || xpGain <= 0) return res.status(400).json({ message: "Invalid XP amount" });
 
     user.xp += xpGain;
 
@@ -86,7 +85,6 @@ exports.awardXP = async (req, res) => {
       level: user.level,
       leveledUp,
     });
-
   } catch (err) {
     console.error("awardXP error:", err);
     res.status(500).json({ message: err.message });
@@ -117,7 +115,6 @@ exports.awardCelestium = async (req, res) => {
       message: "Celestium awarded",
       celestium: user.celestium,
     });
-
   } catch (err) {
     console.error("awardCelestium error:", err);
     res.status(500).json({ message: err.message });

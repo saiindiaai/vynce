@@ -25,6 +25,7 @@ A next-generation social media platform built with Next.js 14, TypeScript, and T
 ## 🌟 Overview
 
 Vynce Social is a modern social media platform featuring:
+
 - **Stories & Capsules**: Instagram-style stories with full-screen vertical video
 - **Drops Feed**: Twitter-style posts with rich media support
 - **Aura System**: Unique engagement mechanism (Aura/Lame voting)
@@ -39,6 +40,7 @@ Built with **Next.js 14 App Router** for optimal performance and SEO.
 ## ✨ Features
 
 ### Core Features
+
 - 🏠 **Home Feed** - Stories and posts from My Gang
 - 📸 **Capsules** - Full-screen vertical video stories
 - 📰 **Drops** - Trending posts and updates
@@ -48,6 +50,7 @@ Built with **Next.js 14 App Router** for optimal performance and SEO.
 - 👤 **Profile** - Customizable user profiles with stats
 
 ### Interaction System
+
 - ⭐ **Aura/Lame Voting** - Unique post engagement system
 - 💬 **Comments** - Threaded discussions (UI ready)
 - 🔄 **Shares** - Content distribution
@@ -55,6 +58,7 @@ Built with **Next.js 14 App Router** for optimal performance and SEO.
 - 🎨 **Houses** - Interest-based communities
 
 ### UI/UX Features
+
 - 🎨 **6 Theme System** - Switch between beautiful themes instantly
 - 📱 **Mobile-First Design** - Optimized for mobile devices
 - ✨ **Smooth Animations** - 60fps animations with Tailwind
@@ -67,19 +71,23 @@ Built with **Next.js 14 App Router** for optimal performance and SEO.
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - **Next.js 14.2.3** - React framework with App Router
 - **React 18.3** - UI library
 - **TypeScript 5** - Type safety
 - **Tailwind CSS 3.4** - Utility-first CSS
 
 ### State Management
+
 - **Zustand 4.5** - Lightweight state management
 
 ### Icons & UI
+
 - **Lucide React** - Beautiful icon set
 - **Custom Animations** - Tailwind-based animations
 
 ### Development Tools
+
 - **ESLint** - Code linting
 - **TypeScript** - Static type checking
 - **PostCSS** - CSS processing
@@ -141,28 +149,33 @@ vynce-social/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ installed
 - npm or yarn package manager
 
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd vynce-social
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Run development server**
+
 ```bash
 npm run dev
 ```
 
 4. **Open in browser**
+
 ```
 http://localhost:3000
 ```
@@ -240,15 +253,15 @@ interface AppState {
   // Navigation
   currentPage: PageType;
   setCurrentPage: (page: PageType) => void;
-  
+
   // UI State
   sidebarOpen: boolean;
   showThemeSelector: boolean;
-  
+
   // Interactions
   likedPosts: Record<number, boolean>;
   toggleLike: (postId: number) => void;
-  
+
   // Theme
   currentTheme: string;
   setCurrentTheme: (theme: string) => void;
@@ -262,7 +275,7 @@ import { useAppStore } from '@/lib/store';
 
 function MyComponent() {
   const { currentPage, setCurrentPage } = useAppStore();
-  
+
   return (
     <button onClick={() => setCurrentPage('home')}>
       Go Home
@@ -286,15 +299,18 @@ function MyComponent() {
 ### 6 Available Themes
 
 #### Primary Themes
+
 1. **Minimal Mono** - Clean light theme
 2. **Vynce Nebula** - Purple/blue gradient dark
 
 #### Glossy Themes
+
 3. **Galaxy Core** - Purple with cyan accents
 4. **Monochrome Royale** - Blue and violet
 5. **CyberMint** - Teal and cyan
 
 #### Premium Themes
+
 6. **Vynce Glow** - Cosmic retro with neon effects
 
 ### Theme Structure
@@ -302,15 +318,15 @@ function MyComponent() {
 ```typescript
 interface ThemeConfig {
   name: string;
-  primary: string;        // Gradient classes
+  primary: string; // Gradient classes
   secondary: string;
   accent: string;
-  bg: string;            // Background gradient
-  textPrimary: string;   // Text colors
+  bg: string; // Background gradient
+  textPrimary: string; // Text colors
   textSecondary: string;
-  cardBg: string;        // Card backgrounds
+  cardBg: string; // Card backgrounds
   cardBorder: string;
-  style: 'flat' | 'glossy' | 'cosmic-retro';
+  style: "flat" | "glossy" | "cosmic-retro";
 }
 ```
 
@@ -323,7 +339,7 @@ function MyComponent() {
   const { currentTheme } = useAppStore();
   const allThemes = getAllThemes();
   const themeClasses = allThemes[currentTheme];
-  
+
   return (
     <div className={themeClasses.cardBg}>
       <h1 className={themeClasses.textPrimary}>Hello</h1>
@@ -367,7 +383,7 @@ export default function MyPage() {
   const { currentTheme } = useAppStore();
   const allThemes = getAllThemes();
   const themeClasses = allThemes[currentTheme];
-  
+
   return (
     <div className="animate-fadeIn">
       {/* Your content */}
@@ -403,9 +419,9 @@ interface AppState {
 
 // 2. Implement action
 toggleRepost: (postId) => set((state) => ({
-  repostedPosts: { 
-    ...state.repostedPosts, 
-    [postId]: !state.repostedPosts[postId] 
+  repostedPosts: {
+    ...state.repostedPosts,
+    [postId]: !state.repostedPosts[postId]
   }
 }));
 
@@ -445,6 +461,7 @@ hover-lift          /* Lift on hover */
 ### Vercel (Recommended)
 
 1. **Push to GitHub**
+
 ```bash
 git init
 git add .
@@ -454,6 +471,7 @@ git push -u origin main
 ```
 
 2. **Deploy on Vercel**
+
 - Go to [vercel.com](https://vercel.com)
 - Import your GitHub repository
 - Vercel auto-detects Next.js
@@ -462,12 +480,14 @@ git push -u origin main
 ### Other Platforms
 
 #### Netlify
+
 ```bash
 npm run build
 # Deploy the `.next` folder
 ```
 
 #### Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -489,6 +509,7 @@ CMD ["npm", "start"]
 
 **Issue**: `Module not found: Can't resolve '@/...'`
 **Solution**: Check `tsconfig.json` has correct paths:
+
 ```json
 {
   "compilerOptions": {
@@ -505,7 +526,8 @@ CMD ["npm", "start"]
 #### Styling Issues
 
 **Issue**: Tailwind classes not applying
-**Solution**: 
+**Solution**:
+
 1. Check `tailwind.config.ts` includes all paths
 2. Restart dev server
 3. Clear `.next` cache: `rm -rf .next`
@@ -514,13 +536,16 @@ CMD ["npm", "start"]
 
 **Issue**: State not persisting
 **Solution**: Zustand state is in-memory only. For persistence:
+
 ```typescript
-import { persist } from 'zustand/middleware';
+import { persist } from "zustand/middleware";
 
 export const useAppStore = create(
   persist(
-    (set) => ({ /* state */ }),
-    { name: 'vynce-storage' }
+    (set) => ({
+      /* state */
+    }),
+    { name: "vynce-storage" }
   )
 );
 ```
@@ -530,6 +555,7 @@ export const useAppStore = create(
 ## 🎯 Roadmap
 
 ### Phase 1 (Current) ✅
+
 - [x] Core UI components
 - [x] Navigation system
 - [x] Theme system
@@ -537,6 +563,7 @@ export const useAppStore = create(
 - [x] Responsive design
 
 ### Phase 2 (Next)
+
 - [ ] Backend API integration
 - [ ] Authentication (NextAuth.js)
 - [ ] Real-time updates (WebSockets)
@@ -544,6 +571,7 @@ export const useAppStore = create(
 - [ ] Database integration (Prisma + PostgreSQL)
 
 ### Phase 3 (Future)
+
 - [ ] AI-powered recommendations
 - [ ] Advanced fight mechanics
 - [ ] Monetization features

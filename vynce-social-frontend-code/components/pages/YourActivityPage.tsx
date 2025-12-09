@@ -1,57 +1,57 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Heart, MessageCircle, UserPlus, Share2, Zap } from 'lucide-react';
+import React from "react";
+import { Heart, MessageCircle, UserPlus, Share2, Zap } from "lucide-react";
 
 export default function YourActivityPage() {
   const activities = [
     {
-      type: 'like',
-      user: 'Alex Orbit',
-      action: 'liked your post',
-      time: '2 hours ago',
+      type: "like",
+      user: "Alex Orbit",
+      action: "liked your post",
+      time: "2 hours ago",
       icon: Heart,
-      color: 'text-red-400',
+      color: "text-red-400",
     },
     {
-      type: 'comment',
-      user: 'Jane Cosmos',
-      action: 'commented on your post',
-      time: '3 hours ago',
+      type: "comment",
+      user: "Jane Cosmos",
+      action: "commented on your post",
+      time: "3 hours ago",
       icon: MessageCircle,
-      color: 'text-blue-400',
+      color: "text-blue-400",
     },
     {
-      type: 'follow',
-      user: 'Tech Warrior',
-      action: 'started following you',
-      time: '5 hours ago',
+      type: "follow",
+      user: "Tech Warrior",
+      action: "started following you",
+      time: "5 hours ago",
       icon: UserPlus,
-      color: 'text-green-400',
+      color: "text-green-400",
     },
     {
-      type: 'share',
-      user: 'Design Pro',
-      action: 'shared your post',
-      time: '8 hours ago',
+      type: "share",
+      user: "Design Pro",
+      action: "shared your post",
+      time: "8 hours ago",
       icon: Share2,
-      color: 'text-purple-400',
+      color: "text-purple-400",
     },
     {
-      type: 'like',
-      user: 'Creative Studio',
-      action: 'liked your post',
-      time: '1 day ago',
+      type: "like",
+      user: "Creative Studio",
+      action: "liked your post",
+      time: "1 day ago",
       icon: Heart,
-      color: 'text-red-400',
+      color: "text-red-400",
     },
     {
-      type: 'follow',
-      user: 'Nova Spark',
-      action: 'started following you',
-      time: '2 days ago',
+      type: "follow",
+      user: "Nova Spark",
+      action: "started following you",
+      time: "2 days ago",
       icon: UserPlus,
-      color: 'text-green-400',
+      color: "text-green-400",
     },
   ];
 
@@ -60,7 +60,9 @@ export default function YourActivityPage() {
       {/* Header */}
       <div className="px-4 sm:px-6 py-6 border-b border-slate-700/50 bg-slate-900">
         <h1 className="text-3xl sm:text-4xl font-black text-slate-50 mb-2">Your Activity</h1>
-        <p className="text-sm sm:text-base text-slate-400">See what's happening with your posts and account</p>
+        <p className="text-sm sm:text-base text-slate-400">
+          See what's happening with your posts and account
+        </p>
       </div>
 
       {/* Activity Feed */}

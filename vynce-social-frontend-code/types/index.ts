@@ -14,7 +14,7 @@ export interface ThemeConfig {
   bgSolid: string;
   cardBg: string;
   cardBorder: string;
-  style: 'flat' | 'glossy' | 'premium' | 'cosmos' | 'cosmic-retro';
+  style: "flat" | "glossy" | "premium" | "cosmos" | "cosmic-retro";
   neonGlow?: string;
   gridColor?: string;
 }
@@ -22,7 +22,6 @@ export interface ThemeConfig {
 export interface ThemeCategories {
   [category: string]: string[];
 }
-
 
 export interface Story {
   username: string;
@@ -42,7 +41,7 @@ export interface Post {
   aura: number;
   comments: number;
   shares: number;
-  type: 'text' | 'image' | 'video';
+  type: "text" | "image" | "video";
   tags?: string[];
   likes?: number;
   liked?: boolean;
@@ -94,7 +93,7 @@ export interface Message {
 
 export interface Notification {
   id: number;
-  type: 'like' | 'comment' | 'follow' | 'share' | 'mention';
+  type: "like" | "comment" | "follow" | "share" | "mention";
   user: string;
   action: string;
   timestamp: string;
@@ -103,7 +102,7 @@ export interface Notification {
 
 export interface Theme {
   name: string;
-  style: 'premium' | 'cosmic' | 'neon' | 'natural' | 'vibrant' | 'cosmic-retro';
+  style: "premium" | "cosmic" | "neon" | "natural" | "vibrant" | "cosmic-retro";
   primary: string;
   secondary: string;
   accent: string;
@@ -132,7 +131,16 @@ export interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
-export type PageType = 'home' | 'capsules' | 'drops' | 'fight' | 'explore' | 'notifications' | 'profile' | 'messages' | 'saved';
+export type PageType =
+  | "home"
+  | "capsules"
+  | "drops"
+  | "fight"
+  | "explore"
+  | "notifications"
+  | "profile"
+  | "messages"
+  | "saved";
 
 export interface User {
   id: string;

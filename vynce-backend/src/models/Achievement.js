@@ -10,7 +10,7 @@ const AchievementSchema = new mongoose.Schema(
     ------------------------- */
     title: { type: String, required: true },
     description: { type: String, default: "" },
-    icon: { type: String, default: "" },            // UI asset (SVG/PNG)
+    icon: { type: String, default: "" }, // UI asset (SVG/PNG)
     category: {
       type: String,
       enum: ["social", "connect", "ai", "store", "system", "profile", "daily"],

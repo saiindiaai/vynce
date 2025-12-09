@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Send, X } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import React, { useEffect, useRef, useState } from "react";
+import { Send, X } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 interface TeamChatProps {
   isOpen: boolean;
   onClose: () => void;
   fightId: number;
-  team: 'teamA' | 'teamB';
+  team: "teamA" | "teamB";
   teamName: string;
   teamColor: string;
 }
@@ -22,7 +22,7 @@ export default function TeamChat({
   teamColor,
 }: TeamChatProps) {
   const { currentUser, teamMessages, addTeamMessage } = useAppStore();
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +35,7 @@ export default function TeamChat({
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       inputRef.current?.focus();
     }
   }, [isOpen, fightTeamMessages.length]);
@@ -45,7 +45,7 @@ export default function TeamChat({
     if (!trimmed || submitting) return;
 
     setSubmitting(true);
-    setInput('');
+    setInput("");
 
     // Simulate network delay
     setTimeout(() => {
@@ -112,7 +112,7 @@ export default function TeamChat({
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+                onKeyPress={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="Send a message..."
                 className="flex-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-50 placeholder-slate-500 text-sm outline-none focus:border-slate-600 transition-colors disabled:opacity-50"
                 disabled={submitting}
@@ -123,7 +123,7 @@ export default function TeamChat({
                 className={`p-2 rounded-lg transition-all ${
                   input.trim() && !submitting
                     ? `bg-gradient-to-r ${teamColor} text-white hover:opacity-90`
-                    : 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                    : "bg-slate-700 text-slate-400 cursor-not-allowed"
                 }`}
                 aria-label="Send message"
               >

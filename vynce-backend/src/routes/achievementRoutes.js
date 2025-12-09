@@ -1,9 +1,6 @@
 // src/routes/achievementRoutes.js
 const express = require("express");
-const {
-  getCatalog,
-  unlock
-} = require("../controllers/achievementController");
+const { getCatalog, unlock } = require("../controllers/achievementController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();

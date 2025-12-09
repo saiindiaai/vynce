@@ -30,9 +30,7 @@ export default function YourAppsPage() {
   return (
     <div className="px-6 pb-28 pt-4">
       {/* Heading */}
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Your Apps
-      </h1>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Your Apps</h1>
 
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>
         These are the apps available in your Vynce ecosystem.
@@ -54,12 +52,8 @@ export default function YourAppsPage() {
               </div>
 
               <div>
-                <p className={`font-semibold ${theme.textPrimary}`}>
-                  {app.name}
-                </p>
-                <p className={`text-xs ${theme.textSecondary}`}>
-                  {app.desc}
-                </p>
+                <p className={`font-semibold ${theme.textPrimary}`}>{app.name}</p>
+                <p className={`text-xs ${theme.textSecondary}`}>{app.desc}</p>
               </div>
             </div>
 

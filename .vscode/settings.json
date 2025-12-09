@@ -1,0 +1,21 @@
+{
+  // Auto-fix issues on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true
+  },
+
+  // Integrate ESLint with VSCode
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+
+  // Always format using Prettier
+  "editor.formatOnSave": true,
+
+  // Prefer clean import paths
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+
+  // Better readability
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true
+}

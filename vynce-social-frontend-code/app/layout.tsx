@@ -9,11 +9,7 @@ export const metadata: Metadata = {
   description: "Next generation social platform",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       {/* body remains server-rendered — theme classes will be applied client-side */}

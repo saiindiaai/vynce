@@ -12,13 +12,13 @@ export default function CelestiumPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-  const res = await api.get("/users/celestium");
+        const res = await api.get("/users/celestium");
 
-  setBalance(res.data.celestium || 0);
-  setTransactions(res.data.celestiumTransactions || []);
-} catch (err) {
-  console.log("Celestium fetch error:", err);
-}
+        setBalance(res.data.celestium || 0);
+        setTransactions(res.data.celestiumTransactions || []);
+      } catch (err) {
+        console.log("Celestium fetch error:", err);
+      }
       setLoading(false);
     };
 
@@ -26,13 +26,10 @@ export default function CelestiumPage() {
   }, []);
 
   const filteredList =
-    filter === "all"
-      ? transactions
-      : transactions.filter((t) => t.type === filter);
+    filter === "all" ? transactions : transactions.filter((t) => t.type === filter);
 
   return (
     <div className="px-5 py-6 pb-28 matte-bg min-h-screen">
-
       {/* PAGE HEADER */}
       <h1 className="text-2xl font-bold text-white mb-2">Celestium</h1>
       <p className="text-gray-400 text-sm mb-6">Your premium cosmic currency</p>
@@ -83,9 +80,7 @@ export default function CelestiumPage() {
             >
               <div>
                 <p className="text-white font-semibold text-sm">{t.note}</p>
-                <p className="text-gray-500 text-xs">
-                  {new Date(t.date).toLocaleDateString()}
-                </p>
+                <p className="text-gray-500 text-xs">{new Date(t.date).toLocaleDateString()}</p>
               </div>
 
               <span

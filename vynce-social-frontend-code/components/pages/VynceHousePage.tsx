@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Users,
   Home,
@@ -25,10 +25,10 @@ import {
   Trash2,
   Copy,
   LogOut,
-} from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+} from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
-type HouseType = 'group_chat' | 'community' | 'house' | 'broadcast';
+type HouseType = "group_chat" | "community" | "house" | "broadcast";
 
 interface House {
   id: string;
@@ -55,25 +55,25 @@ interface Message {
   reactions?: { emoji: string; count: number }[];
 }
 
-const LOCAL_HOUSES_KEY = 'vynce_houses';
-const LOCAL_MESSAGES_KEY = 'vynce_house_messages';
+const LOCAL_HOUSES_KEY = "vynce_houses";
+const LOCAL_MESSAGES_KEY = "vynce_house_messages";
 
 export default function VynceHousePage() {
   const { showToast } = useAppStore();
   const [houses, setHouses] = useState<House[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedHouseId, setSelectedHouseId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [messageInput, setMessageInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [messageInput, setMessageInput] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newHouseName, setNewHouseName] = useState('');
-  const [newHouseDescription, setNewHouseDescription] = useState('');
-  const [newHouseType, setNewHouseType] = useState<HouseType>('group_chat');
+  const [newHouseName, setNewHouseName] = useState("");
+  const [newHouseDescription, setNewHouseDescription] = useState("");
+  const [newHouseType, setNewHouseType] = useState<HouseType>("group_chat");
   const [newHousePrivate, setNewHousePrivate] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<HouseType | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<HouseType | "all">("all");
   const [showMobileAdvanced, setShowMobileAdvanced] = useState(false);
-  const [activeAction, setActiveAction] = useState<null | 'call' | 'meet' | 'play' | 'learn'>(null);
+  const [activeAction, setActiveAction] = useState<null | "call" | "meet" | "play" | "learn">(null);
 
   // Load from localStorage
   useEffect(() => {
@@ -106,18 +106,18 @@ export default function VynceHousePage() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const getTypeIcon = (type: HouseType) => {
     switch (type) {
-      case 'group_chat':
+      case "group_chat":
         return <MessageSquare size={20} />;
-      case 'community':
+      case "community":
         return <Users size={20} />;
-      case 'house':
+      case "house":
         return <Home size={20} />;
-      case 'broadcast':
+      case "broadcast":
         return <Radio size={20} />;
       default:
         return null;
@@ -126,26 +126,29 @@ export default function VynceHousePage() {
 
   const getTypeColor = (type: HouseType) => {
     switch (type) {
-      case 'group_chat':
-        return 'bg-blue-600/20 text-blue-300 border-blue-600/30';
-      case 'community':
-        return 'bg-purple-600/20 text-purple-300 border-purple-600/30';
-      case 'house':
-        return 'bg-amber-600/20 text-amber-300 border-amber-600/30';
-      case 'broadcast':
-        return 'bg-red-600/20 text-red-300 border-red-600/30';
+      case "group_chat":
+        return "bg-blue-600/20 text-blue-300 border-blue-600/30";
+      case "community":
+        return "bg-purple-600/20 text-purple-300 border-purple-600/30";
+      case "house":
+        return "bg-amber-600/20 text-amber-300 border-amber-600/30";
+      case "broadcast":
+        return "bg-red-600/20 text-red-300 border-red-600/30";
       default:
-        return 'bg-slate-600/20 text-slate-300 border-slate-600/30';
+        return "bg-slate-600/20 text-slate-300 border-slate-600/30";
     }
   };
 
   const getTypeLabel = (type: HouseType) => {
-    return type.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    return type
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   };
 
   const createHouse = () => {
     if (!newHouseName.trim()) {
-      showToast?.('Please enter a house name', 'warning');
+      showToast?.("Please enter a house name", "warning");
       return;
     }
 
@@ -158,15 +161,15 @@ export default function VynceHousePage() {
       isPrivate: newHousePrivate,
       isPinned: false,
       createdAt: Date.now(),
-      creatorId: 'current_user',
+      creatorId: "current_user",
       unreadCount: 0,
     };
 
     setHouses((prev) => [house, ...prev]);
-    showToast?.(`${getTypeLabel(newHouseType)} "${newHouseName}" created!`, 'success');
-    setNewHouseName('');
-    setNewHouseDescription('');
-    setNewHouseType('group_chat');
+    showToast?.(`${getTypeLabel(newHouseType)} "${newHouseName}" created!`, "success");
+    setNewHouseName("");
+    setNewHouseDescription("");
+    setNewHouseType("group_chat");
     setNewHousePrivate(false);
     setShowCreateModal(false);
     setSelectedHouseId(house.id);
@@ -178,30 +181,30 @@ export default function VynceHousePage() {
     const message: Message = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       houseId: selectedHouseId,
-      userId: 'current_user',
-      userName: 'You',
+      userId: "current_user",
+      userName: "You",
       content: messageInput.trim(),
       timestamp: Date.now(),
     };
 
     setMessages((prev) => [...prev, message]);
-    setMessageInput('');
+    setMessageInput("");
   };
 
-  const performAction = (action: 'call' | 'meet' | 'play' | 'learn') => {
+  const performAction = (action: "call" | "meet" | "play" | "learn") => {
     if (!selectedHouse) return;
     switch (action) {
-      case 'call':
-        showToast?.(`Starting a call in ${selectedHouse.name}...`, 'info');
+      case "call":
+        showToast?.(`Starting a call in ${selectedHouse.name}...`, "info");
         break;
-      case 'meet':
-        showToast?.(`Opening meeting controls for ${selectedHouse.name}...`, 'info');
+      case "meet":
+        showToast?.(`Opening meeting controls for ${selectedHouse.name}...`, "info");
         break;
-      case 'play':
-        showToast?.(`Launching play session in ${selectedHouse.name}...`, 'info');
+      case "play":
+        showToast?.(`Launching play session in ${selectedHouse.name}...`, "info");
         break;
-      case 'learn':
-        showToast?.(`Opening learning tools for ${selectedHouse.name}...`, 'info');
+      case "learn":
+        showToast?.(`Opening learning tools for ${selectedHouse.name}...`, "info");
         break;
     }
     setActiveAction(null);
@@ -211,20 +214,20 @@ export default function VynceHousePage() {
     setHouses((prev) => prev.filter((h) => h.id !== houseId));
     setMessages((prev) => prev.filter((m) => m.houseId !== houseId));
     if (selectedHouseId === houseId) setSelectedHouseId(null);
-    showToast?.('House deleted', 'info');
+    showToast?.("House deleted", "info");
   };
 
   const togglePinHouse = (houseId: string) => {
-    setHouses((prev) =>
-      prev.map((h) => (h.id === houseId ? { ...h, isPinned: !h.isPinned } : h))
-    );
+    setHouses((prev) => prev.map((h) => (h.id === houseId ? { ...h, isPinned: !h.isPinned } : h)));
   };
 
   const filteredHouses = houses
     .filter((h) => {
-      if (activeTab !== 'all' && h.type !== activeTab) return false;
-      return h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        h.description.toLowerCase().includes(searchQuery.toLowerCase());
+      if (activeTab !== "all" && h.type !== activeTab) return false;
+      return (
+        h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        h.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     })
     .sort((a, b) => {
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
@@ -233,7 +236,9 @@ export default function VynceHousePage() {
 
   const selectedHouse = houses.find((h) => h.id === selectedHouseId);
   const houseMessages = selectedHouseId
-    ? messages.filter((m) => m.houseId === selectedHouseId).sort((a, b) => a.timestamp - b.timestamp)
+    ? messages
+        .filter((m) => m.houseId === selectedHouseId)
+        .sort((a, b) => a.timestamp - b.timestamp)
     : [];
 
   return (
@@ -273,27 +278,27 @@ export default function VynceHousePage() {
           {/* Type Tabs */}
           <div className="flex items-center overflow-x-auto border-b border-slate-700/30 bg-slate-900/60 px-2 py-2 gap-1">
             <button
-              onClick={() => setActiveTab('all')}
+              onClick={() => setActiveTab("all")}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'all'
-                  ? 'bg-purple-600/40 text-purple-300 border border-purple-600/50'
-                  : 'text-slate-400 hover:text-slate-300'
+                activeTab === "all"
+                  ? "bg-purple-600/40 text-purple-300 border border-purple-600/50"
+                  : "text-slate-400 hover:text-slate-300"
               }`}
             >
               All
             </button>
-            {(['group_chat', 'community', 'house', 'broadcast'] as HouseType[]).map((type) => (
+            {(["group_chat", "community", "house", "broadcast"] as HouseType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => setActiveTab(type)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 ${
                   activeTab === type
-                    ? 'bg-purple-600/40 text-purple-300 border border-purple-600/50'
-                    : 'text-slate-400 hover:text-slate-300'
+                    ? "bg-purple-600/40 text-purple-300 border border-purple-600/50"
+                    : "text-slate-400 hover:text-slate-300"
                 }`}
               >
                 {getTypeIcon(type)}
-                <span className="hidden sm:inline">{getTypeLabel(type).split(' ')[0]}</span>
+                <span className="hidden sm:inline">{getTypeLabel(type).split(" ")[0]}</span>
               </button>
             ))}
           </div>
@@ -312,18 +317,22 @@ export default function VynceHousePage() {
                   onClick={() => setSelectedHouseId(house.id)}
                   className={`p-3 rounded-lg cursor-pointer transition-all border group ${
                     selectedHouseId === house.id
-                      ? 'bg-purple-600/20 border-purple-600/50'
-                      : 'bg-slate-800/40 border-slate-700/30 hover:bg-slate-800/60 hover:border-slate-600/50'
+                      ? "bg-purple-600/20 border-purple-600/50"
+                      : "bg-slate-800/40 border-slate-700/30 hover:bg-slate-800/60 hover:border-slate-600/50"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg flex-shrink-0 ${getTypeColor(house.type)}`}>
+                        <div
+                          className={`p-1.5 rounded-lg flex-shrink-0 ${getTypeColor(house.type)}`}
+                        >
                           {getTypeIcon(house.type)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-slate-50 truncate text-sm">{house.name}</p>
+                          <p className="font-semibold text-slate-50 truncate text-sm">
+                            {house.name}
+                          </p>
                           <p className="text-xs text-slate-400 truncate">{house.members} members</p>
                         </div>
                       </div>
@@ -362,28 +371,28 @@ export default function VynceHousePage() {
                 <div className="flex items-center gap-2">
                   {/* Action Buttons: Call / Meet / Play / Learn */}
                   <button
-                    onClick={() => setActiveAction('call')}
+                    onClick={() => setActiveAction("call")}
                     title="Call"
                     className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
                   >
                     <Phone size={18} />
                   </button>
                   <button
-                    onClick={() => setActiveAction('meet')}
+                    onClick={() => setActiveAction("meet")}
                     title="Meet"
                     className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
                   >
                     <Video size={18} />
                   </button>
                   <button
-                    onClick={() => setActiveAction('play')}
+                    onClick={() => setActiveAction("play")}
                     title="Play"
                     className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
                   >
                     <Play size={18} />
                   </button>
                   <button
-                    onClick={() => setActiveAction('learn')}
+                    onClick={() => setActiveAction("learn")}
                     title="Learn"
                     className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
                   >
@@ -399,8 +408,8 @@ export default function VynceHousePage() {
                     onClick={() => togglePinHouse(selectedHouse.id)}
                     className={`p-2 rounded-lg transition-all ${
                       selectedHouse.isPinned
-                        ? 'bg-yellow-600/20 text-yellow-400'
-                        : 'hover:bg-slate-800/60 text-slate-400 hover:text-slate-50'
+                        ? "bg-yellow-600/20 text-yellow-400"
+                        : "hover:bg-slate-800/60 text-slate-400 hover:text-slate-50"
                     }`}
                   >
                     <Star size={18} />
@@ -434,8 +443,8 @@ export default function VynceHousePage() {
                             <p className="font-semibold text-slate-50 text-sm">{msg.userName}</p>
                             <p className="text-xs text-slate-500">
                               {new Date(msg.timestamp).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
+                                hour: "2-digit",
+                                minute: "2-digit",
                               })}
                             </p>
                           </div>
@@ -457,7 +466,7 @@ export default function VynceHousePage() {
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
+                      if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         sendMessage();
                       }
@@ -487,7 +496,10 @@ export default function VynceHousePage() {
           <div className="sm:hidden fixed inset-0 z-40 bg-slate-950 flex flex-col">
             <div className="px-4 py-3 border-b border-slate-700/30 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => setSelectedHouseId(null)} className="p-2 rounded-lg hover:bg-slate-800/60 text-slate-300">
+                <button
+                  onClick={() => setSelectedHouseId(null)}
+                  className="p-2 rounded-lg hover:bg-slate-800/60 text-slate-300"
+                >
                   <ChevronDown size={20} />
                 </button>
                 <div className={`p-2 rounded-lg ${getTypeColor(selectedHouse.type)}`}>
@@ -526,7 +538,12 @@ export default function VynceHousePage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-semibold text-slate-50 text-sm">{msg.userName}</p>
-                          <p className="text-xs text-slate-500">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(msg.timestamp).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
                         </div>
                         <p className="text-sm text-slate-300 break-words">{msg.content}</p>
                       </div>
@@ -545,7 +562,7 @@ export default function VynceHousePage() {
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       sendMessage();
                     }
@@ -573,35 +590,50 @@ export default function VynceHousePage() {
                   <h4 className="text-sm font-bold text-slate-50">Advanced Options</h4>
                   <p className="text-xs text-slate-400">Actions for {selectedHouse.name}</p>
                 </div>
-                <button onClick={() => setShowMobileAdvanced(false)} className="p-2 rounded-lg hover:bg-slate-800/60 text-slate-300">
+                <button
+                  onClick={() => setShowMobileAdvanced(false)}
+                  className="p-2 rounded-lg hover:bg-slate-800/60 text-slate-300"
+                >
                   <X size={18} />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => { setShowMobileAdvanced(false); performAction('call'); }}
+                  onClick={() => {
+                    setShowMobileAdvanced(false);
+                    performAction("call");
+                  }}
                   className="flex items-center gap-2 justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-bold"
                 >
                   <Phone size={16} />
                   Call
                 </button>
                 <button
-                  onClick={() => { setShowMobileAdvanced(false); performAction('meet'); }}
+                  onClick={() => {
+                    setShowMobileAdvanced(false);
+                    performAction("meet");
+                  }}
                   className="flex items-center gap-2 justify-center px-4 py-3 bg-slate-800/50 text-slate-200 rounded-lg border border-slate-700/50"
                 >
                   <Video size={16} />
                   Meet
                 </button>
                 <button
-                  onClick={() => { setShowMobileAdvanced(false); performAction('play'); }}
+                  onClick={() => {
+                    setShowMobileAdvanced(false);
+                    performAction("play");
+                  }}
                   className="flex items-center gap-2 justify-center px-4 py-3 bg-slate-800/50 text-slate-200 rounded-lg border border-slate-700/50"
                 >
                   <Play size={16} />
                   Play
                 </button>
                 <button
-                  onClick={() => { setShowMobileAdvanced(false); performAction('learn'); }}
+                  onClick={() => {
+                    setShowMobileAdvanced(false);
+                    performAction("learn");
+                  }}
                   className="flex items-center gap-2 justify-center px-4 py-3 bg-slate-800/50 text-slate-200 rounded-lg border border-slate-700/50"
                 >
                   <Book size={16} />
@@ -629,22 +661,26 @@ export default function VynceHousePage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-2">House Type</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-2">
+                  House Type
+                </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['group_chat', 'community', 'house', 'broadcast'] as HouseType[]).map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setNewHouseType(type)}
-                      className={`p-3 rounded-lg font-semibold text-sm transition-all border flex flex-col items-center gap-2 ${
-                        newHouseType === type
-                          ? 'bg-purple-600/40 border-purple-600/50 text-purple-300'
-                          : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600'
-                      }`}
-                    >
-                      {getTypeIcon(type)}
-                      <span className="text-xs">{getTypeLabel(type).split(' ')[0]}</span>
-                    </button>
-                  ))}
+                  {(["group_chat", "community", "house", "broadcast"] as HouseType[]).map(
+                    (type) => (
+                      <button
+                        key={type}
+                        onClick={() => setNewHouseType(type)}
+                        className={`p-3 rounded-lg font-semibold text-sm transition-all border flex flex-col items-center gap-2 ${
+                          newHouseType === type
+                            ? "bg-purple-600/40 border-purple-600/50 text-purple-300"
+                            : "bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600"
+                        }`}
+                      >
+                        {getTypeIcon(type)}
+                        <span className="text-xs">{getTypeLabel(type).split(" ")[0]}</span>
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -660,7 +696,9 @@ export default function VynceHousePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-2">Description</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-2">
+                  Description
+                </label>
                 <textarea
                   placeholder="What's this house about?"
                   value={newHouseDescription}
@@ -706,26 +744,42 @@ export default function VynceHousePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="w-full max-w-lg bg-slate-900 rounded-xl border border-slate-700/50 p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-50">{activeAction === 'call' ? 'Start Call' : activeAction === 'meet' ? 'Start Meeting' : activeAction === 'play' ? 'Play Together' : 'Learning Session'}</h3>
-              <button onClick={() => setActiveAction(null)} className="p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-400">
+              <h3 className="text-lg font-bold text-slate-50">
+                {activeAction === "call"
+                  ? "Start Call"
+                  : activeAction === "meet"
+                    ? "Start Meeting"
+                    : activeAction === "play"
+                      ? "Play Together"
+                      : "Learning Session"}
+              </h3>
+              <button
+                onClick={() => setActiveAction(null)}
+                className="p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-400"
+              >
                 <X size={18} />
               </button>
             </div>
 
-            <p className="text-sm text-slate-400">{selectedHouse.name} • {getTypeLabel(selectedHouse.type)}</p>
+            <p className="text-sm text-slate-400">
+              {selectedHouse.name} • {getTypeLabel(selectedHouse.type)}
+            </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => performAction(activeAction)}
                 className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-bold"
               >
-                {activeAction === 'call' && 'Start Call'}
-                {activeAction === 'meet' && 'Start Meeting'}
-                {activeAction === 'play' && 'Start Play Session'}
-                {activeAction === 'learn' && 'Open Learning Tools'}
+                {activeAction === "call" && "Start Call"}
+                {activeAction === "meet" && "Start Meeting"}
+                {activeAction === "play" && "Start Play Session"}
+                {activeAction === "learn" && "Open Learning Tools"}
               </button>
               <button
-                onClick={() => { setActiveAction(null); showToast?.('Coming soon — advanced tools are being rolled out.', 'info'); }}
+                onClick={() => {
+                  setActiveAction(null);
+                  showToast?.("Coming soon — advanced tools are being rolled out.", "info");
+                }}
                 className="w-full px-4 py-3 bg-slate-800/50 text-slate-200 rounded-lg border border-slate-700/50"
               >
                 Cancel

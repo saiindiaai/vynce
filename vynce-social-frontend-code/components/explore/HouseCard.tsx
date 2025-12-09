@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Check, Plus } from 'lucide-react';
+import React from "react";
+import { Check, Plus } from "lucide-react";
 
 interface HouseCardProps {
   house: {
@@ -17,7 +17,9 @@ interface HouseCardProps {
 
 export default function HouseCard({ house, onJoin }: HouseCardProps) {
   return (
-    <div className={`relative rounded-2xl p-4 bg-gradient-to-br ${house.gradient} overflow-hidden group cursor-pointer hover:scale-105 transition-transform`}>
+    <div
+      className={`relative rounded-2xl p-4 bg-gradient-to-br ${house.gradient} overflow-hidden group cursor-pointer hover:scale-105 transition-transform`}
+    >
       {/* Background blur */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
@@ -29,8 +31,8 @@ export default function HouseCard({ house, onJoin }: HouseCardProps) {
             onClick={onJoin}
             className={`p-2 rounded-full transition-all ${
               house.isJoined
-                ? 'bg-green-500/20 border border-green-500'
-                : 'bg-white/20 border border-white/30 hover:bg-white/30'
+                ? "bg-green-500/20 border border-green-500"
+                : "bg-white/20 border border-white/30 hover:bg-white/30"
             }`}
           >
             {house.isJoined ? (

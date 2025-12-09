@@ -14,12 +14,10 @@ exports.registerUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password)
-      return res.status(400).json({ message: "Missing fields" });
+    if (!username || !password) return res.status(400).json({ message: "Missing fields" });
 
     const exists = await User.findOne({ username });
-    if (exists)
-      return res.status(400).json({ message: "Username already exists" });
+    if (exists) return res.status(400).json({ message: "Username already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -51,12 +49,10 @@ exports.loginUser = async (req, res) => {
     const { username, password } = req.body;
 
     const user = await User.findOne({ username });
-    if (!user)
-      return res.status(400).json({ message: "Invalid username or password" });
+    if (!user) return res.status(400).json({ message: "Invalid username or password" });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match)
-      return res.status(400).json({ message: "Invalid username or password" });
+    if (!match) return res.status(400).json({ message: "Invalid username or password" });
 
     res.json({
       user: {
@@ -66,7 +62,6 @@ exports.loginUser = async (req, res) => {
       },
       token: generateToken(user._id),
     });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -81,12 +76,12 @@ exports.guestLogin = async (req, res) => {
 
     const user = await User.create({
       username: `guest_${random}`,
-      password: "guest_temp",       // dummy password to satisfy schema
+      password: "guest_temp", // dummy password to satisfy schema
       displayName: "Guest User",
       accountType: "guest",
-      uid: "G" + random,            // generate UID for guest
-      level: 1,                     // guest must have level
-      energy: 1000,                 // guest must have energy
+      uid: "G" + random, // generate UID for guest
+      level: 1, // guest must have level
+      energy: 1000, // guest must have energy
       bio: "",
       installedApps: [],
       accountInfo: {},
@@ -111,9 +106,7 @@ exports.guestLogin = async (req, res) => {
 ================================ */
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select(
-      "-password -__v"
-    );
+    const user = await User.findById(req.userId).select("-password -__v");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -140,7 +133,6 @@ exports.getMe = async (req, res) => {
       accountType: user.accountType,
       createdAt: user.createdAt,
     });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -163,7 +155,6 @@ exports.logoutUser = async (req, res) => {
 
     // Standard users → just respond success
     return res.json({ message: "Logout successful" });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -176,17 +167,14 @@ exports.updateOnboarding = async (req, res) => {
   try {
     const { ageVerified } = req.body;
 
-    const updated = await User.findByIdAndUpdate(
-      req.userId,
-      { ageVerified },
-      { new: true }
-    ).select("-password");
+    const updated = await User.findByIdAndUpdate(req.userId, { ageVerified }, { new: true }).select(
+      "-password"
+    );
 
     res.json({
       message: "Onboarding updated",
       user: updated,
     });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -196,8 +184,7 @@ exports.updateOnboarding = async (req, res) => {
 exports.updateDisplayName = async (req, res) => {
   try {
     const { displayName } = req.body;
-    if (!displayName)
-      return res.status(400).json({ message: "Missing displayName" });
+    if (!displayName) return res.status(400).json({ message: "Missing displayName" });
 
     const user = await User.findByIdAndUpdate(
       req.userId,
@@ -207,9 +194,8 @@ exports.updateDisplayName = async (req, res) => {
 
     return res.json({
       message: "Display name updated",
-      user
+      user,
     });
-
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -220,8 +206,7 @@ exports.updateProfile = async (req, res) => {
   try {
     const { username, displayName } = req.body;
 
-    if (!username || !displayName)
-      return res.status(400).json({ message: "Missing fields" });
+    if (!username || !displayName) return res.status(400).json({ message: "Missing fields" });
 
     // Check if username is taken by someone else
     const existing = await User.findOne({ username });
@@ -242,7 +227,6 @@ exports.updateProfile = async (req, res) => {
       message: "Profile updated successfully",
       user,
     });
-
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -252,11 +236,9 @@ exports.updateProfile = async (req, res) => {
 exports.updateBio = async (req, res) => {
   try {
     const { bio } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { bio },
-      { new: true }
-    ).select("-password");
+    const user = await User.findByIdAndUpdate(req.userId, { bio }, { new: true }).select(
+      "-password"
+    );
 
     res.json({ message: "Bio updated", user });
   } catch (err) {
@@ -370,16 +352,12 @@ exports.updatePrivacy = async (req, res) => {
 
     const updates = {};
     if (profileVisibility) updates.profileVisibility = profileVisibility;
-    if (typeof searchVisibility === "boolean")
-      updates.searchVisibility = searchVisibility;
-    if (typeof dataConsent === "boolean")
-      updates.dataConsent = dataConsent;
+    if (typeof searchVisibility === "boolean") updates.searchVisibility = searchVisibility;
+    if (typeof dataConsent === "boolean") updates.dataConsent = dataConsent;
 
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      updates,
-      { new: true }
-    ).select("-password");
+    const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select(
+      "-password"
+    );
 
     res.json({ message: "Privacy settings updated", user });
   } catch (err) {
@@ -409,7 +387,7 @@ exports.searchUsers = async (req, res) => {
     if (!q) return res.json([]);
 
     const users = await User.find({
-      username: { $regex: q, $options: "i" }
+      username: { $regex: q, $options: "i" },
     }).select("username displayName _id");
 
     res.json(users);
@@ -445,7 +423,6 @@ exports.getPublicProfile = async (req, res) => {
   }
 };
 
-
 /* ================================
    PROFILE CARD – READ
    ================================ */
@@ -479,9 +456,9 @@ exports.getProfileCard = async (req, res) => {
       showcase: user.showcase || {
         inventory: [],
         achievements: [],
-        dares: []
+        dares: [],
       },
-      inventoryCount: (user.inventory || []).length
+      inventoryCount: (user.inventory || []).length,
     });
   } catch (err) {
     console.error("getProfileCard error:", err);
@@ -520,14 +497,13 @@ exports.updateProfileShowcase = async (req, res) => {
 
     return res.json({
       message: "Showcase updated",
-      showcase: user.showcase
+      showcase: user.showcase,
     });
   } catch (err) {
     console.error("updateProfileShowcase error:", err);
     res.status(500).json({ message: err.message });
   }
 };
-
 
 // UPDATE SHOWCASE ITEMS
 exports.updateShowcase = async (req, res) => {
@@ -555,12 +531,11 @@ exports.updateShowcase = async (req, res) => {
 // GET CELESTIUM STATUS
 exports.getCelestium = async (req, res) => {
   try {
-    const user = await User.findById(req.userId)
-      .select("celestium celestiumTransactions");
+    const user = await User.findById(req.userId).select("celestium celestiumTransactions");
 
     res.json({
       celestium: user.celestium,
-      celestiumTransactions: user.celestiumTransactions
+      celestiumTransactions: user.celestiumTransactions,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -602,7 +577,6 @@ exports.addCelestiumTransaction = async (req, res) => {
       message: "Transaction added successfully",
       balance: user.celestium,
     });
-
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Server error" });

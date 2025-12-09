@@ -1,8 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, Search, Phone, Video, MoreVertical, ChevronLeft } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Send,
+  Paperclip,
+  Smile,
+  Search,
+  Phone,
+  Video,
+  MoreVertical,
+  ChevronLeft,
+} from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 interface Message {
   id: number;
@@ -27,46 +36,46 @@ interface Conversation {
 const conversations: Conversation[] = [
   {
     id: 1,
-    name: 'Alex Orbit',
-    avatar: '🎵',
-    lastMessage: 'That production is fire! 🔥',
-    lastMessageTime: '2m',
+    name: "Alex Orbit",
+    avatar: "🎵",
+    lastMessage: "That production is fire! 🔥",
+    lastMessageTime: "2m",
     unread: 2,
     isOnline: true,
   },
   {
     id: 2,
-    name: 'Jane Cosmos',
-    avatar: '🎨',
-    lastMessage: 'Thanks for the feedback!',
-    lastMessageTime: '15m',
+    name: "Jane Cosmos",
+    avatar: "🎨",
+    lastMessage: "Thanks for the feedback!",
+    lastMessageTime: "15m",
     unread: 0,
     isOnline: true,
   },
   {
     id: 3,
-    name: 'Tech Warrior',
-    avatar: '💻',
-    lastMessage: 'Want to collaborate on the project?',
-    lastMessageTime: '1h',
+    name: "Tech Warrior",
+    avatar: "💻",
+    lastMessage: "Want to collaborate on the project?",
+    lastMessageTime: "1h",
     unread: 1,
     isOnline: false,
   },
   {
     id: 4,
-    name: 'Design Flow',
-    avatar: '🎭',
-    lastMessage: 'The UI looks amazing!',
-    lastMessageTime: '3h',
+    name: "Design Flow",
+    avatar: "🎭",
+    lastMessage: "The UI looks amazing!",
+    lastMessageTime: "3h",
     unread: 0,
     isOnline: true,
   },
   {
     id: 5,
-    name: 'Creative Studio',
-    avatar: '🎬',
-    lastMessage: 'Let\'s schedule a call',
-    lastMessageTime: 'Yesterday',
+    name: "Creative Studio",
+    avatar: "🎬",
+    lastMessage: "Let's schedule a call",
+    lastMessageTime: "Yesterday",
     unread: 0,
     isOnline: false,
   },
@@ -76,94 +85,96 @@ const mockMessages: Record<number, Message[]> = {
   1: [
     {
       id: 1,
-      sender: 'Alex Orbit',
-      senderAvatar: '🎵',
-      content: 'Hey! How\'s the new track coming?',
-      timestamp: '10:30 AM',
+      sender: "Alex Orbit",
+      senderAvatar: "🎵",
+      content: "Hey! How's the new track coming?",
+      timestamp: "10:30 AM",
       isSent: false,
     },
     {
       id: 2,
-      sender: 'You',
-      senderAvatar: '👤',
-      content: 'Pretty good! Just finished the mixing',
-      timestamp: '10:32 AM',
+      sender: "You",
+      senderAvatar: "👤",
+      content: "Pretty good! Just finished the mixing",
+      timestamp: "10:32 AM",
       isSent: true,
     },
     {
       id: 3,
-      sender: 'Alex Orbit',
-      senderAvatar: '🎵',
-      content: 'That production is fire! 🔥',
-      timestamp: '10:33 AM',
+      sender: "Alex Orbit",
+      senderAvatar: "🎵",
+      content: "That production is fire! 🔥",
+      timestamp: "10:33 AM",
       isSent: false,
     },
   ],
   2: [
     {
       id: 1,
-      sender: 'Jane Cosmos',
-      senderAvatar: '🎨',
-      content: 'Love your latest art series!',
-      timestamp: '9:15 AM',
+      sender: "Jane Cosmos",
+      senderAvatar: "🎨",
+      content: "Love your latest art series!",
+      timestamp: "9:15 AM",
       isSent: false,
     },
     {
       id: 2,
-      sender: 'You',
-      senderAvatar: '👤',
-      content: 'Thank you! It took ages to finish',
-      timestamp: '9:18 AM',
+      sender: "You",
+      senderAvatar: "👤",
+      content: "Thank you! It took ages to finish",
+      timestamp: "9:18 AM",
       isSent: true,
     },
     {
       id: 3,
-      sender: 'Jane Cosmos',
-      senderAvatar: '🎨',
-      content: 'Thanks for the feedback!',
-      timestamp: '9:20 AM',
+      sender: "Jane Cosmos",
+      senderAvatar: "🎨",
+      content: "Thanks for the feedback!",
+      timestamp: "9:20 AM",
       isSent: false,
     },
   ],
   3: [
     {
       id: 1,
-      sender: 'Tech Warrior',
-      senderAvatar: '💻',
-      content: 'Want to collaborate on the project?',
-      timestamp: '8:45 AM',
+      sender: "Tech Warrior",
+      senderAvatar: "💻",
+      content: "Want to collaborate on the project?",
+      timestamp: "8:45 AM",
       isSent: false,
     },
   ],
   4: [
     {
       id: 1,
-      sender: 'Design Flow',
-      senderAvatar: '🎭',
-      content: 'The UI looks amazing!',
-      timestamp: 'Yesterday',
+      sender: "Design Flow",
+      senderAvatar: "🎭",
+      content: "The UI looks amazing!",
+      timestamp: "Yesterday",
       isSent: false,
     },
   ],
   5: [
     {
       id: 1,
-      sender: 'Creative Studio',
-      senderAvatar: '🎬',
-      content: 'Let\'s schedule a call',
-      timestamp: 'Yesterday',
+      sender: "Creative Studio",
+      senderAvatar: "🎬",
+      content: "Let's schedule a call",
+      timestamp: "Yesterday",
       isSent: false,
     },
   ],
 };
 
 export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(conversations[0]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(
+    conversations[0]
+  );
   const [messages, setMessages] = useState<Message[]>(mockMessages[selectedConversation?.id || 1]);
-  const [messageInput, setMessageInput] = useState('');
+  const [messageInput, setMessageInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -176,12 +187,12 @@ export default function MessagesPage() {
   useEffect(() => {
     const updateMobile = () => setIsMobile(window.innerWidth < 768);
     updateMobile();
-    window.addEventListener('resize', updateMobile);
-    return () => window.removeEventListener('resize', updateMobile);
+    window.addEventListener("resize", updateMobile);
+    return () => window.removeEventListener("resize", updateMobile);
   }, []);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -192,15 +203,15 @@ export default function MessagesPage() {
     if (messageInput.trim()) {
       const newMessage: Message = {
         id: messages.length + 1,
-        sender: 'You',
-        senderAvatar: '👤',
+        sender: "You",
+        senderAvatar: "👤",
         content: messageInput,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         isSent: true,
         read: true,
       };
       setMessages([...messages, newMessage]);
-      setMessageInput('');
+      setMessageInput("");
       setIsTyping(true);
       setTimeout(() => setIsTyping(false), 1500);
     }
@@ -213,7 +224,9 @@ export default function MessagesPage() {
   return (
     <div className="w-full h-full flex flex-col md:flex-row bg-slate-900 overflow-hidden animate-fadeIn">
       {/* Conversations Sidebar - Mobile (full), Tablet + Desktop (sidebar) */}
-      <div className={`${isMobile && selectedConversation ? 'hidden' : 'flex'} md:flex md:w-64 lg:w-72 flex-col border-r border-slate-700/50 bg-slate-900 w-full md:w-64`}>
+      <div
+        className={`${isMobile && selectedConversation ? "hidden" : "flex"} md:flex md:w-64 lg:w-72 flex-col border-r border-slate-700/50 bg-slate-900 w-full md:w-64`}
+      >
         {/* Header */}
         <div className="p-5 border-b border-slate-700/50">
           <h2 className="text-3xl font-black text-slate-50 mb-4">Chats</h2>
@@ -236,16 +249,22 @@ export default function MessagesPage() {
               key={conversation.id}
               onClick={() => setSelectedConversation(conversation)}
               className={`w-full px-4 py-3.5 flex items-center gap-3 transition-all duration-200 border-b border-slate-700/50 hover:bg-slate-800/50 ${
-                selectedConversation?.id === conversation.id ? 'bg-slate-800 border-l-4 border-l-purple-500' : ''
+                selectedConversation?.id === conversation.id
+                  ? "bg-slate-800 border-l-4 border-l-purple-500"
+                  : ""
               }`}
             >
               {/* Avatar */}
               <div className="relative flex-shrink-0">
-                <div className={`w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold shadow-lg ${
-                  idx % 3 === 0 ? 'from-purple-500 to-pink-500' :
-                  idx % 3 === 1 ? 'from-blue-500 to-cyan-500' :
-                  'from-green-500 to-emerald-500'
-                }`}>
+                <div
+                  className={`w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold shadow-lg ${
+                    idx % 3 === 0
+                      ? "from-purple-500 to-pink-500"
+                      : idx % 3 === 1
+                        ? "from-blue-500 to-cyan-500"
+                        : "from-green-500 to-emerald-500"
+                  }`}
+                >
                   {conversation.avatar}
                 </div>
                 {conversation.isOnline && (
@@ -256,8 +275,12 @@ export default function MessagesPage() {
               {/* Conversation Info */}
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <span className="font-bold text-sm text-slate-50 truncate">{conversation.name}</span>
-                  <span className="text-xs text-slate-500 flex-shrink-0">{conversation.lastMessageTime}</span>
+                  <span className="font-bold text-sm text-slate-50 truncate">
+                    {conversation.name}
+                  </span>
+                  <span className="text-xs text-slate-500 flex-shrink-0">
+                    {conversation.lastMessageTime}
+                  </span>
                 </div>
                 <p className="text-xs text-slate-400 truncate">{conversation.lastMessage}</p>
               </div>
@@ -275,7 +298,7 @@ export default function MessagesPage() {
 
       {/* Chat Area */}
       {selectedConversation ? (
-        <div className={`${isMobile ? 'flex' : 'hidden md:flex'} md:flex-1 flex-col`}>
+        <div className={`${isMobile ? "flex" : "hidden md:flex"} md:flex-1 flex-col`}>
           {/* Chat Header */}
           <div className="px-4 sm:px-6 py-4 border-b border-slate-700/50 bg-slate-900 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -290,9 +313,11 @@ export default function MessagesPage() {
                 {selectedConversation.avatar}
               </div>
               <div>
-                <h3 className="font-black text-slate-50 text-sm sm:text-base">{selectedConversation.name}</h3>
+                <h3 className="font-black text-slate-50 text-sm sm:text-base">
+                  {selectedConversation.name}
+                </h3>
                 <p className="text-xs text-green-400 font-medium">
-                  {selectedConversation.isOnline ? '● active now' : '● away'}
+                  {selectedConversation.isOnline ? "● active now" : "● away"}
                 </p>
               </div>
             </div>
@@ -316,19 +341,21 @@ export default function MessagesPage() {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.isSent ? 'justify-end' : 'justify-start'} animate-slideInUp`}
+                className={`flex ${message.isSent ? "justify-end" : "justify-start"} animate-slideInUp`}
               >
                 <div
                   className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all ${
                     message.isSent
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
-                      : 'bg-slate-800 border-slate-700 text-slate-50'
+                      ? "bg-purple-600 border-purple-500 text-white shadow-lg"
+                      : "bg-slate-800 border-slate-700 text-slate-50"
                   }`}
                 >
                   <p className="text-sm leading-relaxed">{message.content}</p>
-                  <p className={`text-xs mt-1.5 font-medium ${
-                    message.isSent ? 'text-purple-200' : 'text-slate-400'
-                  }`}>
+                  <p
+                    className={`text-xs mt-1.5 font-medium ${
+                      message.isSent ? "text-purple-200" : "text-slate-400"
+                    }`}
+                  >
                     {message.timestamp}
                   </p>
                 </div>
@@ -340,9 +367,18 @@ export default function MessagesPage() {
               <div className="flex justify-start animate-slideInUp">
                 <div className="px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700">
                   <div className="flex gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0s' }} />
-                    <div className="w-2 h-2 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0.15s' }} />
-                    <div className="w-2 h-2 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0.3s' }} />
+                    <div
+                      className="w-2 h-2 rounded-full bg-slate-600 animate-bounce"
+                      style={{ animationDelay: "0s" }}
+                    />
+                    <div
+                      className="w-2 h-2 rounded-full bg-slate-600 animate-bounce"
+                      style={{ animationDelay: "0.15s" }}
+                    />
+                    <div
+                      className="w-2 h-2 rounded-full bg-slate-600 animate-bounce"
+                      style={{ animationDelay: "0.3s" }}
+                    />
                   </div>
                 </div>
               </div>
@@ -362,7 +398,7 @@ export default function MessagesPage() {
                 placeholder="Type something nice..."
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 className="flex-1 px-4 py-2.5 rounded-full bg-slate-800 border border-slate-700 text-slate-50 placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:bg-slate-800 transition-all text-sm min-h-[40px]"
               />
               <button className="p-2.5 rounded-full hover:bg-slate-800 transition-all text-slate-400 hover:text-slate-300">

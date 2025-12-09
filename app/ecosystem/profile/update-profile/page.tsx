@@ -63,22 +63,15 @@ export default function UpdateProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="px-6 pb-28 pt-4 text-gray-300">Loading...</div>
-    );
+    return <div className="px-6 pb-28 pt-4 text-gray-300">Loading...</div>;
   }
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Update Profile
-      </h1>
-      <p className={`text-sm mb-6 ${theme.textSecondary}`}>
-        Edit your Vynce identity.
-      </p>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Update Profile</h1>
+      <p className={`text-sm mb-6 ${theme.textSecondary}`}>Edit your Vynce identity.</p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-
         {/* Display Name */}
         <div className="space-y-2">
           <Label className={theme.textSecondary}>Display Name</Label>

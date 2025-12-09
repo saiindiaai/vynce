@@ -15,4 +15,4 @@ export interface Theme {
   cardBorder: string;
 }
 
-export type TabType = 'home' | 'profile' | 'settings' | 'themes';
+export type TabType = "home" | "profile" | "settings" | "themes";

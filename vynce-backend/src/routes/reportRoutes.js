@@ -1,14 +1,14 @@
 // src/routes/reportRoutes.js
-const express = require('express');
+const express = require("express");
 const {
   createReport,
   getMyReports,
   getAllReports,
   updateStatus,
-} = require('../controllers/reportController');
+} = require("../controllers/reportController");
 
-const { protect } = require('../middleware/authMiddleware');
-const jwt = require('jsonwebtoken');
+const { protect } = require("../middleware/authMiddleware");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ async function protectOptional(req, res, next) {
   const header = req.headers.authorization;
 
   if (!header) return next(); // guest
-  const token = header.split(' ')[1];
+  const token = header.split(" ")[1];
   if (!token) return next();
 
   try {
@@ -31,15 +31,15 @@ async function protectOptional(req, res, next) {
 }
 
 // CREATE REPORT (guest or logged-in)
-router.post('/', protectOptional, createReport);
+router.post("/", protectOptional, createReport);
 
 // USER REPORTS (only logged in)
-router.get('/my', protect, getMyReports);
+router.get("/my", protect, getMyReports);
 
 // ADMIN — GET ALL REPORTS
-router.get('/', protect, getAllReports);
+router.get("/", protect, getAllReports);
 
 // ADMIN — UPDATE STATUS
-router.patch('/:id/status', protect, updateStatus);
+router.patch("/:id/status", protect, updateStatus);
 
 module.exports = router;

@@ -45,10 +45,7 @@ export default function StorePage() {
 
   return (
     <div className="px-4 pb-28 pt-4">
-
-      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>
-        Vynce Store
-      </h1>
+      <h1 className={`text-2xl font-bold mb-4 ${theme.textPrimary}`}>Vynce Store</h1>
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>
         Buy permanent and temporary cosmetic upgrades.
       </p>
@@ -81,11 +78,9 @@ export default function StorePage() {
                 </button>
               )}
             </div>
-
           </div>
         ))}
       </div>
-
     </div>
   );
 }

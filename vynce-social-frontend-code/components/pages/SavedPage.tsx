@@ -1,40 +1,41 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
+import React from "react";
+import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 
 export default function SavedPage() {
   // This would normally come from the store, but for now we'll show a placeholder
   const savedPosts = [
     {
       id: 1,
-      user: 'Tech Insider',
-      username: 'techinsider',
-      content: 'New AI breakthrough just dropped! This changes everything 🤯',
+      user: "Tech Insider",
+      username: "techinsider",
+      content: "New AI breakthrough just dropped! This changes everything 🤯",
       aura: 3421,
       comments: 567,
       shares: 234,
-      savedAt: '2 hours ago',
+      savedAt: "2 hours ago",
     },
     {
       id: 2,
-      user: 'Design Daily',
-      username: 'designdaily',
-      content: 'Color theory masterclass: Understanding contrast and harmony in modern UI design 🎨',
+      user: "Design Daily",
+      username: "designdaily",
+      content:
+        "Color theory masterclass: Understanding contrast and harmony in modern UI design 🎨",
       aura: 2156,
       comments: 389,
       shares: 178,
-      savedAt: '1 day ago',
+      savedAt: "1 day ago",
     },
     {
       id: 3,
-      user: 'Code Academy',
-      username: 'codeacademy',
-      content: 'TypeScript vs JavaScript: Which should you learn first in 2025? Full breakdown 👇',
+      user: "Code Academy",
+      username: "codeacademy",
+      content: "TypeScript vs JavaScript: Which should you learn first in 2025? Full breakdown 👇",
       aura: 4892,
       comments: 891,
       shares: 445,
-      savedAt: '3 days ago',
+      savedAt: "3 days ago",
     },
   ];
 
@@ -82,8 +83,12 @@ export default function SavedPage() {
               {/* Engagement Stats */}
               <div className="text-xs text-slate-400 flex gap-4 mb-3 pb-3 border-b border-slate-700/30">
                 <button className="hover:text-slate-200 transition-colors">{post.aura} Aura</button>
-                <button className="hover:text-slate-200 transition-colors">{post.comments} Comments</button>
-                <button className="hover:text-slate-200 transition-colors">{post.shares} Shares</button>
+                <button className="hover:text-slate-200 transition-colors">
+                  {post.comments} Comments
+                </button>
+                <button className="hover:text-slate-200 transition-colors">
+                  {post.shares} Shares
+                </button>
               </div>
 
               {/* Action Buttons */}

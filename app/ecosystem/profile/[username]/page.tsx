@@ -31,21 +31,15 @@ export default function PublicProfilePage() {
   }
 
   if (!user) {
-    return (
-      <div className="px-6 pt-4 text-red-400">
-        User not found.
-      </div>
-    );
+    return <div className="px-6 pt-4 text-red-400">User not found.</div>;
   }
 
   return (
     <div className="px-6 pb-28 pt-4">
-
       {/* Premium Header Card */}
       <div className="mb-6">
         <div className="bg-gradient-to-br from-fuchsia-600/40 via-purple-600/40 to-indigo-600/40 p-[2px] rounded-3xl shadow-xl shadow-purple-900/20">
           <div className="card-matte rounded-3xl p-6 flex items-center gap-5">
-
             {/* Avatar */}
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold">
               {(user.displayName || user.username).slice(0, 2).toUpperCase()}
@@ -57,19 +51,12 @@ export default function PublicProfilePage() {
                 {user.displayName || "Unnamed User"}
               </h2>
 
-              <p className={`${theme.textSecondary} text-sm`}>
-                @{user.username}
-              </p>
+              <p className={`${theme.textSecondary} text-sm`}>@{user.username}</p>
 
-              <p className="text-xs text-gray-400 mt-1">
-                UID: {user.uid || "—"}
-              </p>
+              <p className="text-xs text-gray-400 mt-1">UID: {user.uid || "—"}</p>
 
-              <p className="text-sm text-gray-300 mt-1">
-                Level {user.level} • Explorer Tier
-              </p>
+              <p className="text-sm text-gray-300 mt-1">Level {user.level} • Explorer Tier</p>
             </div>
-
           </div>
         </div>
       </div>
@@ -94,7 +81,6 @@ export default function PublicProfilePage() {
           <span className="text-2xl font-bold text-yellow-300">{user.energy}</span>
         </div>
       </div>
-
     </div>
   );
 }

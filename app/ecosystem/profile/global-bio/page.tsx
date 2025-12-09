@@ -45,16 +45,12 @@ export default function GlobalBioPage() {
   };
 
   if (loading) {
-    return (
-      <div className="px-6 pb-28 pt-4 text-gray-300">Loading...</div>
-    );
+    return <div className="px-6 pb-28 pt-4 text-gray-300">Loading...</div>;
   }
 
   return (
     <div className="px-6 pb-28 pt-4">
-      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>
-        Your Global Bio
-      </h1>
+      <h1 className={`text-2xl font-bold mb-2 ${theme.textPrimary}`}>Your Global Bio</h1>
 
       <p className={`text-sm mb-6 ${theme.textSecondary}`}>
         This appears across the Vynce ecosystem.
@@ -73,9 +69,7 @@ export default function GlobalBioPage() {
           />
         </div>
 
-        {message && (
-          <p className="text-sm text-green-400">{message}</p>
-        )}
+        {message && <p className="text-sm text-green-400">{message}</p>}
 
         <Button type="submit" className="w-full" disabled={saving}>
           {saving ? "Saving..." : "Save Bio"}

@@ -1,62 +1,62 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
-import CommentsSheet from '@/components/PostActions/CommentsSheet';
-import ShareSheet from '@/components/PostActions/ShareSheet';
-import { useAppStore } from '@/lib/store';
+import React, { useState, useEffect } from "react";
+import { Heart, MessageCircle, Share2 } from "lucide-react";
+import CommentsSheet from "@/components/PostActions/CommentsSheet";
+import ShareSheet from "@/components/PostActions/ShareSheet";
+import { useAppStore } from "@/lib/store";
 
 const capsules = [
   {
     id: 1,
-    username: 'alex_orbit',
-    displayName: 'Alex Orbit',
-    userAvatar: '🎵',
-    gradient: 'from-purple-500 to-pink-500',
-    timestamp: '2h ago',
+    username: "alex_orbit",
+    displayName: "Alex Orbit",
+    userAvatar: "🎵",
+    gradient: "from-purple-500 to-pink-500",
+    timestamp: "2h ago",
     likes: 1234,
     comments: 234,
     shares: 89,
-    description: 'Check out my latest music production! 🔥',
+    description: "Check out my latest music production! 🔥",
     isLiked: false,
   },
   {
     id: 2,
-    username: 'jane_cosmos',
-    displayName: 'Jane Cosmos',
-    userAvatar: '🎨',
-    gradient: 'from-orange-500 to-pink-500',
-    timestamp: '4h ago',
+    username: "jane_cosmos",
+    displayName: "Jane Cosmos",
+    userAvatar: "🎨",
+    gradient: "from-orange-500 to-pink-500",
+    timestamp: "4h ago",
     likes: 5678,
     comments: 567,
     shares: 234,
-    description: 'Digital art collection - part 3 of my series',
+    description: "Digital art collection - part 3 of my series",
     isLiked: false,
   },
   {
     id: 3,
-    username: 'tech_warrior',
-    displayName: 'Tech Warrior',
-    userAvatar: '💻',
-    gradient: 'from-cyan-500 to-blue-500',
-    timestamp: '6h ago',
+    username: "tech_warrior",
+    displayName: "Tech Warrior",
+    userAvatar: "💻",
+    gradient: "from-cyan-500 to-blue-500",
+    timestamp: "6h ago",
     likes: 2345,
     comments: 345,
     shares: 123,
-    description: 'Building an AI app in 10 minutes | Dev speedrun',
+    description: "Building an AI app in 10 minutes | Dev speedrun",
     isLiked: false,
   },
   {
     id: 4,
-    username: 'design_flow',
-    displayName: 'Design Flow',
-    userAvatar: '🎭',
-    gradient: 'from-green-500 to-teal-500',
-    timestamp: '8h ago',
+    username: "design_flow",
+    displayName: "Design Flow",
+    userAvatar: "🎭",
+    gradient: "from-green-500 to-teal-500",
+    timestamp: "8h ago",
     likes: 3456,
     comments: 456,
     shares: 156,
-    description: 'New UI design trends for 2025',
+    description: "New UI design trends for 2025",
     isLiked: false,
   },
 ];
@@ -79,7 +79,7 @@ export default function CapsulesPage() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart) return;
     const diff = touchStart - e.changedTouches[0].clientY;
-    
+
     // Swipe down = prev, Swipe up = next
     if (diff > 50 && currentIndex < capsules.length - 1) {
       setCurrentCapsuleIndex(currentCapsuleIndex + 1);
@@ -106,11 +106,7 @@ export default function CapsulesPage() {
             <div
               key={idx}
               className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
-                idx < currentIndex
-                  ? 'bg-white'
-                  : idx === currentIndex
-                  ? 'bg-white'
-                  : 'bg-white/40'
+                idx < currentIndex ? "bg-white" : idx === currentIndex ? "bg-white" : "bg-white/40"
               }`}
               aria-hidden="true"
             />
@@ -139,9 +135,7 @@ export default function CapsulesPage() {
           onTouchEnd={handleTouchEnd}
         >
           {/* Background Gradient */}
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${capsule.gradient}`}
-          >
+          <div className={`absolute inset-0 bg-gradient-to-br ${capsule.gradient}`}>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
           </div>
 
@@ -162,16 +156,12 @@ export default function CapsulesPage() {
             <button
               onClick={handleLike}
               className="flex flex-col items-center gap-1 focus:outline-none focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
-              aria-label={capsule.isLiked ? 'Unlike story' : 'Like story'}
+              aria-label={capsule.isLiked ? "Unlike story" : "Like story"}
             >
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all active:scale-90">
                 <Heart
                   size={20}
-                  className={`${
-                    capsule.isLiked
-                      ? 'fill-red-500 text-red-500'
-                      : 'text-white'
-                  }`}
+                  className={`${capsule.isLiked ? "fill-red-500 text-red-500" : "text-white"}`}
                 />
               </div>
               <span className="text-white text-xs font-semibold">{capsule.likes}</span>
@@ -211,10 +201,10 @@ export default function CapsulesPage() {
               onClick={() => setCurrentCapsuleIndex(idx)}
               className={`transition-all duration-300 rounded-full ${
                 idx === currentIndex
-                  ? 'w-6 h-2 sm:w-8 bg-white'
-                  : 'w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white/40'
+                  ? "w-6 h-2 sm:w-8 bg-white"
+                  : "w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white/40"
               }`}
-              aria-label={`Capsule ${idx + 1}${idx === currentIndex ? ' (current)' : ''}`}
+              aria-label={`Capsule ${idx + 1}${idx === currentIndex ? " (current)" : ""}`}
             />
           ))}
         </div>
