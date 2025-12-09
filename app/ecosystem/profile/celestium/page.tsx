@@ -2,10 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+type Transaction = {
+  type: "earned" | "spent" | string; // expandable
+  amount: number;
+  message?: string;
+  date?: string;
+};
 
 export default function CelestiumPage() {
   const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 

@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import ShowcaseSelector from "@/components/profile/ShowcaseSelector";
+
+type ShowcaseItem = {
+  name?: string;
+  [key: string]: any;
+};
 
 /* Lucide Icons */
 import { Bolt, Coins, ArrowUpRight } from "lucide-react";
@@ -36,12 +42,20 @@ export default function EcosystemPage() {
    *  BEFORE ANY CONDITIONAL RETURN
    =========================== */
   const [user, setUser] = useState<any>(null);
-  const [showSelector, setShowSelector] = useState(null);
-  const [showcase, setShowcase] = useState({
-    inventory: [],
-    achievements: [],
-    dares: [],
-  });
+
+type ShowcaseCategory = "inventory" | "achievements" | "dares" | null;
+
+const [showSelector, setShowSelector] = useState<ShowcaseCategory>(null);
+
+const [showcase, setShowcase] = useState<{
+  inventory: ShowcaseItem[];
+  achievements: ShowcaseItem[];
+  dares: ShowcaseItem[];
+}>({
+  inventory: [],
+  achievements: [],
+  dares: [],
+});
 
   /** ===========================
    * LOAD USER
@@ -109,17 +123,25 @@ export default function EcosystemPage() {
   /** ===========================
    * HANDLE SHOWCASE SELECTION
    =========================== */
-  const chooseItem = async (item) => {
-    const updated = {
-      ...showcase,
-      [showSelector]: [...showcase[showSelector], item].slice(-3),
-    };
+  
+interface ShowcaseItem {
+  name?: string;
+  [key: string]: any;
+}
 
-    setShowcase(updated);
-    setShowSelector(null);
+const chooseItem = async (item: ShowcaseItem) => {
+  if (!showSelector) return;
 
-    await api.patch("/users/profile-card/showcase", updated);
+  const updated = {
+    ...showcase,
+    [showSelector]: [...showcase[showSelector], item].slice(-3),
   };
+
+  setShowcase(updated);
+  setShowSelector(null);
+
+  await api.patch("/users/profile-card/showcase", updated);
+};
 
   return (
     <div className="px-4 pb-28 matte-bg">
