@@ -2,6 +2,12 @@
   "name": "vynce",
   "version": "1.0.0",
   "private": true,
+
+  "engines": {
+    "node": "20.19.6",
+    "npm": "10.9.4"
+  },
+
   "scripts": {
     "dev": "next dev --hostname localhost",
     "build": "next build",
@@ -10,6 +16,7 @@
     "format": "prettier --write .",
     "start": "next start"
   },
+
   "dependencies": {
     "@next/swc-linux-arm64-gnu": "^16.0.8",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -28,6 +35,7 @@
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^4.5.0"
   },
+
   "devDependencies": {
     "@types/node": "24.10.1",
     "@types/react": "^18.3.27",
