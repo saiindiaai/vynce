@@ -1,8 +1,8 @@
 {
   // Auto-fix issues on save
   "editor.codeActionsOnSave": {
-    "source.fixAll": true,
-    "source.organizeImports": true
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
   },
 
   // Integrate ESLint with VSCode

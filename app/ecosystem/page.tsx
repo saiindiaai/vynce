@@ -43,19 +43,19 @@ export default function EcosystemPage() {
    =========================== */
   const [user, setUser] = useState<any>(null);
 
-type ShowcaseCategory = "inventory" | "achievements" | "dares" | null;
+  type ShowcaseCategory = "inventory" | "achievements" | "dares" | null;
 
-const [showSelector, setShowSelector] = useState<ShowcaseCategory>(null);
+  const [showSelector, setShowSelector] = useState<ShowcaseCategory>(null);
 
-const [showcase, setShowcase] = useState<{
-  inventory: ShowcaseItem[];
-  achievements: ShowcaseItem[];
-  dares: ShowcaseItem[];
-}>({
-  inventory: [],
-  achievements: [],
-  dares: [],
-});
+  const [showcase, setShowcase] = useState<{
+    inventory: ShowcaseItem[];
+    achievements: ShowcaseItem[];
+    dares: ShowcaseItem[];
+  }>({
+    inventory: [],
+    achievements: [],
+    dares: [],
+  });
 
   /** ===========================
    * LOAD USER
@@ -123,25 +123,25 @@ const [showcase, setShowcase] = useState<{
   /** ===========================
    * HANDLE SHOWCASE SELECTION
    =========================== */
-  
-interface ShowcaseItem {
-  name?: string;
-  [key: string]: any;
-}
 
-const chooseItem = async (item: ShowcaseItem) => {
-  if (!showSelector) return;
+  interface ShowcaseItem {
+    name?: string;
+    [key: string]: any;
+  }
 
-  const updated = {
-    ...showcase,
-    [showSelector]: [...showcase[showSelector], item].slice(-3),
+  const chooseItem = async (item: ShowcaseItem) => {
+    if (!showSelector) return;
+
+    const updated = {
+      ...showcase,
+      [showSelector]: [...showcase[showSelector], item].slice(-3),
+    };
+
+    setShowcase(updated);
+    setShowSelector(null);
+
+    await api.patch("/users/profile-card/showcase", updated);
   };
-
-  setShowcase(updated);
-  setShowSelector(null);
-
-  await api.patch("/users/profile-card/showcase", updated);
-};
 
   return (
     <div className="px-4 pb-28 matte-bg">
