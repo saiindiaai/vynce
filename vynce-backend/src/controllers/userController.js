@@ -104,6 +104,7 @@ exports.guestLogin = async (req, res) => {
 /* ================================
    GET LOGGED-IN USER  (FIXED)
 ================================ */
+
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password -__v");
@@ -118,25 +119,36 @@ exports.getMe = async (req, res) => {
     const percent = Math.min(100, Math.floor((xp / nextXP) * 100));
 
     res.json({
-      uid: user.uid || "GUEST",
-      username: user.username,
-      displayName: user.displayName,
-      level,
-      xp,
-      nextXP,
-      percent,
-      energy: user.energy ?? 1000,
-      celestium: user.celestium ?? 0,
-      celestiumTransactions: user.celestiumTransactions || [],
-      inventory: user.inventory || [],
-      badges: user.badges || [],
-      accountType: user.accountType,
-      createdAt: user.createdAt,
+      user: {
+        id: user._id,
+        uid: user.uid,
+        username: user.username,
+        displayName: user.displayName,
+        accountType: user.accountType,
+        createdAt: user.createdAt,
+      },
+      progress: {
+        level,
+        xp,
+        nextXP,
+        percent,
+      },
+      status: {
+        energy: user.energy ?? 1000,
+        celestium: user.celestium ?? 0,
+      },
+      access: {
+        roles: [user.accountType === "admin" ? "admin" : "user"],
+        permissions: [],
+      },
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
+
 
 // LOGOUT USER (auto-delete guest accounts)
 exports.logoutUser = async (req, res) => {

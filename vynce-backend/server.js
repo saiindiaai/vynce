@@ -42,6 +42,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/themes", themeRoutes);
 app.use("/api/reports", reportRoutes); // ⭐ NEW
+app.use("/api/social/posts", require("./src/social/routes/postRoutes"));
+
 
 // root endpoint
 app.get("/", (req, res) => {
