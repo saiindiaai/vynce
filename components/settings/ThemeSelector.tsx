@@ -1,8 +1,9 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { api } from "@/lib/api";
 import { themeCategories } from "@/lib/themes";
+import { Check } from "lucide-react";
 import Link from "next/link";
 
 export function ThemeSelector() {

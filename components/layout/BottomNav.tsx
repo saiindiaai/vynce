@@ -1,68 +1,44 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import React from "react";
+import { Home, Zap, User, MessageCircle, Radio } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 export default function BottomNav() {
-  const pathname = usePathname();
+  const { currentPage, setCurrentPage } = useAppStore();
+
+  const navItems = [
+    { id: "home" as const, label: "Home", icon: Home },
+    { id: "capsules" as const, label: "Capsules", icon: MessageCircle },
+    { id: "vynce_house" as const, label: "House", icon: Radio },
+    { id: "fight" as const, label: "Fight", icon: Zap },
+    { id: "profile" as const, label: "Profile", icon: User },
+  ];
 
   return (
-    <div
-      className="
-        fixed bottom-0 left-0 w-full
-        bg-[#0d0d15]/95 backdrop-blur-xl
-        border-t border-white/10
-        flex justify-around items-center
-        py-3
-        z-50
-      "
-    >
-      {/* HOME */}
-      <Link href="/ecosystem" className="flex flex-col items-center gap-1">
-        <svg
-          width="24"
-          height="24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className={pathname === "/ecosystem" ? "text-blue-400" : "text-gray-400"}
-        >
-          <path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10z" />
-        </svg>
-        <span className="text-xs">Home</span>
-      </Link>
-
-      {/* PROFILE */}
-      <Link href="/ecosystem/profile" className="flex flex-col items-center gap-1">
-        <svg
-          width="24"
-          height="24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className={pathname === "/ecosystem/profile" ? "text-blue-400" : "text-gray-400"}
-        >
-          <path d="M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5z" />
-          <path d="M4 20c0-3.3 3.1-6 8-6s8 2.7 8 6v2H4v-2z" />
-        </svg>
-        <span className="text-xs">Profile</span>
-      </Link>
-
-      {/* SETTINGS */}
-      <Link href="/ecosystem/settings" className="flex flex-col items-center gap-1">
-        <svg
-          width="24"
-          height="24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className={pathname === "/ecosystem/settings" ? "text-blue-400" : "text-gray-400"}
-        >
-          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-          <path d="M19.4 12a7.4 7.4 0 0 0-.2-1.8l2-1.6-2-3.4-2.3.9a7.7 7.7 0 0 0-3-1.7L13 2h-4l-.9 2.4a7.7 7.7 0 0 0-3 1.7L2.8 5.2l-2 3.4 2 1.6a7.4 7.4 0 0 0 0 3.6l-2 1.6 2 3.4 2.3-.9a7.7 7.7 0 0 0 3 1.7L9 22h4l.9-2.4a7.7 7.7 0 0 0 3-1.7l2.3.9 2-3.4-2-1.6c.2-.6.2-1.2.2-1.8z" />
-        </svg>
-        <span className="text-xs">Settings</span>
-      </Link>
+    <div className="fixed bottom-0 left-0 right-0 z-40">
+      <div className="bg-slate-900 border-t border-slate-700/50">
+        <div className="flex items-center justify-around pt-2 pb-4">
+          {navItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setCurrentPage(id)}
+              className={`flex flex-col items-center justify-center py-2.5 px-2 sm:px-3 rounded-lg transition-all duration-200 gap-0.5 min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
+                currentPage === id
+                  ? "bg-slate-800 text-slate-50"
+                  : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-50"
+              }`}
+              aria-label={`${label}${currentPage === id ? " (current page)" : ""}`}
+              title={label}
+            >
+              <Icon size={20} />
+              <span className="text-xs sm:text-xs font-medium leading-tight text-center">
+                {label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

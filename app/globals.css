@@ -86,13 +86,12 @@ body {
 
 .matte-bg {
   background:
-    repeating-linear-gradient(
-      45deg,
+    repeating-linear-gradient(45deg,
       rgba(200, 200, 255, 0.015) 0px,
-      /* bluish-neutral highlight */ rgba(200, 200, 255, 0.015) 2px,
+      /* bluish-neutral highlight */
+      rgba(200, 200, 255, 0.015) 2px,
       transparent 2px,
-      transparent 6px
-    ),
+      transparent 6px),
     #0a0a0f;
 }
 
@@ -111,13 +110,11 @@ body {
   inset: 0;
   pointer-events: none;
   opacity: 0.16;
-  background: repeating-linear-gradient(
-    135deg,
-    rgba(200, 200, 255, 0.02) 0px,
-    rgba(200, 200, 255, 0.02) 2px,
-    transparent 2px,
-    transparent 6px
-  );
+  background: repeating-linear-gradient(135deg,
+      rgba(200, 200, 255, 0.02) 0px,
+      rgba(200, 200, 255, 0.02) 2px,
+      transparent 2px,
+      transparent 6px);
 }
 
 /* === Elevated Card Shadow (Core Apps) === */
@@ -130,7 +127,8 @@ body {
 /* Matte diagonal texture for hero card */
 .card-matte-hero {
   position: relative;
-  background: #0a0a0d; /* base */
+  background: #0a0a0d;
+  /* base */
   overflow: hidden;
 }
 
@@ -141,13 +139,11 @@ body {
   inset: 0;
   pointer-events: none;
   opacity: 0.15;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.03) 0px,
-    rgba(255, 255, 255, 0.03) 2px,
-    transparent 2px,
-    transparent 6px
-  );
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 2px,
+      transparent 2px,
+      transparent 6px);
 }
 
 /* ========== LIQUID METAL BORDER ========== */
@@ -171,9 +167,11 @@ body {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -182,7 +180,8 @@ body {
 /* DARK matte diagonal texture for hero card (back to original vibe) */
 .card-matte-dark {
   position: relative;
-  background: #0b0b0e; /* deeper dark base */
+  background: #0b0b0e;
+  /* deeper dark base */
   overflow: hidden;
 }
 
@@ -192,12 +191,242 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.08; /* lowered to avoid visible tint */
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.015) 0px,
-    rgba(255, 255, 255, 0.015) 2px,
-    transparent 2px,
-    transparent 6px
-  );
+  opacity: 0.08;
+  /* lowered to avoid visible tint */
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 2px,
+      transparent 2px,
+      transparent 6px);
+}
+
+/* ===== VYNCE SOCIAL UTILITY STYLES ===== */
+
+/* Mobile-first base tweaks */
+:root {
+  --ui-radius: 12px;
+  --ui-padding-sm: 12px;
+  --ui-padding-md: 16px;
+  --ui-transition-fast: 200ms;
+  --ui-transition-medium: 250ms;
+  --ui-transition-slow: 350ms;
+}
+
+/* Make interactive areas touch-friendly */
+button,
+a,
+input,
+select,
+textarea {
+  min-height: 40px;
+  min-width: 40px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth native scrolling on iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent outer page scroll when inner containers scroll */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
+/* ===== CLEAN CARD STYLING ===== */
+.clean-card {
+  background: rgba(30, 30, 35, 0.9);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: var(--ui-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition:
+    box-shadow var(--ui-transition-medium) ease,
+    transform var(--ui-transition-medium) ease;
+}
+
+.clean-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.depth-1 {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.depth-2 {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.depth-3 {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.depth-4 {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== SMOOTH INTERACTIONS ===== */
+.smooth-press {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-press:active {
+  transform: scale(0.96);
+}
+
+/* ===== MOBILE-SPECIFIC INTERACTIONS ===== */
+.swipe-indicator {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Haptic feedback visual indicator */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Mobile devices */
+  .touch-active:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+
+  /* Better padding for mobile interaction areas */
+  button,
+  a,
+  [role="button"] {
+    padding: 12px;
+  }
+}
+
+/* ===== ESSENTIAL ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 200ms ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 250ms ease-out forwards;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 250ms ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 200ms ease-out;
+}
+
+/* ===== RESPONSIVE OPTIMIZATIONS ===== */
+@media (max-width: 768px) {
+  .clean-card {
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== FOCUS & KEYBOARD NAVIGATION ===== */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+/* Ensure sufficient disabled button contrast */
+button:disabled,
+[role="button"]:disabled {
+  opacity: 0.5;
+  background-color: rgba(100, 116, 139, 0.5) !important;
+  color: rgba(226, 232, 240, 0.6) !important;
+  cursor: not-allowed;
+}
+
+/* Interactive element transitions */
+button,
+[role="button"],
+input,
+select,
+textarea {
+  transition: all 200ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }

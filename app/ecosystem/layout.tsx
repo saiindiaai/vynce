@@ -1,7 +1,7 @@
 "use client";
 
+import EcoBottomNav from "@/components/layout/EcoBottomNav";
 import EcoHeader from "@/components/layout/EcoHeader";
-import BottomNav from "@/components/layout/BottomNav";
 
 export default function EcosystemLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +15,7 @@ export default function EcosystemLayout({ children }: { children: React.ReactNod
       <main className="pb-28 px-4">{children}</main>
 
       {/* Bottom Navigation */}
-      <BottomNav />
+      <EcoBottomNav />
     </div>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 import ShowcaseSelector from "@/components/profile/ShowcaseSelector";
+import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type ShowcaseItem = {
   name?: string;
@@ -11,7 +11,7 @@ type ShowcaseItem = {
 };
 
 /* Lucide Icons */
-import { Bolt, Coins, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 const EnergyIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="w-5 h-5">
@@ -327,7 +327,7 @@ export default function EcosystemPage() {
       <div className="space-y-4 mb-10">
         <div
           className="card-matte no-vignette p-4 rounded-2xl border border-white/10 flex justify-between items-center cursor-pointer"
-          onClick={() => router.push("/ecosystem/social")}
+          onClick={() => router.push("/social")}
         >
           <div>
             <h4 className="font-semibold">Vynce Social</h4>

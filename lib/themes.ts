@@ -109,3 +109,33 @@ export const themes: Record<string, Theme> = Object.values(themeCategories).redu
   },
   {}
 );
+
+// Theme helper functions for Vynce Social integration
+export function getThemeClasses(themeName: string): any {
+  const allThemes = {
+    "Vynce Nebula": {
+      name: "Vynce Nebula",
+      style: "dark",
+      primary: "from-purple-600 to-blue-600",
+      secondary: "from-indigo-600 to-purple-600",
+      accent: "from-purple-500 to-blue-500",
+      bgSolid: "bg-slate-900",
+      bgGradient: "bg-slate-900",
+      cardBg: "bg-slate-800",
+      cardBorder: "border-slate-700",
+      textPrimary: "text-slate-50",
+      textSecondary: "text-slate-300",
+      textAccent: "text-purple-400",
+      shadowColor: "shadow-slate-950/40",
+    },
+  };
+  return allThemes[themeName as keyof typeof allThemes] || allThemes["Vynce Nebula"];
+}
+
+export function getAllThemesArray(): any[] {
+  return Object.values(themes);
+}
+
+export function getThemeByName(name: string): Theme | undefined {
+  return themes[name];
+}

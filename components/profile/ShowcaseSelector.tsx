@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
 
-export default function ShowcaseSelector({ type, onClose, onSelect }) {
-  const [items, setItems] = useState([]);
+export default function ShowcaseSelector({ type, onClose, onSelect }: { type: string; onClose: () => void; onSelect: (item: any) => void }) {
+  const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {

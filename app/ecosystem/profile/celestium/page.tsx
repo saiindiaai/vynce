@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
 type Transaction = {
   type: "earned" | "spent" | string; // expandable
   amount: number;
+  note?: string;
   message?: string;
   date?: string;
 };
@@ -58,10 +59,9 @@ export default function CelestiumPage() {
             onClick={() => setFilter(f)}
             className={`
               px-4 py-2 rounded-full text-sm font-semibold transition
-              ${
-                filter === f
-                  ? "bg-white text-black"
-                  : "bg-white/5 text-gray-300 border border-white/10"
+              ${filter === f
+                ? "bg-white text-black"
+                : "bg-white/5 text-gray-300 border border-white/10"
               }
             `}
           >
@@ -86,13 +86,12 @@ export default function CelestiumPage() {
             >
               <div>
                 <p className="text-white font-semibold text-sm">{t.note}</p>
-                <p className="text-gray-500 text-xs">{new Date(t.date).toLocaleDateString()}</p>
+                <p className="text-gray-500 text-xs">{t.date ? new Date(t.date).toLocaleDateString() : 'N/A'}</p>
               </div>
 
               <span
-                className={`text-lg font-bold ${
-                  t.type === "earned" ? "text-green-400" : "text-red-400"
-                }`}
+                className={`text-lg font-bold ${t.type === "earned" ? "text-green-400" : "text-red-400"
+                  }`}
               >
                 {t.type === "earned" ? "+" : "-"} {t.amount}C
               </span>
