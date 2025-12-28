@@ -3,9 +3,13 @@ const {
   createPost,
   getFeed,
   toggleLike,
-} = require("../controllers/postController.js");
+  deletePost,
+  editPost,
+} = require("../controllers/postController");
 
 const { protect } = require("../../middleware/authMiddleware");
+
+const commentRoutes = require("./commentRoutes");
 
 const router = express.Router();
 
@@ -20,5 +24,14 @@ router.get("/", getFeed);
 
 // Like / Unlike post
 router.post("/:id/like", toggleLike);
+
+// Delete post (author only)
+router.delete("/:id", deletePost);
+
+// Nested comments routes
+router.use("/:postId/comments", commentRoutes);
+
+// Edit post (author only)
+router.patch("/:id", editPost);
 
 module.exports = router;
