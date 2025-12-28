@@ -61,29 +61,29 @@ export default function Sidebar() {
       {/* Sidebar */}
       <div
         className={`${sidebarOpen ? "fixed" : "hidden sm:block"
-          } top-14 left-0 right-0 sm:relative sm:top-0 sm:w-60 w-full h-[calc(100vh-3.5rem-5rem)] sm:h-auto sm:border-r border-b sm:border-b-0 border-slate-700/50 z-30 sm:z-auto bg-slate-900 overflow-y-auto ${sidebarOpen ? "animate-slideInLeft" : ""
+          } top-14 left-0 right-0 sm:relative sm:top-0 sm:w-60 w-full h-[calc(100vh-3.5rem-5rem)] sm:h-auto sm:border-r border-b sm:border-b-0 border-slate-700/30 z-30 sm:z-auto bg-gradient-to-b from-slate-900/95 to-slate-900 backdrop-blur-md shadow-2xl sm:shadow-none overflow-y-auto ${sidebarOpen ? "animate-slideInLeft" : ""
           }`}
       >
-        <div className="p-4 space-y-6">
+        <div className="p-5 space-y-6">
           {/* Mobile Close Button */}
           <div className="flex items-center justify-between sm:hidden mb-4">
             <span className="font-black text-lg text-slate-50">Vynce</span>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-300 hover:text-slate-50"
+              className="p-2.5 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-slate-300 hover:text-slate-50"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Desktop Logo */}
-          <div className="hidden sm:flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-md">
+          <div className="hidden sm:flex items-center gap-3 mb-8">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
               <span className="text-white font-black text-lg">V</span>
             </div>
             <div>
               <span className="font-black text-lg text-slate-50 block">Vynce</span>
-              <span className="text-xs text-slate-400">Social</span>
+              <span className="text-xs text-slate-400 font-medium">Social</span>
             </div>
           </div>
 
@@ -91,56 +91,56 @@ export default function Sidebar() {
           <div className="mb-3">
             <Link
               href="/ecosystem"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 min-h-[40px] text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 min-h-[44px] text-slate-300 hover:bg-slate-700/50 hover:text-slate-50 font-medium text-sm"
             >
               <ArrowLeft size={18} />
-              <span className="font-medium text-sm">Back to Ecosystem</span>
+              <span>Back to Ecosystem</span>
             </Link>
           </div>
 
           {/* Menu Items */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {menuItems.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => handleNavClick(id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 min-h-[40px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === id
-                    ? "bg-slate-800 text-slate-50 shadow-sm"
-                    : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 min-h-[44px] font-medium text-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === id
+                  ? "bg-purple-600/30 border border-purple-500/40 text-slate-50 shadow-lg shadow-purple-500/10"
+                  : "text-slate-300 hover:bg-slate-700/50 hover:text-slate-50"
                   }`}
                 aria-label={`${label}${currentPage === id ? " (current)" : ""}`}
               >
                 <Icon size={20} className="flex-shrink-0" />
-                <span className="font-medium text-sm">{label}</span>
+                <span>{label}</span>
               </button>
             ))}
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-slate-700/30" />
+          <div className="h-px bg-slate-700/40" />
 
           {/* More Menu */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <button
               onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 min-h-[40px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${moreMenuOpen
-                  ? "bg-slate-800 text-slate-50 shadow-sm"
-                  : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 min-h-[44px] font-medium text-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${moreMenuOpen
+                ? "bg-slate-700/50 text-slate-50"
+                : "text-slate-300 hover:bg-slate-700/50 hover:text-slate-50"
                 }`}
               aria-label="More menu"
             >
               <div className="flex items-center gap-3">
-                <span className="font-medium text-sm">More</span>
+                <span>More</span>
               </div>
               <ChevronDown
                 size={18}
-                className={`transition-transform duration-200 ${moreMenuOpen ? "rotate-180" : ""}`}
+                className={`transition-transform duration-300 ${moreMenuOpen ? "rotate-180" : ""}`}
               />
             </button>
 
             {/* More Menu Items - Collapsible */}
             {moreMenuOpen && (
-              <div className="space-y-1 pl-3 animate-slideInUp">
+              <div className="space-y-1.5 pl-1 animate-slideInUp">
                 {moreMenuItems.map(({ id, label, icon: Icon }) => (
                   <button
                     key={id}
@@ -148,14 +148,14 @@ export default function Sidebar() {
                       handleNavClick(id);
                       setMoreMenuOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === id
-                        ? "bg-slate-700 text-slate-50 shadow-sm"
-                        : "text-slate-400 hover:bg-slate-700/40 hover:text-slate-300"
+                    className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 min-h-[40px] font-medium text-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === id
+                      ? "bg-purple-600/20 border border-purple-500/30 text-purple-300"
+                      : "text-slate-400 hover:bg-slate-700/40 hover:text-slate-300"
                       }`}
                     aria-label={`${label}${currentPage === id ? " (current)" : ""}`}
                   >
-                    <Icon size={16} className="flex-shrink-0" />
-                    <span className="font-medium text-xs">{label}</span>
+                    <Icon size={18} className="flex-shrink-0" />
+                    <span>{label}</span>
                   </button>
                 ))}
               </div>

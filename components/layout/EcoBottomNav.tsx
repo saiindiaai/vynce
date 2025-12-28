@@ -14,7 +14,7 @@ export default function EcoBottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-40">
       <div className="bg-slate-900 border-t border-slate-700/50">
         <div className="flex items-center justify-around pt-2 pb-4">
           {navItems.map(({ id, label, path, icon: Icon }) => (

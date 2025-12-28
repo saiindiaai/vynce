@@ -73,9 +73,9 @@ export default function HomePage() {
 
   return (
     <div className="animate-fadeIn pb-24 sm:pb-0 w-full">
-      {/* Instagram Stories Bar */}
-      <div className="border-b border-slate-700/50 px-4 py-4 bg-slate-900">
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+      {/* Stories Bar - Improved */}
+      <div className="border-b border-slate-700/20 px-4 py-6 bg-gradient-to-b from-slate-800 to-slate-900/80 backdrop-blur-sm">
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
           {stories.map((story, idx) => (
             <button
               key={idx}
@@ -83,26 +83,26 @@ export default function HomePage() {
                 setCurrentCapsuleIndex(idx);
                 setCurrentPage("capsules");
               }}
-              className="flex-shrink-0 snap-center group focus:outline-none transition-all duration-200 hover:opacity-80"
+              className="flex-shrink-0 snap-center group focus:outline-none transition-all duration-200 hover:scale-105"
               aria-label={`View story from ${story.username}`}
             >
-              {/* Gradient Ring (like Instagram) */}
+              {/* Gradient Ring - Rectangular Format */}
               <div
-                className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${story.gradient} p-0.5`}
+                className={`relative w-20 h-24 rounded-xl bg-gradient-to-br ${story.gradient} p-0.5 shadow-lg hover:shadow-xl transition-all duration-200`}
               >
-                {/* Inner Avatar */}
-                <div className="relative w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-2xl font-bold border-2 border-slate-900">
-                  {story.isYou ? "👤" : story.username.charAt(0).toUpperCase()}
+                {/* Inner Avatar Container */}
+                <div className="relative w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center text-3xl font-bold border-2 border-slate-900 flex-col gap-1">
+                  <span>{story.isYou ? "👤" : story.username.charAt(0).toUpperCase()}</span>
 
-                  {/* Online Status Indicator (like Instagram) */}
+                  {/* New Story Indicator */}
                   {story.hasNew && (
-                    <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-slate-900 ring-2 ring-blue-500/30" />
+                    <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-blue-500 border border-white shadow-md animate-pulse" />
                   )}
                 </div>
               </div>
 
               {/* Username below */}
-              <span className="text-xs text-center mt-2 block text-slate-400 group-hover:text-slate-300 truncate w-16">
+              <span className="text-xs text-center mt-3 block text-slate-400 group-hover:text-slate-300 transition-colors truncate w-20 font-medium">
                 {story.isYou ? "Your story" : story.username.split("_")[0]}
               </span>
             </button>
@@ -111,7 +111,7 @@ export default function HomePage() {
       </div>
 
       {/* Posts Feed */}
-      <div className="max-w-2xl mx-auto w-full space-y-1 px-3 sm:px-4 pt-1 sm:pt-2">
+      <div className="max-w-2xl mx-auto w-full space-y-4 px-3 sm:px-4 pt-4 sm:pt-6">
         {posts.map((post, idx) => {
           const isLiked = likedPosts[post.id];
           const isDisliked = dislikedPosts[post.id];
@@ -121,13 +121,13 @@ export default function HomePage() {
           return (
             <article
               key={post.id}
-              className="clean-card animate-slideIn p-4"
+              className="animate-slideIn bg-slate-800/60 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
               {/* Post Header */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex-shrink-0 flex items-center justify-center text-base font-bold">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex-shrink-0 flex items-center justify-center text-lg font-bold shadow-md">
                     {post.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -144,34 +144,34 @@ export default function HomePage() {
                 </div>
                 <button
                   onClick={() => setActiveMenu(post.id)}
-                  className="p-2 -mr-2 rounded-lg text-slate-400 hover:text-slate-300 hover:bg-slate-800/50 transition-colors flex-shrink-0 min-h-[40px] min-w-[40px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
+                  className="p-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/60 transition-all duration-200 flex-shrink-0 min-h-[40px] min-w-[40px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
                   aria-label={`More options for ${post.user}'s post`}
                 >
-                  <MoreVertical size={16} />
+                  <MoreVertical size={18} />
                 </button>
               </div>
 
               {/* Post Content */}
-              <div className="mb-3">
+              <div className="mb-4">
                 <p className="text-sm text-slate-100 leading-relaxed">{post.content}</p>
               </div>
 
               {/* Engagement Stats */}
-              <div className="text-xs text-slate-400 flex gap-4 mb-3 pb-3 border-b border-slate-700/30">
-                <button className="hover:text-slate-200 transition-colors">
-                  {currentAura} Aura
+              <div className="text-xs text-slate-400 flex gap-6 mb-4 pb-4 border-b border-slate-600/30">
+                <button className="hover:text-slate-200 transition-colors font-medium">
+                  <span className="text-purple-400">{currentAura}</span> Aura
                 </button>
-                <button className="hover:text-slate-200 transition-colors">
-                  {post.comments} Replies
+                <button className="hover:text-slate-200 transition-colors font-medium">
+                  <span className="text-blue-400">{post.comments}</span> Replies
                 </button>
-                <button className="hover:text-slate-200 transition-colors">
-                  {post.shares} Shares
+                <button className="hover:text-slate-200 transition-colors font-medium">
+                  <span className="text-green-400">{post.shares}</span> Shares
                 </button>
               </div>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between gap-2">
-                {/* Aura */}
+                {/* Aura - Improved Styling */}
                 <button
                   onClick={() => {
                     toggleLike(post.id);
@@ -180,9 +180,9 @@ export default function HomePage() {
                     //   earnXp(useAppStore.getState(), getXpReward("like_post"), "Post Liked");
                     // }
                   }}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${isLiked
-                      ? "bg-slate-800 text-purple-400"
-                      : "text-slate-400 hover:bg-slate-800/50 hover:text-purple-300"
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isLiked
+                    ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/20"
+                    : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-purple-600/20 hover:border-purple-500/40 hover:text-purple-300"
                     }`}
                   aria-label={
                     isLiked
@@ -191,16 +191,16 @@ export default function HomePage() {
                   }
                   title="Aura"
                 >
-                  <Heart size={14} fill={isLiked ? "currentColor" : "none"} />
+                  <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
                   <span className="hidden sm:inline">{currentAura}</span>
                 </button>
 
-                {/* Lame */}
+                {/* Lame - Improved Styling */}
                 <button
                   onClick={() => toggleDislike(post.id)}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${isDisliked
-                      ? "bg-slate-800 text-orange-400"
-                      : "text-slate-400 hover:bg-slate-800/50 hover:text-orange-300"
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isDisliked
+                    ? "bg-orange-600/30 border border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/20"
+                    : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-orange-600/20 hover:border-orange-500/40 hover:text-orange-300"
                     }`}
                   aria-label={
                     isDisliked
@@ -209,40 +209,40 @@ export default function HomePage() {
                   }
                   title="Lame"
                 >
-                  <ThumbsDown size={14} />
+                  <ThumbsDown size={18} fill={isDisliked ? "currentColor" : "none"} />
                 </button>
 
                 {/* Reply */}
                 <button
                   onClick={() => setActiveComments(post.id)}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md text-slate-400 hover:bg-slate-800/50 hover:text-blue-300 transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-slate-300 hover:bg-blue-600/20 hover:text-blue-300 hover:border-blue-500/40 bg-slate-700/40 border border-slate-600/30 transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1"
                   aria-label={`Reply to post by ${post.user}`}
                   title="Reply"
                 >
-                  <MessageCircle size={14} />
+                  <MessageCircle size={18} />
                 </button>
 
                 {/* Share */}
                 <button
                   onClick={() => setActiveShare(post.id)}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md text-slate-400 hover:bg-slate-800/50 hover:text-green-300 transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-slate-300 hover:bg-green-600/20 hover:text-green-300 hover:border-green-500/40 bg-slate-700/40 border border-slate-600/30 transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1"
                   aria-label={`Share post by ${post.user}`}
                   title="Share"
                 >
-                  <Share2 size={14} />
+                  <Share2 size={18} />
                 </button>
 
                 {/* Save */}
                 <button
                   onClick={() => toggleSave(post.id)}
-                  className={`flex-1 flex items-center justify-center py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] min-w-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${isSaved
-                      ? "text-yellow-400 bg-slate-800"
-                      : "text-slate-400 hover:text-yellow-300 hover:bg-slate-800/50"
+                  className={`flex-1 flex items-center justify-center py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isSaved
+                    ? "bg-yellow-600/30 border border-yellow-500/50 text-yellow-300 shadow-lg shadow-yellow-500/20"
+                    : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-yellow-600/20 hover:border-yellow-500/40 hover:text-yellow-300"
                     }`}
                   aria-label={isSaved ? "Remove from saved" : "Save this post"}
                   title="Save"
                 >
-                  <Bookmark size={14} fill={isSaved ? "currentColor" : "none"} />
+                  <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
                 </button>
               </div>
             </article>

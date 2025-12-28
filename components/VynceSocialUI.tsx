@@ -60,8 +60,8 @@ export default function VynceSocialUI() {
     const handleTouchEnd = (e: TouchEvent) => {
       touchEndX.current = e.changedTouches[0].screenX;
       const swipeDistance = touchStartX.current - touchEndX.current;
-      const isSwipeLeft = swipeDistance > 50; // Swipe left threshold
-      const isSwipeRight = swipeDistance < -50; // Swipe right threshold
+      const isSwipeLeft = swipeDistance > 80; // Increased from 50 to 80 - reduced sensitivity
+      const isSwipeRight = swipeDistance < -80; // Increased from -50 to -80 - reduced sensitivity
 
       // Only on mobile (max-width: 640px)
       if (window.innerWidth < 640) {
