@@ -6,6 +6,7 @@ import {
   Hash,
   Home,
   Lock,
+  Menu,
   MessageSquare,
   MoreVertical,
   Plus,
@@ -98,6 +99,7 @@ export default function VynceHousePage() {
   const [expandedHouses, setExpandedHouses] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showMembersSidebar, setShowMembersSidebar] = useState(true);
+  const [showHousesSidebar, setShowHousesSidebar] = useState(false);
 
   // Load from localStorage
   useEffect(() => {
@@ -340,6 +342,111 @@ export default function VynceHousePage() {
     });
   };
 
+  const renderHousesList = () => (
+    <>
+      {/* Search */}
+      <div className="p-3 border-b border-slate-700/30 flex-shrink-0">
+        <div className="relative">
+          <Search
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"
+            size={16}
+          />
+          <input
+            type="text"
+            placeholder="Find a house..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-50 text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Houses & Channels List */}
+      <div className="flex-1 overflow-y-auto space-y-1 p-2">
+        {houses.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-xs text-slate-400">No houses yet</p>
+            <p className="text-xs text-slate-500 mt-1">Create one to get started!</p>
+          </div>
+        ) : (
+          houses.map((house) => (
+            <div key={house.id}>
+              {/* House Item */}
+              <button
+                onClick={() => {
+                  setSelectedHouseId(house.id);
+                  toggleHouseExpand(house.id);
+                  if (house.channels.length > 0) {
+                    setSelectedChannelId(house.channels[0].id);
+                  }
+                  setShowHousesSidebar(false);
+                }}
+                className={`w-full flex items-start gap-2 px-3 py-2 rounded-lg transition-all text-left text-sm font-medium ${selectedHouseId === house.id
+                  ? "bg-purple-600/30 text-purple-200"
+                  : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
+                  }`}
+              >
+                <ChevronRight
+                  size={16}
+                  className={`transition-transform flex-shrink-0 mt-0.5 ${expandedHouses.has(house.id) ? "rotate-90" : ""
+                    }`}
+                />
+                <div className={`p-1 rounded flex-shrink-0 mt-0.5 ${getTypeColor(house.type)}`}>
+                  {getTypeIcon(house.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate">{house.name}</span>
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${getRarityColor(house.rarity)} ${getRarityBg(house.rarity)}`}>
+                      {house.rarity.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-slate-500">Lv. {house.level}</span>
+                    <span className="text-xs text-slate-500">Influence: {house.influence}</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Channels (expandable) */}
+              {expandedHouses.has(house.id) && (
+                <div className="ml-4 space-y-0.5 py-1 border-l border-slate-700/30 pl-2">
+                  {house.channels.map((channel) => (
+                    <button
+                      key={channel.id}
+                      onClick={() => {
+                        setSelectedChannelId(channel.id);
+                        setShowHousesSidebar(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all text-left ${selectedChannelId === channel.id
+                        ? "bg-purple-600/20 text-purple-200"
+                        : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-300"
+                        }`}
+                    >
+                      <Hash size={14} />
+                      <span className="truncate flex-1">{channel.name}</span>
+                    </button>
+                  ))}
+
+                  {/* Create Channel Button */}
+                  {selectedHouseId === house.id && (
+                    <button
+                      onClick={() => setShowCreateChannelModal(true)}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-slate-500 hover:bg-slate-800/40 hover:text-slate-400 transition-all text-left"
+                    >
+                      <Plus size={14} />
+                      <span>Add channel</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </>
+  );
+
   const selectedHouse = houses.find((h) => h.id === selectedHouseId);
   const selectedChannel = selectedHouse?.channels.find((c) => c.id === selectedChannelId);
   const channelMessages = selectedChannelId
@@ -357,115 +464,42 @@ export default function VynceHousePage() {
           <h1 className="text-2xl font-black text-slate-50">Vynce Houses</h1>
           <p className="text-xs text-slate-400">Exclusive groups built on hierarchy, loyalty, and influence</p>
         </div>
-        <button
-          onClick={() => setShowCreateHouseModal(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-purple-500/25 text-sm"
-        >
-          <Plus size={18} />
-          <span className="hidden sm:inline">Found House</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowHousesSidebar(!showHousesSidebar)}
+            className="sm:hidden p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
+            title="Toggle houses list"
+          >
+            <Menu size={20} />
+          </button>
+          <button
+            onClick={() => setShowCreateHouseModal(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-purple-500/25 text-sm"
+          >
+            <Plus size={18} />
+            <span className="hidden sm:inline">Found House</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content - Three Column Layout */}
-      <div className="flex-1 flex overflow-hidden gap-0 sm:gap-3 px-2 sm:px-3 py-3">
-        {/* Left Sidebar - Houses & Channels List */}
-        <div className="w-60 hidden sm:flex flex-col bg-slate-900/60 rounded-xl border border-slate-700/30 overflow-hidden">
-          {/* Search */}
-          <div className="p-3 border-b border-slate-700/30 flex-shrink-0">
-            <div className="relative">
-              <Search
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Find a house..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-50 text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
-              />
+      <div className="flex-1 flex overflow-hidden gap-0 sm:gap-3 px-2 sm:px-3 py-3 relative">
+        {/* Mobile Houses Sidebar Drawer */}
+        {showHousesSidebar && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/50 z-30 sm:hidden"
+              onClick={() => setShowHousesSidebar(false)}
+            ></div>
+            <div className="fixed left-0 top-16 bottom-0 w-60 bg-slate-900/95 border-r border-slate-700/50 z-30 sm:hidden overflow-hidden flex flex-col backdrop-blur-sm">
+              {renderHousesList()}
             </div>
-          </div>
+          </>
+        )}
 
-          {/* Houses & Channels List */}
-          <div className="flex-1 overflow-y-auto space-y-1 p-2">
-            {houses.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-xs text-slate-400">No houses yet</p>
-                <p className="text-xs text-slate-500 mt-1">Create one to get started!</p>
-              </div>
-            ) : (
-              houses.map((house) => (
-                <div key={house.id}>
-                  {/* House Item */}
-                  <button
-                    onClick={() => {
-                      setSelectedHouseId(house.id);
-                      toggleHouseExpand(house.id);
-                      if (house.channels.length > 0) {
-                        setSelectedChannelId(house.channels[0].id);
-                      }
-                    }}
-                    className={`w-full flex items-start gap-2 px-3 py-2 rounded-lg transition-all text-left text-sm font-medium ${selectedHouseId === house.id
-                        ? "bg-purple-600/30 text-purple-200"
-                        : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                      }`}
-                  >
-                    <ChevronRight
-                      size={16}
-                      className={`transition-transform flex-shrink-0 mt-0.5 ${expandedHouses.has(house.id) ? "rotate-90" : ""
-                        }`}
-                    />
-                    <div className={`p-1 rounded flex-shrink-0 mt-0.5 ${getTypeColor(house.type)}`}>
-                      {getTypeIcon(house.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate">{house.name}</span>
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${getRarityColor(house.rarity)} ${getRarityBg(house.rarity)}`}>
-                          {house.rarity.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-slate-500">Lv. {house.level}</span>
-                        <span className="text-xs text-slate-500">Influence: {house.influence}</span>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Channels (expandable) */}
-                  {expandedHouses.has(house.id) && (
-                    <div className="ml-4 space-y-0.5 py-1 border-l border-slate-700/30 pl-2">
-                      {house.channels.map((channel) => (
-                        <button
-                          key={channel.id}
-                          onClick={() => setSelectedChannelId(channel.id)}
-                          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all text-left ${selectedChannelId === channel.id
-                            ? "bg-purple-600/20 text-purple-200"
-                            : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-300"
-                            }`}
-                        >
-                          <Hash size={14} />
-                          <span className="truncate flex-1">{channel.name}</span>
-                        </button>
-                      ))}
-
-                      {/* Create Channel Button */}
-                      {selectedHouseId === house.id && (
-                        <button
-                          onClick={() => setShowCreateChannelModal(true)}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-slate-500 hover:bg-slate-800/40 hover:text-slate-400 transition-all text-left"
-                        >
-                          <Plus size={14} />
-                          <span>Add channel</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+        {/* Left Sidebar - Houses & Channels List (Desktop) */}
+        <div className="w-60 hidden sm:flex flex-col bg-slate-900/60 rounded-xl border border-slate-700/30 overflow-hidden">
+          {renderHousesList()}
         </div>
 
         {/* Center - Chat View */}
@@ -494,8 +528,8 @@ export default function VynceHousePage() {
                       </p>
                       <span className="text-xs text-slate-500">•</span>
                       <p className="text-xs text-slate-500 truncate">Lv. {selectedHouse.level}</p>
-                      <span className="text-xs text-slate-500">•</span>
-                      <p className="text-xs text-amber-300">⚡ {selectedHouse.influence}</p>
+                      <span className="hidden sm:inline text-xs text-slate-500">•</span>
+                      <p className="hidden sm:inline text-xs text-amber-300">⚡ {selectedHouse.influence}</p>
                     </div>
                   </div>
                 </div>
@@ -586,7 +620,7 @@ export default function VynceHousePage() {
                 Select a house and channel
               </p>
               <p className="text-slate-500 text-sm mt-2">
-                Choose from the sidebar to start chatting
+                Click the menu icon (☰) to browse houses
               </p>
             </div>
           )}
@@ -707,8 +741,8 @@ export default function VynceHousePage() {
                         key={type}
                         onClick={() => setNewHouseType(type)}
                         className={`p-3 rounded-lg font-semibold text-sm transition-all border flex flex-col items-center gap-2 ${newHouseType === type
-                            ? "bg-purple-600/40 border-purple-600/50 text-purple-300"
-                            : "bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600"
+                          ? "bg-purple-600/40 border-purple-600/50 text-purple-300"
+                          : "bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600"
                           }`}
                       >
                         {getTypeIcon(type)}
@@ -736,8 +770,8 @@ export default function VynceHousePage() {
                         key={rarity}
                         onClick={() => setNewHouseRarity(rarity)}
                         className={`p-2 rounded text-xs font-bold transition-all border ${newHouseRarity === rarity
-                            ? `${getRarityBg(rarity)} border-current`
-                            : "bg-slate-800/40 border-slate-700/50 text-slate-500 hover:border-slate-600"
+                          ? `${getRarityBg(rarity)} border-current`
+                          : "bg-slate-800/40 border-slate-700/50 text-slate-500 hover:border-slate-600"
                           } ${newHouseRarity === rarity ? getRarityColor(rarity) : ""}`}
                       >
                         {rarity.charAt(0).toUpperCase()}
