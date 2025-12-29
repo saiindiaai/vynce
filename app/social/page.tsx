@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { fetchSocialFeed } from "@/lib/social";
+import { useEffect, useRef, useState } from "react";
 
 interface Author {
   uid: string;
@@ -37,12 +37,16 @@ export default function SocialPage() {
     setLoading(true);
     try {
       const data: FeedResponse = await fetchSocialFeed({
-  cursor: cursor ?? undefined,
-  limit: 5,
-});
+        cursor: cursor ?? undefined,
+        limit: 5,
+      });
 
 
-      setPosts((prev) => [...prev, ...data.posts]);
+      setPosts((prev) => {
+        const existing = new Set(prev.map((p) => p._id));
+        const toAdd = data.posts.filter((p) => !existing.has(p._id));
+        return [...prev, ...toAdd];
+      });
       setCursor(data.nextCursor);
       setHasMore(data.hasMore);
     } catch (err) {
@@ -61,6 +65,10 @@ export default function SocialPage() {
   useEffect(() => {
     if (!loadMoreRef.current) return;
 
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -73,7 +81,7 @@ export default function SocialPage() {
     observerRef.current.observe(loadMoreRef.current);
 
     return () => observerRef.current?.disconnect();
-  }, [cursor, hasMore]);
+  }, []);
 
   return (
     <div className="max-w-xl mx-auto py-6 space-y-4">
