@@ -1,13 +1,12 @@
-const Comment = require("../models/Comment.js");
-const Post = require("../models/Post.js");
+const Comment = require("../models/Comment");
+const Post = require("../models/Post");
 
-/* ================================
-   ADD COMMENT
-================================ */
-exports.addComment = async (req, res) => {
+/* CREATE COMMENT */
+exports.createComment = async (req, res) => {
   try {
-    const { content } = req.body;
     const { postId } = req.params;
+    const { content } = req.body;
+    const userId = req.userId;
 
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Comment content required" });
@@ -20,21 +19,22 @@ exports.addComment = async (req, res) => {
 
     const comment = await Comment.create({
       post: postId,
-      author: req.userId,
+      author: userId,
       content,
     });
 
+    post.commentsCount += 1;
+    await post.save();
+
     res.status(201).json(comment);
   } catch (err) {
-    console.error("addComment error:", err);
-    res.status(500).json({ message: "Failed to add comment" });
+    console.error(err);
+    res.status(500).json({ message: "Failed to create comment" });
   }
 };
 
-/* ================================
-   GET COMMENTS FOR POST
-================================ */
-exports.getComments = async (req, res) => {
+/* GET COMMENTS */
+exports.getCommentsByPost = async (req, res) => {
   try {
     const { postId } = req.params;
 
@@ -44,34 +44,33 @@ exports.getComments = async (req, res) => {
 
     res.json(comments);
   } catch (err) {
-    console.error("getComments error:", err);
     res.status(500).json({ message: "Failed to fetch comments" });
   }
 };
 
-/* ================================
-   DELETE COMMENT (author only)
-================================ */
+/* DELETE COMMENT */
 exports.deleteComment = async (req, res) => {
   try {
-    const { commentId } = req.params;
+    const { id } = req.params;
     const userId = req.userId;
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // Only author can delete
     if (comment.author.toString() !== userId) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    await comment.deleteOne();
+    await Comment.deleteOne({ _id: id });
 
-    res.json({ message: "Comment deleted successfully" });
+    await Post.findByIdAndUpdate(comment.post, {
+      $inc: { commentsCount: -1 },
+    });
+
+    res.json({ message: "Comment deleted" });
   } catch (err) {
-    console.error("deleteComment error:", err);
     res.status(500).json({ message: "Failed to delete comment" });
   }
 };

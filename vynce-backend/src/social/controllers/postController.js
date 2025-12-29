@@ -1,14 +1,12 @@
 const Post = require("../models/Post");
 
-/* ================================
-   CREATE POST
-================================ */
+/* CREATE POST */
 exports.createPost = async (req, res) => {
   try {
     const { content } = req.body;
 
     if (!content || !content.trim()) {
-      return res.status(400).json({ message: "Post content is required" });
+      return res.status(400).json({ message: "Content required" });
     }
 
     const post = await Post.create({
@@ -16,42 +14,56 @@ exports.createPost = async (req, res) => {
       content,
     });
 
-    return res.status(201).json(post);
+    res.status(201).json(post);
   } catch (err) {
-    console.error("createPost error:", err);
-    res.status(500).json({ message: "Failed to create post" });
+    res.status(500).json({ message: "Create post failed" });
   }
 };
 
+
 /* ================================
-   GET FEED (PAGINATED)
+   GET FEED (PAGINATED + ENRICHED)
 ================================ */
 exports.getFeed = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     const { cursor } = req.query;
+    const userId = req.userId;
 
-    const query = cursor
-      ? { _id: { $lt: cursor } }
-      : {};
+    const query = cursor ? { _id: { $lt: cursor } } : {};
 
     const posts = await Post.find(query)
-  .populate("author", "username displayName uid")
-  .sort({ _id: -1 })
-  .limit(limit + 1) // fetch one extra to check hasMore
-  .lean();
+      .populate("author", "username displayName uid")
+      .sort({ _id: -1 })
+      .limit(limit + 1);
 
     let hasMore = false;
     let nextCursor = null;
 
     if (posts.length > limit) {
       hasMore = true;
-      posts.pop(); // remove extra item
+      posts.pop();
       nextCursor = posts[posts.length - 1]._id;
     }
 
+    const enrichedPosts = posts.map((post) => {
+      const isLikedByMe = post.likes.some(
+        (id) => id.toString() === userId
+      );
+
+      return {
+        _id: post._id,
+        content: post.content,
+        author: post.author,
+        createdAt: post.createdAt,
+        likesCount: post.likes.length,
+        isLikedByMe,
+        commentsCount: post.commentsCount,
+      };
+    });
+
     res.json({
-      posts,
+      posts: enrichedPosts,
       nextCursor,
       hasMore,
     });
@@ -67,7 +79,7 @@ exports.getFeed = async (req, res) => {
 ================================ */
 exports.toggleLike = async (req, res) => {
   try {
-    const postId = req.params.id;
+    const { id: postId } = req.params;
     const userId = req.userId;
 
     const post = await Post.findById(postId);
@@ -75,18 +87,27 @@ exports.toggleLike = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    const alreadyLiked = post.likes.includes(userId);
+    const index = post.likes.findIndex((uid) =>
+      uid.equals(userId)
+    );
 
-    if (alreadyLiked) {
-      post.likes.pull(userId);
+    let liked;
+
+    if (index > -1) {
+      // Unlike
+      post.likes.splice(index, 1);
+      liked = false;
     } else {
+      // Like
       post.likes.push(userId);
+      liked = true;
     }
 
     await post.save();
 
     res.json({
-      liked: !alreadyLiked,
+      postId,
+      liked,
       likesCount: post.likes.length,
     });
   } catch (err) {
@@ -94,6 +115,7 @@ exports.toggleLike = async (req, res) => {
     res.status(500).json({ message: "Failed to toggle like" });
   }
 };
+
 
 /* ================================
    DELETE POST (author only)

@@ -1,25 +1,19 @@
 const express = require("express");
 const {
-  addComment,
-  getComments,
+  createComment,
+  getCommentsByPost,
   deleteComment,
 } = require("../controllers/commentController");
 
-const { protect } = require("../../middleware/authMiddleware");
+const router = express.Router();
 
-const router = express.Router({ mergeParams: true });
+// POST /api/social/posts/:postId/comments
+router.post("/", createComment);
 
-// Auth required
-router.use(protect);
+// GET /api/social/posts/:postId/comments
+router.get("/", getCommentsByPost);
 
-// Add comment
-router.post("/", addComment);
-
-// Get comments
-router.get("/", getComments);
-
-// Delete comment (author only)
-router.delete("/:commentId", deleteComment);
+// DELETE /api/social/comments/:id
+router.delete("/:id", deleteComment);
 
 module.exports = router;
-
