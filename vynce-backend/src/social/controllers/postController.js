@@ -36,9 +36,10 @@ exports.getFeed = async (req, res) => {
       : {};
 
     const posts = await Post.find(query)
-      .populate("author", "username displayName uid")
-      .sort({ _id: -1 })
-      .limit(limit + 1); // fetch one extra to check hasMore
+  .populate("author", "username displayName uid")
+  .sort({ _id: -1 })
+  .limit(limit + 1) // fetch one extra to check hasMore
+  .lean();
 
     let hasMore = false;
     let nextCursor = null;

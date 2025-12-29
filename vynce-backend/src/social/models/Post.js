@@ -11,7 +11,6 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 1000,
     },
     likes: [
       {
@@ -19,8 +18,14 @@ const postSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    commentsCount: {
+      type: Number,
+      default: 0,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // createdAt & updatedAt
+  }
 );
 
 module.exports = mongoose.model("Post", postSchema);
