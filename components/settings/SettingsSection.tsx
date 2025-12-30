@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Palette, Bell, Lock, FileText, Flag, Trash2 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { Bell, FileText, Flag, Lock, Palette, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 export default function SettingsSection() {
   const { theme, currentTheme } = useTheme();
@@ -46,7 +46,7 @@ export default function SettingsSection() {
   ];
 
   return (
-    <div className="px-6 pb-28 mt-6 space-y-4">
+    <div className="px-6 pb-28 mt-6 space-y-3">
       {/* LOOP CARDS */}
       {cards.map((card) => (
         <Link key={card.title} href={card.href} className="block">

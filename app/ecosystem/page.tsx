@@ -104,6 +104,32 @@ export default function EcosystemPage() {
   }, [router]);
 
   /** ===========================
+   * FETCH CURRENCIES TO SYNC DATA
+   =========================== */
+  useEffect(() => {
+    if (!user || user.username === "guest_user") return;
+
+    const fetchCurrencies = async () => {
+      try {
+        const [energyRes, celestiumRes] = await Promise.all([
+          api.get("/users/energy"),
+          api.get("/users/celestium")
+        ]);
+
+        setUser((prev: any) => ({
+          ...prev,
+          energy: energyRes.data.energy,
+          celestium: celestiumRes.data.celestium || 0,
+        }));
+      } catch (err) {
+        console.log("Currency fetch failed", err);
+      }
+    };
+
+    fetchCurrencies();
+  }, [user?.username]);
+
+  /** ===========================
    * SHOW LOADING STATE
    =========================== */
   if (!user) {

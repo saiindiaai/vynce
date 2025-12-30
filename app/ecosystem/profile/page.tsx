@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import ProfileMenu from "@/components/profile/ProfileMenu";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -22,6 +22,29 @@ export default function ProfilePage() {
 
     load();
   }, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchCurrencies = async () => {
+      try {
+        const [energyRes, celestiumRes] = await Promise.all([
+          api.get("/users/energy"),
+          api.get("/users/celestium")
+        ]);
+
+        setUser((prev: any) => ({
+          ...prev,
+          energy: energyRes.data.energy,
+          celestium: celestiumRes.data.celestium || 0,
+        }));
+      } catch (err) {
+        console.log("Currency fetch failed", err);
+      }
+    };
+
+    fetchCurrencies();
+  }, [user]);
 
   if (!user) {
     return (
