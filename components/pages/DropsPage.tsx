@@ -145,7 +145,7 @@ export default function DropsPage() {
               <div className="px-3 py-3 flex items-center justify-between gap-2">
                 {/* Aura */}
                 <button
-                  onClick={() => toggleLike(drop.id)}
+                  onClick={() => toggleLike(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isLiked
                       ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/10"
                       : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-purple-600/20 hover:border-purple-500/40 hover:text-purple-300"
@@ -159,7 +159,7 @@ export default function DropsPage() {
 
                 {/* Lame */}
                 <button
-                  onClick={() => toggleDislike(drop.id)}
+                  onClick={() => toggleDislike(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isDisliked
                       ? "bg-orange-600/30 border border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/10"
                       : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-orange-600/20 hover:border-orange-500/40 hover:text-orange-300"
@@ -192,7 +192,7 @@ export default function DropsPage() {
 
                 {/* Save */}
                 <button
-                  onClick={() => toggleSave(drop.id)}
+                  onClick={() => toggleSave(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isSaved
                       ? "text-yellow-300 bg-yellow-600/30 border border-yellow-500/50 shadow-lg shadow-yellow-500/10"
                       : "text-slate-300 bg-slate-700/40 border border-slate-600/30 hover:text-yellow-300 hover:bg-yellow-600/20 hover:border-yellow-500/40"

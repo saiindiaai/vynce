@@ -36,12 +36,12 @@ interface AppState {
   setShowThemeSelector: (show: boolean) => void;
 
   // Post Interactions
-  likedPosts: Record<number, boolean>;
-  dislikedPosts: Record<number, boolean>;
-  savedPosts: Record<number, boolean>;
-  toggleLike: (postId: number) => void;
-  toggleDislike: (postId: number) => void;
-  toggleSave: (postId: number) => void;
+  likedPosts: Record<string, boolean>;
+  dislikedPosts: Record<string, boolean>;
+  savedPosts: Record<string, boolean>;
+  toggleLike: (postId: string) => void;
+  toggleDislike: (postId: string) => void;
+  toggleSave: (postId: string) => void;
 
   // User
   currentUser: {
@@ -125,7 +125,7 @@ export const useAppStore = create<AppState>((set) => ({
   likedPosts: {},
   dislikedPosts: {},
   savedPosts: {},
-  toggleLike: (postId: number) =>
+  toggleLike: (postId: string) =>
     set((state) => ({
       likedPosts: {
         ...state.likedPosts,
@@ -136,7 +136,7 @@ export const useAppStore = create<AppState>((set) => ({
         [postId]: false, // clear dislike when liking
       },
     })),
-  toggleDislike: (postId: number) =>
+  toggleDislike: (postId: string) =>
     set((state) => ({
       dislikedPosts: {
         ...state.dislikedPosts,
@@ -147,7 +147,7 @@ export const useAppStore = create<AppState>((set) => ({
         [postId]: false, // clear like when disliking
       },
     })),
-  toggleSave: (postId: number) =>
+  toggleSave: (postId: string) =>
     set((state) => ({
       savedPosts: {
         ...state.savedPosts,

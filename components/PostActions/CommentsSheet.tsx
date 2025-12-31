@@ -3,13 +3,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Send, ThumbsUp } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { fetchCommentsByPost, createComment } from "@/lib/social";
 
 interface CommentsSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  postId: number;
+  postId: string | number;
   commentsCount?: number;
   variant?: "home" | "drops" | "capsules" | "fight";
+  updateCommentsCount?: (postId: string | number, count: number) => void;
 }
 
 type Comment = {
@@ -26,6 +28,7 @@ export default function CommentsSheet({
   postId,
   commentsCount = 0,
   variant = "home",
+  updateCommentsCount,
 }: CommentsSheetProps) {
   const { currentUser } = useAppStore();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -41,27 +44,38 @@ export default function CommentsSheet({
   const [myVote, setMyVote] = useState<string | null>(null);
   const [voteCounts, setVoteCounts] = useState({ a: teams[0].votes, b: teams[1].votes });
 
+  const timeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "now";
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
+  };
+
+  const loadComments = async () => {
+    try {
+      const data = await fetchCommentsByPost(postId);
+      const mappedComments = data.map((c: any) => ({
+        id: c._id || c.id,
+        author: c.author?.displayName || c.author?.username || 'Unknown',
+        avatar: c.author?.avatar || '👤',
+        text: c.content,
+        time: timeAgo(c.createdAt),
+      }));
+      setComments(mappedComments);
+      updateCommentsCount?.(postId, mappedComments.length);
+    } catch (err) {
+      console.error("Failed to load comments:", err);
+    }
+  };
+
   useEffect(() => {
-    if (!isOpen) return;
-    // lightweight fake load (replace with real API)
-    setComments([
-      {
-        id: "c1",
-        author: "Alex Rivera",
-        avatar: undefined,
-        text: "Nice take — agreed!",
-        time: "2h",
-      },
-      {
-        id: "c2",
-        author: "Jordan Lee",
-        avatar: undefined,
-        text: "Congrats on the launch 🚀",
-        time: "3h",
-      },
-    ]);
-    // focus
-    setTimeout(() => inputRef.current?.focus(), 250);
+    if (isOpen) {
+      loadComments();
+    }
   }, [isOpen, postId]);
 
   if (!isOpen) return null;
@@ -70,22 +84,22 @@ export default function CommentsSheet({
 
   const handleSubmit = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || submitting) return;
     setSubmitting(true);
-    const temp: Comment = {
-      id: `temp-${Date.now()}`,
-      author: currentUser?.displayName || currentUser?.name || currentUser?.username || "You",
-      avatar: currentUser?.avatar,
-      text: trimmed,
-      time: "Now",
-    };
-    setComments((prev) => [temp, ...prev]);
-    setInput("");
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      // success flow
+      await createComment(postId, trimmed);
+      // Optimistic update
+      const newComment: Comment = {
+        id: `temp-${Date.now()}`,
+        author: currentUser?.displayName || currentUser?.name || currentUser?.username || "You",
+        avatar: currentUser?.avatar || "👤",
+        text: trimmed,
+        time: "now",
+      };
+      setComments((prev) => [...prev, newComment]);
+      setInput("");
+      updateCommentsCount?.(postId, comments.length + 1);
     } catch (e) {
-      setComments((prev) => prev.filter((c) => c.id !== temp.id));
       console.error("Failed to send comment", e);
     } finally {
       setSubmitting(false);

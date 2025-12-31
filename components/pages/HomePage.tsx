@@ -27,6 +27,7 @@ interface Post {
   content: string;
   createdAt: string;
   author: Author;
+  commentsCount?: number;
 }
 
 interface FeedResponse {
@@ -75,7 +76,7 @@ export default function HomePage() {
         limit: 5,
       });
       const mappedPosts = data.posts.map((p, index) => ({
-        id: posts.length + index + 1,
+        id: p._id,
         _id: p._id,
         user: p.author.displayName || p.author.username,
         username: p.author.username,
@@ -84,7 +85,7 @@ export default function HomePage() {
         avatar: "👤",
         content: p.content,
         aura: 0,
-        comments: 0,
+        comments: p.commentsCount || 0,
         shares: 0,
       }));
       setPosts((prev) => {
@@ -127,6 +128,10 @@ export default function HomePage() {
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [activeShare, setActiveShare] = useState<number | null>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
+
+  const updatePostComments = (postId: string | number, newCount: number) => {
+    setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, comments: newCount } : p)));
+  };
 
   return (
     <div className="animate-fadeIn pb-24 sm:pb-0 w-full">
@@ -330,6 +335,7 @@ export default function HomePage() {
           postId={activeComments}
           commentsCount={0}
           variant="home"
+          updateCommentsCount={updatePostComments}
         />
       )}
 
