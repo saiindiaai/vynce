@@ -3,9 +3,10 @@
 import CommentsSheet from "@/components/PostActions/CommentsSheet";
 import PostMenu from "@/components/PostActions/PostMenu";
 import ShareSheet from "@/components/PostActions/ShareSheet";
+import { fetchSocialFeed } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, ThumbsDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const stories = [
   { username: "you", isYou: true, gradient: "from-purple-600 to-blue-600", hasNew: false },
@@ -15,44 +16,24 @@ const stories = [
   { username: "nova_spark", gradient: "from-purple-500 to-indigo-600", hasNew: false },
 ];
 
-const posts = [
-  {
-    id: 1,
-    user: "Alex Orbit",
-    username: "alex_orbit",
-    verified: true,
-    time: "2h",
-    avatar: "🎵",
-    content: "Just dropped a new tune 🎵 Let me know what you think!",
-    aura: 342,
-    comments: 12,
-    shares: 5,
-  },
-  {
-    id: 2,
-    user: "Tech Insider",
-    username: "techinsider",
-    verified: true,
-    time: "4h",
-    avatar: "🚀",
-    content: "Breaking: New AI model shows promising results in real-world testing 🚀",
-    aura: 1203,
-    comments: 89,
-    shares: 45,
-  },
-  {
-    id: 3,
-    user: "Nova Spark",
-    username: "novaspark",
-    verified: false,
-    time: "6h",
-    avatar: "✨",
-    content: "Loving this Friday vibe ✨ What's everyone up to?",
-    aura: 567,
-    comments: 34,
-    shares: 12,
-  },
-];
+interface Author {
+  uid: string;
+  username: string;
+  displayName?: string;
+}
+
+interface Post {
+  _id: string;
+  content: string;
+  createdAt: string;
+  author: Author;
+}
+
+interface FeedResponse {
+  posts: Post[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
 
 export default function HomePage() {
   const {
@@ -66,6 +47,82 @@ export default function HomePage() {
     setCurrentCapsuleIndex,
     setCurrentPage,
   } = useAppStore();
+
+  const [posts, setPosts] = useState<any[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  const timeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "now";
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
+  };
+
+  const loadPosts = async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const data: FeedResponse = await fetchSocialFeed({
+        cursor: cursor ?? undefined,
+        limit: 5,
+      });
+      const mappedPosts = data.posts.map((p, index) => ({
+        id: posts.length + index + 1,
+        _id: p._id,
+        user: p.author.displayName || p.author.username,
+        username: p.author.username,
+        verified: false,
+        time: timeAgo(p.createdAt),
+        avatar: "👤",
+        content: p.content,
+        aura: 0,
+        comments: 0,
+        shares: 0,
+      }));
+      setPosts((prev) => {
+        const existing = new Set(prev.map((p) => p._id));
+        const toAdd = mappedPosts.filter((p) => !existing.has(p._id));
+        return [...prev, ...toAdd];
+      });
+      setCursor(data.nextCursor);
+      setHasMore(data.hasMore);
+    } catch (err) {
+      console.error("Feed load error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadPosts();
+        }
+      },
+      { threshold: 1 }
+    );
+    observerRef.current.observe(loadMoreRef.current);
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, loading]);
 
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [activeShare, setActiveShare] = useState<number | null>(null);
@@ -120,7 +177,7 @@ export default function HomePage() {
 
           return (
             <article
-              key={post.id}
+              key={post._id}
               className="animate-slideIn bg-slate-800/60 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
@@ -249,6 +306,21 @@ export default function HomePage() {
           );
         })}
       </div>
+
+      {loading && (
+        <div className="text-center text-sm text-slate-400">
+          Loading...
+        </div>
+      )}
+
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center text-sm text-slate-400">
+          No more posts
+        </div>
+      )}
+
+      {/* Intersection observer target */}
+      <div ref={loadMoreRef} className="h-4" />
 
       {/* Sheets */}
       {activeComments !== null && (
