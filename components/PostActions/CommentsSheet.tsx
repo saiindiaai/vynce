@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { X, Send, ThumbsUp } from "lucide-react";
+import { createComment, fetchCommentsByPost } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
-import { fetchCommentsByPost, createComment } from "@/lib/social";
+import { Send, ThumbsUp, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface CommentsSheetProps {
   isOpen: boolean;
