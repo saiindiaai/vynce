@@ -15,4 +15,6 @@ export declare function createComment(postId: string | number, content: string):
 
 export declare function fetchCommentsByPost(postId: string | number): Promise<any[]>;
 
-export declare function toggleLike(postId: string | number): Promise<{ postId: string; liked: boolean; likesCount: number }>;
+export declare function toggleLike(postId: string | number): Promise<{ postId: string; liked: boolean; aura: number }>;
+
+export declare function toggleDislike(postId: string | number): Promise<{ postId: string; disliked: boolean; aura: number }>;

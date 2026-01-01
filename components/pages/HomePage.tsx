@@ -27,9 +27,10 @@ interface Post {
   content: string;
   createdAt: string;
   author: Author;
+  aura: number;
+  isLikedByMe: boolean;
+  isDislikedByMe: boolean;
   commentsCount?: number;
-  likesCount?: number;
-  isLikedByMe?: boolean;
 }
 
 interface FeedResponse {
@@ -87,10 +88,10 @@ export default function HomePage() {
         time: timeAgo(p.createdAt),
         avatar: "👤",
         content: p.content,
-        aura: 0,
+        aura: p.aura,
+        isLikedByMe: p.isLikedByMe,
+        isDislikedByMe: p.isDislikedByMe,
         comments: p.commentsCount || 0,
-        likes: p.likesCount || 0,
-        isLikedByMe: p.isLikedByMe || false,
         shares: 0,
       }));
       setPosts((prev) => {
@@ -189,7 +190,7 @@ export default function HomePage() {
           const isLiked = likedPosts[post.id];
           const isDisliked = dislikedPosts[post.id];
           const isSaved = savedPosts[post.id];
-          const currentAura = isLiked ? post.aura + 1 : isDisliked ? post.aura - 1 : post.aura;
+          const currentAura = post.aura;
 
           return (
             <article
@@ -251,7 +252,7 @@ export default function HomePage() {
                     if (response) {
                       setPosts((prev) =>
                         prev.map((p) =>
-                          p.id === post.id ? { ...p, likes: response.likesCount } : p
+                          p.id === post.id ? { ...p, aura: response.aura } : p
                         )
                       );
                     }
@@ -273,7 +274,16 @@ export default function HomePage() {
 
                 {/* Lame - Improved Styling */}
                 <button
-                  onClick={() => toggleDislike(post.id)}
+                  onClick={async () => {
+                    const response = await toggleDislike(post.id);
+                    if (response) {
+                      setPosts((prev) =>
+                        prev.map((p) =>
+                          p.id === post.id ? { ...p, aura: response.aura } : p
+                        )
+                      );
+                    }
+                  }}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isDisliked
                     ? "bg-orange-600/30 border border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/20"
                     : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-orange-600/20 hover:border-orange-500/40 hover:text-orange-300"

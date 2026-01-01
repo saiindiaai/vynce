@@ -13,6 +13,7 @@ const postSchema = new mongoose.Schema(
       trim: true,
     },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     commentsCount: {
       type: Number,
       default: 0,

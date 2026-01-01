@@ -6,6 +6,7 @@ const {
   createPost,
   getFeed,
   toggleLike,
+  toggleDislike,
   deletePost,
 } = require("../controllers/postController");
 
@@ -19,6 +20,7 @@ const {
 router.post("/", protect, createPost);
 router.get("/feed", protect, getFeed);
 router.post("/:id/like", protect, toggleLike);
+router.post("/:id/dislike", protect, toggleDislike);
 router.delete("/:id", protect, deletePost);
 
 /* COMMENTS (THIS WAS MISSING 🔥) */

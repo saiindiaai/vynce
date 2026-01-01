@@ -50,14 +50,18 @@ exports.getFeed = async (req, res) => {
       const isLikedByMe = post.likes.some(
         (id) => id.toString() === userId
       );
+      const isDislikedByMe = post.dislikes.some(
+        (id) => id.toString() === userId
+      );
 
       return {
         _id: post._id,
         content: post.content,
         author: post.author,
         createdAt: post.createdAt,
-        likesCount: post.likes.length,
+        aura: post.likes.length - post.dislikes.length,
         isLikedByMe,
+        isDislikedByMe,
         commentsCount: post.commentsCount,
       };
     });
@@ -87,19 +91,26 @@ exports.toggleLike = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    const index = post.likes.findIndex((uid) =>
+    const likeIndex = post.likes.findIndex((uid) =>
+      uid.equals(userId)
+    );
+    const dislikeIndex = post.dislikes.findIndex((uid) =>
       uid.equals(userId)
     );
 
     let liked;
 
-    if (index > -1) {
+    if (likeIndex > -1) {
       // Unlike
-      post.likes.splice(index, 1);
+      post.likes.splice(likeIndex, 1);
       liked = false;
     } else {
       // Like
       post.likes.push(userId);
+      // Remove dislike if exists
+      if (dislikeIndex > -1) {
+        post.dislikes.splice(dislikeIndex, 1);
+      }
       liked = true;
     }
 
@@ -108,11 +119,60 @@ exports.toggleLike = async (req, res) => {
     res.json({
       postId,
       liked,
-      likesCount: post.likes.length,
+      aura: post.likes.length - post.dislikes.length,
     });
   } catch (err) {
     console.error("toggleLike error:", err);
     res.status(500).json({ message: "Failed to toggle like" });
+  }
+};
+
+/* ================================
+   TOGGLE DISLIKE / UNDISLIKE
+================================ */
+exports.toggleDislike = async (req, res) => {
+  try {
+    const { id: postId } = req.params;
+    const userId = req.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const likeIndex = post.likes.findIndex((uid) =>
+      uid.equals(userId)
+    );
+    const dislikeIndex = post.dislikes.findIndex((uid) =>
+      uid.equals(userId)
+    );
+
+    let disliked;
+
+    if (dislikeIndex > -1) {
+      // Undislike
+      post.dislikes.splice(dislikeIndex, 1);
+      disliked = false;
+    } else {
+      // Dislike
+      post.dislikes.push(userId);
+      // Remove like if exists
+      if (likeIndex > -1) {
+        post.likes.splice(likeIndex, 1);
+      }
+      disliked = true;
+    }
+
+    await post.save();
+
+    res.json({
+      postId,
+      disliked,
+      aura: post.likes.length - post.dislikes.length,
+    });
+  } catch (err) {
+    console.error("toggleDislike error:", err);
+    res.status(500).json({ message: "Failed to toggle dislike" });
   }
 };
 
