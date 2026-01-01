@@ -233,7 +233,7 @@ export default function HomePage() {
               {/* Engagement Stats */}
               <div className="text-xs text-slate-400 flex gap-6 mb-4 pb-4 border-b border-slate-600/30">
                 <button className="hover:text-slate-200 transition-colors font-medium">
-                  <span className="text-purple-400">{post.likes}</span> Aura
+                  <span className="text-purple-400">{post.aura}</span> Aura
                 </button>
                 <button className="hover:text-slate-200 transition-colors font-medium">
                   <span className="text-blue-400">{post.comments}</span> Replies
