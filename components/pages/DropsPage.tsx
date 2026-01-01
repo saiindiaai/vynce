@@ -145,7 +145,7 @@ export default function DropsPage() {
               <div className="px-3 py-3 flex items-center justify-between gap-2">
                 {/* Aura */}
                 <button
-                  onClick={() => toggleLike(drop.id.toString())}
+                  onClick={async () => await toggleLike(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isLiked
                       ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/10"
                       : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-purple-600/20 hover:border-purple-500/40 hover:text-purple-300"

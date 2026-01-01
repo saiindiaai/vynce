@@ -174,7 +174,7 @@ export default function HomePage() {
                 {/* Aura */}
                 <button
                   onClick={() => {
-                    toggleLike(post.id);
+                    toggleLike(post.id.toString());
                     // TODO: Implement XP system
                     // if (!isLiked) {
                     //   earnXp(useAppStore.getState(), getXpReward("like_post"), "Post Liked");
@@ -197,7 +197,7 @@ export default function HomePage() {
 
                 {/* Lame */}
                 <button
-                  onClick={() => toggleDislike(post.id)}
+                  onClick={() => toggleDislike(post.id.toString())}
                   className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${isDisliked
                       ? "bg-slate-800 text-orange-400"
                       : "text-slate-400 hover:bg-slate-800/50 hover:text-orange-300"
@@ -234,7 +234,7 @@ export default function HomePage() {
 
                 {/* Save */}
                 <button
-                  onClick={() => toggleSave(post.id)}
+                  onClick={() => toggleSave(post.id.toString())}
                   className={`flex-1 flex items-center justify-center py-2 px-1 rounded-md transition-all duration-150 text-xs font-medium min-h-[36px] min-w-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 ${isSaved
                       ? "text-yellow-400 bg-slate-800"
                       : "text-slate-400 hover:text-yellow-300 hover:bg-slate-800/50"

@@ -135,7 +135,7 @@ export default function DropsPage() {
               <div className="px-3 py-2 flex items-center justify-between border-t border-white/3 gap-1">
                 {/* Aura */}
                 <button
-                  onClick={() => toggleLike(drop.id)}
+                  onClick={() => toggleLike(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg transition-all duration-200 font-medium text-xs ${
                     isLiked
                       ? "bg-purple-500/20 text-purple-300"
@@ -150,7 +150,7 @@ export default function DropsPage() {
 
                 {/* Lame */}
                 <button
-                  onClick={() => toggleDislike(drop.id)}
+                  onClick={() => toggleDislike(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg transition-all duration-200 font-medium text-xs ${
                     isDisliked
                       ? "bg-orange-500/20 text-orange-300"
@@ -184,7 +184,7 @@ export default function DropsPage() {
 
                 {/* Save */}
                 <button
-                  onClick={() => toggleSave(drop.id)}
+                  onClick={() => toggleSave(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center py-2 px-2 rounded-lg transition-all duration-200 font-medium text-xs ${
                     isSaved
                       ? "text-yellow-300 bg-yellow-500/20"

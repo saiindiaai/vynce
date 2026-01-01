@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toggleLike as apiToggleLike } from "./social";
 
 export type PageType =
   | "home"
@@ -39,7 +40,8 @@ interface AppState {
   likedPosts: Record<string, boolean>;
   dislikedPosts: Record<string, boolean>;
   savedPosts: Record<string, boolean>;
-  toggleLike: (postId: string) => void;
+  setLikedPosts: (likedPosts: Record<string, boolean>) => void;
+  toggleLike: (postId: string) => Promise<{ postId: string; liked: boolean; likesCount: number } | null>;
   toggleDislike: (postId: string) => void;
   toggleSave: (postId: string) => void;
 
@@ -125,7 +127,9 @@ export const useAppStore = create<AppState>((set) => ({
   likedPosts: {},
   dislikedPosts: {},
   savedPosts: {},
-  toggleLike: (postId: string) =>
+  setLikedPosts: (likedPosts: Record<string, boolean>) => set({ likedPosts }),
+  toggleLike: async (postId: string) => {
+    // Optimistic update
     set((state) => ({
       likedPosts: {
         ...state.likedPosts,
@@ -135,7 +139,30 @@ export const useAppStore = create<AppState>((set) => ({
         ...state.dislikedPosts,
         [postId]: false, // clear dislike when liking
       },
-    })),
+    }));
+
+    try {
+      const response = await apiToggleLike(postId);
+      // Ensure state matches response
+      set((state) => ({
+        likedPosts: {
+          ...state.likedPosts,
+          [postId]: response.liked,
+        },
+      }));
+      return response;
+    } catch (error) {
+      // Revert optimistic update
+      set((state) => ({
+        likedPosts: {
+          ...state.likedPosts,
+          [postId]: !state.likedPosts[postId],
+        },
+      }));
+      console.error("Failed to toggle like:", error);
+      return null;
+    }
+  },
   toggleDislike: (postId: string) =>
     set((state) => ({
       dislikedPosts: {

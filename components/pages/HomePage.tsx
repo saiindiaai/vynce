@@ -28,6 +28,8 @@ interface Post {
   createdAt: string;
   author: Author;
   commentsCount?: number;
+  likesCount?: number;
+  isLikedByMe?: boolean;
 }
 
 interface FeedResponse {
@@ -44,6 +46,7 @@ export default function HomePage() {
     toggleLike,
     toggleDislike,
     toggleSave,
+    setLikedPosts,
     currentCapsuleIndex,
     setCurrentCapsuleIndex,
     setCurrentPage,
@@ -86,6 +89,8 @@ export default function HomePage() {
         content: p.content,
         aura: 0,
         comments: p.commentsCount || 0,
+        likes: p.likesCount || 0,
+        isLikedByMe: p.isLikedByMe || false,
         shares: 0,
       }));
       setPosts((prev) => {
@@ -93,6 +98,12 @@ export default function HomePage() {
         const toAdd = mappedPosts.filter((p) => !existing.has(p._id));
         return [...prev, ...toAdd];
       });
+      // Update liked posts state from backend data
+      const newLikedPosts: Record<string, boolean> = {};
+      mappedPosts.forEach((post) => {
+        newLikedPosts[post.id] = post.isLikedByMe;
+      });
+      setLikedPosts({ ...likedPosts, ...newLikedPosts });
       setCursor(data.nextCursor);
       setHasMore(data.hasMore);
     } catch (err) {
@@ -221,7 +232,7 @@ export default function HomePage() {
               {/* Engagement Stats */}
               <div className="text-xs text-slate-400 flex gap-6 mb-4 pb-4 border-b border-slate-600/30">
                 <button className="hover:text-slate-200 transition-colors font-medium">
-                  <span className="text-purple-400">{currentAura}</span> Aura
+                  <span className="text-purple-400">{post.likes}</span> Aura
                 </button>
                 <button className="hover:text-slate-200 transition-colors font-medium">
                   <span className="text-blue-400">{post.comments}</span> Replies
@@ -235,12 +246,15 @@ export default function HomePage() {
               <div className="flex items-center justify-between gap-2">
                 {/* Aura - Improved Styling */}
                 <button
-                  onClick={() => {
-                    toggleLike(post.id);
-                    // TODO: Implement XP system
-                    // if (!isLiked) {
-                    //   earnXp(useAppStore.getState(), getXpReward("like_post"), "Post Liked");
-                    // }
+                  onClick={async () => {
+                    const response = await toggleLike(post.id);
+                    if (response) {
+                      setPosts((prev) =>
+                        prev.map((p) =>
+                          p.id === post.id ? { ...p, likes: response.likesCount } : p
+                        )
+                      );
+                    }
                   }}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isLiked
                     ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/20"

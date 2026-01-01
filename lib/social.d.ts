@@ -14,3 +14,5 @@ export declare function fetchSocialFeed(options?: FetchOptions): Promise<FeedRes
 export declare function createComment(postId: string | number, content: string): Promise<any>;
 
 export declare function fetchCommentsByPost(postId: string | number): Promise<any[]>;
+
+export declare function toggleLike(postId: string | number): Promise<{ postId: string; liked: boolean; likesCount: number }>;
