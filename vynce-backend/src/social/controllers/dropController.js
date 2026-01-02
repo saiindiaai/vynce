@@ -63,6 +63,7 @@ exports.getDropFeed = async (req, res) => {
         isLikedByMe,
         isDislikedByMe,
         commentsCount: drop.commentsCount,
+        shares: drop.shares,
       };
     });
 
@@ -201,5 +202,30 @@ exports.deleteDrop = async (req, res) => {
   } catch (err) {
     console.error("deleteDrop error:", err);
     res.status(500).json({ message: "Failed to delete drop" });
+  }
+};
+
+/* ================================
+   SHARE DROP
+================================ */
+exports.shareDrop = async (req, res) => {
+  try {
+    const { id: dropId } = req.params;
+
+    const drop = await Drop.findById(dropId);
+    if (!drop) {
+      return res.status(404).json({ message: "Drop not found" });
+    }
+
+    drop.shares += 1;
+    await drop.save();
+
+    res.json({
+      dropId,
+      shares: drop.shares,
+    });
+  } catch (err) {
+    console.error("shareDrop error:", err);
+    res.status(500).json({ message: "Failed to share drop" });
   }
 };

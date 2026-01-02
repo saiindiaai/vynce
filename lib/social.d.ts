@@ -18,3 +18,7 @@ export declare function fetchCommentsByPost(postId: string | number): Promise<an
 export declare function toggleLike(postId: string | number): Promise<{ postId: string; liked: boolean; aura: number }>;
 
 export declare function toggleDislike(postId: string | number): Promise<{ postId: string; disliked: boolean; aura: number }>;
+
+export declare function sharePost(postId: string | number): Promise<{ postId: string; shares: number }>;
+
+export declare function deletePost(postId: string | number): Promise<any>;

@@ -31,6 +31,7 @@ interface Post {
   isLikedByMe: boolean;
   isDislikedByMe: boolean;
   commentsCount?: number;
+  shares?: number;
 }
 
 interface FeedResponse {
@@ -92,7 +93,7 @@ export default function HomePage() {
         isLikedByMe: p.isLikedByMe,
         isDislikedByMe: p.isDislikedByMe,
         comments: p.commentsCount || 0,
-        shares: 0,
+        shares: p.shares || 0,
       }));
       setPosts((prev) => {
         const existing = new Set(prev.map((p) => p._id));
@@ -378,6 +379,7 @@ export default function HomePage() {
           onClose={() => setActiveMenu(null)}
           postId={activeMenu}
           isOwnPost={false}
+          variant="home"
         />
       )}
     </div>

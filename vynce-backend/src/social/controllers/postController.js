@@ -63,6 +63,7 @@ exports.getFeed = async (req, res) => {
         isLikedByMe,
         isDislikedByMe,
         commentsCount: post.commentsCount,
+        shares: post.shares,
       };
     });
 
@@ -201,6 +202,31 @@ exports.deletePost = async (req, res) => {
   } catch (err) {
     console.error("deletePost error:", err);
     res.status(500).json({ message: "Failed to delete post" });
+  }
+};
+
+/* ================================
+   SHARE POST
+================================ */
+exports.sharePost = async (req, res) => {
+  try {
+    const { id: postId } = req.params;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    post.shares += 1;
+    await post.save();
+
+    res.json({
+      postId,
+      shares: post.shares,
+    });
+  } catch (err) {
+    console.error("sharePost error:", err);
+    res.status(500).json({ message: "Failed to share post" });
   }
 };
 

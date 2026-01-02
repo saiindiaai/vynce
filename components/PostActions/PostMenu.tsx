@@ -1,18 +1,20 @@
 "use client";
 
-import React from "react";
-import { Star, XCircle, Flag, Link2, UserPlus, EyeOff, Bookmark } from "lucide-react";
 import { getAllThemes } from "@/config/themes";
+import { deleteDrop } from "@/lib/drops";
+import { deletePost } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
+import { Bookmark, EyeOff, Flag, Link2, Star, UserPlus, XCircle } from "lucide-react";
 
 interface PostMenuProps {
   isOpen: boolean;
   onClose: () => void;
   postId: number;
   isOwnPost?: boolean;
+  variant?: "home" | "drops" | "fight";
 }
 
-export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }: PostMenuProps) {
+export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, variant = "home" }: PostMenuProps) {
   const { currentTheme } = useAppStore();
   const allThemes = getAllThemes();
   const themeClasses = allThemes[currentTheme];
@@ -26,7 +28,20 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
           label: "Delete Post",
           icon: XCircle,
           color: "text-red-500",
-          action: () => console.log("Delete post"),
+          action: async () => {
+            try {
+              if (variant === "drops") {
+                await deleteDrop(postId);
+              } else {
+                await deletePost(postId);
+              }
+              // TODO: Remove post from UI or refresh feed
+              console.log("Post deleted");
+            } catch (error) {
+              console.error("Failed to delete post:", error);
+            }
+            onClose();
+          },
         },
         {
           id: "edit",
@@ -40,7 +55,10 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
           label: "Copy Link",
           icon: Link2,
           color: themeClasses.textPrimary,
-          action: () => console.log("Copy link"),
+          action: () => {
+            navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
+            onClose();
+          },
         },
       ]
     : [
@@ -90,7 +108,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
           icon: Link2,
           color: themeClasses.textPrimary,
           action: () => {
-            console.log("Copy link");
+            navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
             onClose();
           },
         },

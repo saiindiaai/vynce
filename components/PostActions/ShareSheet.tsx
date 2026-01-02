@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { X, Copy, MessageCircle, Mail, Link2, Share2 } from "lucide-react";
+import { shareDrop } from "@/lib/drops";
+import { sharePost } from "@/lib/social";
+import { Copy, Mail, MessageCircle, Share2, X } from "lucide-react";
 
 interface ShareSheetProps {
   isOpen: boolean;
@@ -20,7 +21,18 @@ export default function ShareSheet({ isOpen, onClose, postId, variant = "home" }
     { id: "share", label: "More Options", icon: Share2, color: "from-green-500 to-cyan-500" },
   ];
 
-  const handleShare = (option: string) => {
+  const handleShare = async (option: string) => {
+    // Call backend share API
+    try {
+      if (variant === "drops") {
+        await shareDrop(postId);
+      } else {
+        await sharePost(postId);
+      }
+    } catch (error) {
+      console.error("Failed to share:", error);
+    }
+
     switch (option) {
       case "copy":
         navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
