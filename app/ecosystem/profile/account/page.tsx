@@ -18,7 +18,7 @@ export default function AccountInfoPage() {
       try {
         const res = await api.get("/users/me");
         setUser(res.data);
-        setDisplayName(res.data.displayName);
+        setDisplayName(res.data.displayName || "");
       } catch (err) {
         console.log("Failed to load user");
       }
