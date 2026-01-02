@@ -43,6 +43,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/themes", themeRoutes);
 app.use("/api/reports", reportRoutes); // ⭐ NEW
 app.use("/api/social/posts", require("./src/social/routes/postRoutes"));
+app.use("/api/social/drops", require("./src/social/routes/dropRoutes"));
 
 
 // root endpoint

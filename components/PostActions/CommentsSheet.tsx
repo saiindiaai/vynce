@@ -1,5 +1,6 @@
 "use client";
 
+import { createDropComment, fetchDropCommentsByDrop } from "@/lib/drops";
 import { createComment, fetchCommentsByPost } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
 import { Send, ThumbsUp, X } from "lucide-react";
@@ -57,7 +58,9 @@ export default function CommentsSheet({
 
   const loadComments = async () => {
     try {
-      const data = await fetchCommentsByPost(postId);
+      const data = variant === "drops" 
+        ? await fetchDropCommentsByDrop(postId)
+        : await fetchCommentsByPost(postId);
       const mappedComments = data.map((c: any) => ({
         id: c._id || c.id,
         author: c.author?.displayName || c.author?.username || 'Unknown',
@@ -87,7 +90,11 @@ export default function CommentsSheet({
     if (!trimmed || submitting) return;
     setSubmitting(true);
     try {
-      await createComment(postId, trimmed);
+      if (variant === "drops") {
+        await createDropComment(postId, trimmed);
+      } else {
+        await createComment(postId, trimmed);
+      }
       // Optimistic update
       const newComment: Comment = {
         id: `temp-${Date.now()}`,

@@ -3,68 +3,240 @@
 import CommentsSheet from "@/components/PostActions/CommentsSheet";
 import PostMenu from "@/components/PostActions/PostMenu";
 import ShareSheet from "@/components/PostActions/ShareSheet";
+import { fetchDropFeed, toggleDropDislike, toggleDropLike } from "@/lib/drops";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, ThumbsDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const drops = [
-  {
-    id: 1,
-    user: "Tech Insider",
-    username: "techinsider",
-    verified: true,
-    time: "2h",
-    content: "New AI breakthrough just dropped! This changes everything 🤯",
-    aura: 3421,
-    comments: 567,
-    shares: 234,
-    tags: ["#AI", "#tech", "#innovation"],
-  },
-  {
-    id: 2,
-    user: "Design Daily",
-    username: "designdaily",
-    verified: true,
-    time: "4h",
-    content: "Color theory masterclass: Understanding contrast and harmony in modern UI design 🎨",
-    aura: 2156,
-    comments: 389,
-    shares: 178,
-    tags: ["#design", "#UI", "#colors"],
-  },
-  {
-    id: 3,
-    user: "Code Academy",
-    username: "codeacademy",
-    verified: true,
-    time: "6h",
-    content: "TypeScript vs JavaScript: Which should you learn first in 2025? Full breakdown 👇",
-    aura: 4892,
-    comments: 891,
-    shares: 445,
-    tags: ["#webdev", "#typescript", "#javascript"],
-  },
-  {
-    id: 4,
-    user: "Creative Studio",
-    username: "creativestudio",
-    verified: true,
-    time: "8h",
-    content: "Behind the scenes: How we created this mind-bending animation ✨",
-    aura: 5234,
-    comments: 1023,
-    shares: 567,
-    tags: ["#animation", "#3D", "#creative"],
-  },
-];
+interface Author {
+  uid: string;
+  username: string;
+  displayName?: string;
+}
+
+interface Drop {
+  _id: string;
+  content: string;
+  createdAt: string;
+  author: Author;
+  aura: number;
+  isLikedByMe: boolean;
+  isDislikedByMe: boolean;
+  commentsCount?: number;
+}
+
+interface DropFeedResponse {
+  drops: Drop[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
 
 export default function DropsPage() {
   const { likedPosts, dislikedPosts, savedPosts, toggleLike, toggleDislike, toggleSave } =
     useAppStore();
 
+  const [drops, setDrops] = useState<any[]>([]);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  const timeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "now";
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
+  };
+
+  const loadDrops = async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const data: DropFeedResponse = await fetchDropFeed({
+        cursor: cursor ?? undefined,
+        limit: 5,
+      });
+      const mappedDrops = data.drops.map((d, index) => ({
+        id: d._id,
+        _id: d._id,
+        user: d.author.displayName || d.author.username,
+        username: d.author.username,
+        verified: false,
+        time: timeAgo(d.createdAt),
+        avatar: "👤",
+        content: d.content,
+        aura: d.aura,
+        isLikedByMe: d.isLikedByMe,
+        isDislikedByMe: d.isDislikedByMe,
+        comments: d.commentsCount || 0,
+        shares: 0,
+        tags: [], // For now, no tags
+      }));
+      setDrops((prev) => {
+        const existing = new Set(prev.map((d) => d._id));
+        const toAdd = mappedDrops.filter((d) => !existing.has(d._id));
+        return [...prev, ...toAdd];
+      });
+      // Update liked posts state from backend data
+      const newLikedPosts: Record<string, boolean> = {};
+      mappedDrops.forEach((drop) => {
+        newLikedPosts[drop.id] = drop.isLikedByMe;
+      });
+      // Note: We need to handle dislikedPosts similarly, but for now let's focus on likes
+      setCursor(data.nextCursor || undefined);
+      setHasMore(data.hasMore);
+    } catch (err) {
+      console.error("Drop feed load error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    loadDrops();
+  }, []);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadDrops();
+        }
+      },
+      { threshold: 1 }
+    );
+    observerRef.current.observe(loadMoreRef.current);
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, loading]);
+
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [activeShare, setActiveShare] = useState<number | null>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
+
+  const updateDropComments = (dropId: string | number, newCount: number) => {
+    setDrops((prev) => prev.map((d) => (d.id === dropId ? { ...d, comments: newCount } : d)));
+  };
+
+  const handleToggleLike = async (dropId: string) => {
+    // Optimistic update
+    setDrops((prev) => prev.map((d) => {
+      if (d.id === dropId) {
+        const wasLiked = d.isLikedByMe;
+        const wasDisliked = d.isDislikedByMe;
+        let newAura = d.aura;
+        if (!wasLiked) {
+          newAura += 1;
+          if (wasDisliked) newAura += 1; // remove dislike
+        } else {
+          newAura -= 1;
+        }
+        return {
+          ...d,
+          isLikedByMe: !wasLiked,
+          isDislikedByMe: false,
+          aura: newAura,
+        };
+      }
+      return d;
+    }));
+
+    try {
+      const response = await toggleDropLike(dropId);
+      // Update with server response
+      setDrops((prev) => prev.map((d) => 
+        d.id === dropId ? { ...d, aura: response.aura, isLikedByMe: response.liked, isDislikedByMe: false } : d
+      ));
+    } catch (error) {
+      // Revert optimistic update
+      setDrops((prev) => prev.map((d) => {
+        if (d.id === dropId) {
+          const wasLiked = !d.isLikedByMe; // revert
+          const wasDisliked = d.isDislikedByMe;
+          let newAura = d.aura;
+          if (wasLiked) {
+            newAura -= 1;
+            if (wasDisliked) newAura -= 1;
+          } else {
+            newAura += 1;
+          }
+          return {
+            ...d,
+            isLikedByMe: wasLiked,
+            isDislikedByMe: wasDisliked,
+            aura: newAura,
+          };
+        }
+        return d;
+      }));
+      console.error("Failed to toggle like:", error);
+    }
+  };
+
+  const handleToggleDislike = async (dropId: string) => {
+    // Optimistic update
+    setDrops((prev) => prev.map((d) => {
+      if (d.id === dropId) {
+        const wasLiked = d.isLikedByMe;
+        const wasDisliked = d.isDislikedByMe;
+        let newAura = d.aura;
+        if (!wasDisliked) {
+          newAura -= 1;
+          if (wasLiked) newAura -= 1; // remove like
+        } else {
+          newAura += 1;
+        }
+        return {
+          ...d,
+          isDislikedByMe: !wasDisliked,
+          isLikedByMe: false,
+          aura: newAura,
+        };
+      }
+      return d;
+    }));
+
+    try {
+      const response = await toggleDropDislike(dropId);
+      // Update with server response
+      setDrops((prev) => prev.map((d) => 
+        d.id === dropId ? { ...d, aura: response.aura, isDislikedByMe: response.disliked, isLikedByMe: false } : d
+      ));
+    } catch (error) {
+      // Revert optimistic update
+      setDrops((prev) => prev.map((d) => {
+        if (d.id === dropId) {
+          const wasDisliked = !d.isDislikedByMe; // revert
+          const wasLiked = d.isLikedByMe;
+          let newAura = d.aura;
+          if (wasDisliked) {
+            newAura += 1;
+            if (wasLiked) newAura += 1;
+          } else {
+            newAura -= 1;
+          }
+          return {
+            ...d,
+            isDislikedByMe: wasDisliked,
+            isLikedByMe: wasLiked,
+            aura: newAura,
+          };
+        }
+        return d;
+      }));
+      console.error("Failed to toggle dislike:", error);
+    }
+  };
 
   return (
     <div className="animate-fadeIn pb-24 sm:pb-0 w-full bg-gradient-to-b from-slate-900 to-slate-900/95">
@@ -77,10 +249,10 @@ export default function DropsPage() {
       {/* Posts Feed */}
       <div className="max-w-2xl mx-auto w-full space-y-4 px-3 sm:px-4 py-4">
         {drops.map((drop, idx) => {
-          const isLiked = likedPosts[drop.id];
-          const isDisliked = dislikedPosts[drop.id];
+          const isLiked = drop.isLikedByMe;
+          const isDisliked = drop.isDislikedByMe;
           const isSaved = savedPosts[drop.id];
-          const currentAura = isLiked ? drop.aura + 1 : isDisliked ? drop.aura - 1 : drop.aura;
+          const currentAura = drop.aura;
 
           return (
             <article
@@ -116,7 +288,7 @@ export default function DropsPage() {
                 <p className="text-base text-slate-100 leading-relaxed font-medium">{drop.content}</p>
                 {drop.tags?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
-                    {drop.tags.map((tag) => (
+                    {drop.tags.map((tag: string) => (
                       <button
                         key={tag}
                         className="text-xs text-purple-400 hover:text-purple-300 transition-colors font-semibold"
@@ -145,7 +317,7 @@ export default function DropsPage() {
               <div className="px-3 py-3 flex items-center justify-between gap-2">
                 {/* Aura */}
                 <button
-                  onClick={async () => await toggleLike(drop.id.toString())}
+                  onClick={() => handleToggleLike(drop.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isLiked
                       ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/10"
                       : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-purple-600/20 hover:border-purple-500/40 hover:text-purple-300"
@@ -159,7 +331,7 @@ export default function DropsPage() {
 
                 {/* Lame */}
                 <button
-                  onClick={() => toggleDislike(drop.id.toString())}
+                  onClick={() => handleToggleDislike(drop.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isDisliked
                       ? "bg-orange-600/30 border border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/10"
                       : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-orange-600/20 hover:border-orange-500/40 hover:text-orange-300"
@@ -208,6 +380,17 @@ export default function DropsPage() {
         })}
       </div>
 
+      {/* Load More Trigger */}
+      {hasMore && (
+        <div ref={loadMoreRef} className="flex justify-center py-8">
+          {loading ? (
+            <div className="text-slate-400">Loading more drops...</div>
+          ) : (
+            <div className="text-slate-500">Scroll for more</div>
+          )}
+        </div>
+      )}
+
       {/* Sheets */}
       {activeComments !== null && (
         <CommentsSheet
@@ -216,6 +399,7 @@ export default function DropsPage() {
           postId={activeComments}
           commentsCount={drops.find((d) => d.id === activeComments)?.comments || 0}
           variant="drops"
+          updateCommentsCount={updateDropComments}
         />
       )}
 

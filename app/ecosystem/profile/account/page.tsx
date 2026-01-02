@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { useTheme } from "@/hooks/useTheme";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useTheme } from "@/hooks/useTheme";
+import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
 
 export default function AccountInfoPage() {
   const { theme } = useTheme();
