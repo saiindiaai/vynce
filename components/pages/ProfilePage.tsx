@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Camera, Plus, FileText, Zap, Bookmark, Heart, Sparkles } from "lucide-react";
-import { useAppStore } from "@/lib/store";
 import { api } from "@/lib/api";
+import { Bookmark, Camera, FileText, Heart, Plus, Sparkles, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
