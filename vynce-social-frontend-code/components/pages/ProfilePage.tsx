@@ -6,8 +6,7 @@ import { useState } from "react";
 const profileSections = [
   { id: "drops", label: "Your Drops", icon: FileText, count: 127 },
   { id: "moments", label: "Moments", icon: Zap, count: 89 },
-  { id: "boards", label: "Boards", icon: Bookmark, count: 12 },
-  { id: "saved", label: "Saved", icon: Heart, count: 234 },
+  { id: "boards", label: "Marked", icon: Bookmark, count: 12 },
   { id: "aura", label: "Your Aura", icon: Sparkles, count: "12.4K" },
 ];
 
@@ -119,8 +118,8 @@ export default function ProfilePage() {
           {activeTab === "boards" && (
             <div className="text-center animate-fadeIn">
               <Bookmark size={64} className="text-slate-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-slate-50 mb-2">Boards</h3>
-              <p className="text-slate-400">Organize your favorite content</p>
+              <h3 className="text-xl font-bold text-slate-50 mb-2">Marked</h3>
+              <p className="text-slate-400">Mark this content</p>
             </div>
           )}
 

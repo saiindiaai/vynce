@@ -85,7 +85,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
         },
         {
           id: "copy-link",
-          label: "Copy Link",
+          label: "COPY LINK",
           icon: Link2,
           color: themeClasses.textPrimary,
           action: () => {
