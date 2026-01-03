@@ -24,6 +24,8 @@ const {
   getCelestium,
   addCelestiumTransaction,
   updateProfileShowcase,
+  followUser,
+  unfollowUser,
 } = require("../controllers/userController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -34,6 +36,10 @@ const router = express.Router();
 router.get("/me", protect, getMe);
 router.get("/stats", protect, getUserStats);
 router.get("/aura", protect, getUserAura);
+
+// FOLLOW SYSTEM
+router.post("/follow", protect, followUser);
+router.post("/unfollow", protect, unfollowUser);
 
 // logoutUser
 router.post("/logout", protect, logoutUser);

@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
-import { Star, XCircle, Flag, Link2, UserPlus, EyeOff, Bookmark } from "lucide-react";
 import { getAllThemes } from "@/config/themes";
 import { useAppStore } from "@/lib/store";
+import { Bookmark, EyeOff, Flag, Link2, Star, UserPlus, XCircle } from "lucide-react";
 
 interface PostMenuProps {
   isOpen: boolean;
@@ -46,7 +45,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
     : [
         {
           id: "interested",
-          label: "Interested",
+          label: "I WANT THIS MOREEEEEEEE",
           icon: Star,
           color: themeClasses.textPrimary,
           action: () => {
@@ -56,7 +55,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
         },
         {
           id: "not-interested",
-          label: "Not Interested",
+          label: "I DON'T WANT THISSSSSSSS",
           icon: EyeOff,
           color: themeClasses.textPrimary,
           action: () => {
@@ -66,7 +65,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
         },
         {
           id: "follow",
-          label: "Follow User",
+          label: "ADD HIM TO IN GANG",
           icon: UserPlus,
           color: themeClasses.textPrimary,
           action: () => {
@@ -76,7 +75,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
         },
         {
           id: "save",
-          label: "Save Post",
+          label: "MARK THIS DROP",
           icon: Bookmark,
           color: themeClasses.textPrimary,
           action: () => {
@@ -96,7 +95,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false }:
         },
         {
           id: "report",
-          label: "Report",
+          label: "ORDER VIOLATION",
           icon: Flag,
           color: "text-red-500",
           action: () => {

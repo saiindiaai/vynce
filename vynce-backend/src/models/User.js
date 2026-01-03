@@ -126,6 +126,16 @@ const userSchema = new mongoose.Schema(
       maxlength: 300,
     },
 
+    followers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }],
+
+    following: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }],
+
     installedApps: {
       type: [String],
       default: [],

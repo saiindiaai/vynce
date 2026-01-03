@@ -157,12 +157,16 @@ exports.getMe = async (req, res) => {
    ================================ */
 exports.getUserStats = async (req, res) => {
   try {
-    // For now, return placeholder stats
-    // In My Gang: number of houses user is in (placeholder)
-    // Mutual Gangs: number of mutual connections (placeholder)
+    const userId = req.userId;
+    const user = await User.findById(userId).select('followers following');
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.json({
-      inMyGang: 567, // placeholder
-      mutualGangs: 89, // placeholder
+      inMyGang: user.followers ? user.followers.length : 0, // followers count
+      mutualGangs: user.following ? user.following.length : 0, // following count
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -754,5 +758,95 @@ exports.addCelestiumTransaction = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* ================================
+   FOLLOW USER
+   ================================ */
+exports.followUser = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { targetUserId } = req.body;
+
+    if (!targetUserId) {
+      return res.status(400).json({ message: "Target user ID required" });
+    }
+
+    if (userId === targetUserId) {
+      return res.status(400).json({ message: "Cannot follow yourself" });
+    }
+
+    const user = await User.findById(userId);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!user || !targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if already following
+    if (user.following.includes(targetUserId)) {
+      return res.status(400).json({ message: "Already following this user" });
+    }
+
+    // Add to following list
+    user.following.push(targetUserId);
+    await user.save();
+
+    // Add to target's followers list
+    targetUser.followers.push(userId);
+    await targetUser.save();
+
+    res.json({
+      message: "User followed successfully",
+      followingCount: user.following.length,
+      followersCount: targetUser.followers.length,
+    });
+  } catch (err) {
+    console.error("followUser error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* ================================
+   UNFOLLOW USER
+   ================================ */
+exports.unfollowUser = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { targetUserId } = req.body;
+
+    if (!targetUserId) {
+      return res.status(400).json({ message: "Target user ID required" });
+    }
+
+    const user = await User.findById(userId);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!user || !targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if following
+    if (!user.following.includes(targetUserId)) {
+      return res.status(400).json({ message: "Not following this user" });
+    }
+
+    // Remove from following list
+    user.following = user.following.filter(id => id.toString() !== targetUserId);
+    await user.save();
+
+    // Remove from target's followers list
+    targetUser.followers = targetUser.followers.filter(id => id.toString() !== userId);
+    await targetUser.save();
+
+    res.json({
+      message: "User unfollowed successfully",
+      followingCount: user.following.length,
+      followersCount: targetUser.followers.length,
+    });
+  } catch (err) {
+    console.error("unfollowUser error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
