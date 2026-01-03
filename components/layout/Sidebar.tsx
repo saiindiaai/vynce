@@ -8,12 +8,15 @@ import {
   Bookmark,
   ChevronDown,
   Code,
+  Gavel,
   Home,
+  Link as LinkIcon,
   MessageCircle,
+  PlayCircle,
   Radio,
+  Search,
   User,
-  X,
-  Zap
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -24,11 +27,12 @@ export default function Sidebar() {
 
   const menuItems = [
     { id: "home" as const, label: "Home", icon: Home },
-    { id: "capsules" as const, label: "Capsules", icon: MessageCircle },
-    { id: "drops" as const, label: "Drops", icon: MessageCircle },
-    { id: "fight" as const, label: "Fight", icon: Zap },
+    { id: "capsules" as const, label: "Capsules", icon: PlayCircle },
+    { id: "drops" as const, label: "Drops", icon: LinkIcon },
+    { id: "messages" as const, label: "Chat", icon: MessageCircle },
+    { id: "fight" as const, label: "Fight", icon: Gavel },
     { id: "vynce_house" as const, label: "Vynce House", icon: Radio },
-    { id: "explore" as const, label: "Explore", icon: Home },
+    { id: "explore" as const, label: "Explore", icon: Search },
     { id: "profile" as const, label: "Profile", icon: User },
   ];
 

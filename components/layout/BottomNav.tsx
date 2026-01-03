@@ -1,18 +1,16 @@
 "use client";
 
-import React from "react";
-import { Home, Zap, User, MessageCircle, Radio } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { Gavel, Home, PlayCircle, Radio } from "lucide-react";
 
 export default function BottomNav() {
   const { currentPage, setCurrentPage } = useAppStore();
 
   const navItems = [
     { id: "home" as const, label: "Home", icon: Home },
-    { id: "capsules" as const, label: "Capsules", icon: MessageCircle },
+    { id: "capsules" as const, label: "Capsules", icon: PlayCircle },
     { id: "vynce_house" as const, label: "House", icon: Radio },
-    { id: "fight" as const, label: "Fight", icon: Zap },
-    { id: "profile" as const, label: "Profile", icon: User },
+    { id: "fight" as const, label: "Fight", icon: Gavel },
   ];
 
   return (
@@ -23,11 +21,10 @@ export default function BottomNav() {
             <button
               key={id}
               onClick={() => setCurrentPage(id)}
-              className={`flex flex-col items-center justify-center py-2.5 px-2 sm:px-3 rounded-lg transition-all duration-200 gap-0.5 min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
-                currentPage === id
-                  ? "bg-slate-800 text-slate-50"
-                  : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-50"
-              }`}
+              className={`flex flex-col items-center justify-center py-2.5 px-2 sm:px-3 rounded-lg transition-all duration-200 gap-0.5 min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === id
+                ? "bg-slate-800 text-slate-50"
+                : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-50"
+                }`}
               aria-label={`${label}${currentPage === id ? " (current page)" : ""}`}
               title={label}
             >

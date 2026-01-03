@@ -1,17 +1,21 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 import {
-  Send,
-  Paperclip,
-  Smile,
-  Search,
-  Phone,
-  Video,
-  MoreVertical,
+  Check,
+  CheckCheck,
   ChevronLeft,
+  CornerUpLeft,
+  MoreVertical,
+  Paperclip,
+  Phone,
+  Search,
+  Send,
+  Smile,
+  Video
 } from "lucide-react";
-import { useAppStore } from "@/lib/store";
+import { useEffect, useRef, useState } from "react";
 
 interface Message {
   id: number;
@@ -21,8 +25,12 @@ interface Message {
   timestamp: string;
   isSent: boolean;
   read?: boolean;
+  delivered?: boolean;
+  seen?: boolean;
+  imageUrl?: string;
+  replyTo?: Message | null;
+  reactions?: { type: string; by: string }[];
 }
-
 interface Conversation {
   id: number;
   name: string;
@@ -166,20 +174,30 @@ const mockMessages: Record<number, Message[]> = {
   ],
 };
 
-export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(
-    conversations[0]
-  );
+
+function MessagesPage() {
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>(mockMessages[selectedConversation?.id || 1]);
   const [messageInput, setMessageInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [reactionPickerFor, setReactionPickerFor] = useState<number | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [editInput, setEditInput] = useState("");
+  const [searchInMessages, setSearchInMessages] = useState("");
+  const [unreadMessageId, setUnreadMessageId] = useState<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedConversation) {
       setMessages(mockMessages[selectedConversation.id]);
+      // Simulate unread message for demo
+      setUnreadMessageId(mockMessages[selectedConversation.id].find(m => !m.seen && !m.isSent)?.id || null);
     }
   }, [selectedConversation]);
 
@@ -199,8 +217,16 @@ export default function MessagesPage() {
     scrollToBottom();
   }, [messages]);
 
+  // Scroll to unread message if present
+  useEffect(() => {
+    if (unreadMessageId) {
+      const el = document.getElementById(`msg-${unreadMessageId}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [unreadMessageId]);
+
   const handleSendMessage = () => {
-    if (messageInput.trim()) {
+    if (messageInput.trim() || file) {
       const newMessage: Message = {
         id: messages.length + 1,
         sender: "You",
@@ -208,18 +234,73 @@ export default function MessagesPage() {
         content: messageInput,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         isSent: true,
-        read: true,
+        read: false,
+        delivered: true,
+        seen: false,
+        imageUrl: imagePreview || undefined,
+        replyTo,
+        reactions: [],
       };
       setMessages([...messages, newMessage]);
       setMessageInput("");
+      setFile(null);
+      setImagePreview(null);
+      setReplyTo(null);
+      setShowEmoji(false);
       setIsTyping(true);
       setTimeout(() => setIsTyping(false), 1500);
+    }
+  };
+
+  const handleEmojiSelect = (emoji: any) => {
+    setMessageInput((prev) => prev + emoji.native);
+    setShowEmoji(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      setFile(f);
+      const reader = new FileReader();
+      reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+      reader.readAsDataURL(f);
     }
   };
 
   const filteredConversations = conversations.filter((conv) =>
     conv.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  function handleReact(message: Message, emoji: string) {
+    setMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === message.id
+          ? { ...m, reactions: [...(m.reactions || []), { type: emoji, by: "You" }] }
+          : m
+      )
+    );
+  }
+
+  // Edit message
+  function handleEditMessage(messageId: number, newContent: string) {
+    setMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === messageId ? { ...m, content: newContent } : m
+      )
+    );
+    setEditingMessageId(null);
+    setEditInput("");
+  }
+
+  // Delete message
+  function handleDeleteMessage(messageId: number) {
+    setMessages((msgs) => msgs.filter((m) => m.id !== messageId));
+  }
+
+  // Filtered messages for search
+  const filteredMessages = searchInMessages.trim()
+    ? messages.filter((m) => m.content.toLowerCase().includes(searchInMessages.toLowerCase()))
+    : messages;
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row bg-slate-900 overflow-hidden animate-fadeIn">
@@ -248,22 +329,20 @@ export default function MessagesPage() {
             <button
               key={conversation.id}
               onClick={() => setSelectedConversation(conversation)}
-              className={`w-full px-4 py-3.5 flex items-center gap-3 transition-all duration-200 border-b border-slate-700/50 hover:bg-slate-800/50 ${
-                selectedConversation?.id === conversation.id
-                  ? "bg-slate-800 border-l-4 border-l-purple-500"
-                  : ""
-              }`}
+              className={`w-full px-4 py-3.5 flex items-center gap-3 transition-all duration-200 border-b border-slate-700/50 hover:bg-slate-800/50 ${selectedConversation?.id === conversation.id
+                ? "bg-slate-800 border-l-4 border-l-purple-500"
+                : ""
+                }`}
             >
               {/* Avatar */}
               <div className="relative flex-shrink-0">
                 <div
-                  className={`w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold shadow-lg ${
-                    idx % 3 === 0
-                      ? "from-purple-500 to-pink-500"
-                      : idx % 3 === 1
-                        ? "from-blue-500 to-cyan-500"
-                        : "from-green-500 to-emerald-500"
-                  }`}
+                  className={`w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold shadow-lg ${idx % 3 === 0
+                    ? "from-purple-500 to-pink-500"
+                    : idx % 3 === 1
+                      ? "from-blue-500 to-cyan-500"
+                      : "from-green-500 to-emerald-500"
+                    }`}
                 >
                   {conversation.avatar}
                 </div>
@@ -299,6 +378,16 @@ export default function MessagesPage() {
       {/* Chat Area */}
       {selectedConversation ? (
         <div className={`${isMobile ? "flex" : "hidden md:flex"} md:flex-1 flex-col`}>
+          {/* Message Search */}
+          <div className="px-4 sm:px-6 py-2 bg-slate-900 border-b border-slate-700/50">
+            <input
+              type="text"
+              placeholder="Search messages..."
+              value={searchInMessages}
+              onChange={e => setSearchInMessages(e.target.value)}
+              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-slate-50 text-xs"
+            />
+          </div>
           {/* Chat Header */}
           <div className="px-4 sm:px-6 py-4 border-b border-slate-700/50 bg-slate-900 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -338,26 +427,88 @@ export default function MessagesPage() {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col bg-slate-900">
-            {messages.map((message) => (
+            {filteredMessages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.isSent ? "justify-end" : "justify-start"} animate-slideInUp`}
+                id={`msg-${message.id}`}
+                className={`flex ${message.isSent ? "justify-end" : "justify-start"} animate-slideInUp group relative`}
               >
                 <div
-                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all ${
-                    message.isSent
-                      ? "bg-purple-600 border-purple-500 text-white shadow-lg"
-                      : "bg-slate-800 border-slate-700 text-slate-50"
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  <p
-                    className={`text-xs mt-1.5 font-medium ${
-                      message.isSent ? "text-purple-200" : "text-slate-400"
+                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${message.isSent
+                    ? "bg-purple-600 border-purple-500 text-white shadow-lg"
+                    : "bg-slate-800 border-slate-700 text-slate-50"
                     }`}
-                  >
-                    {message.timestamp}
-                  </p>
+                >
+                  {message.replyTo && (
+                    <div className="mb-1 pl-2 border-l-4 border-purple-400 text-xs text-purple-200 opacity-80">
+                      Replying to: {message.replyTo.content}
+                    </div>
+                  )}
+                  {message.imageUrl && (
+                    <img src={message.imageUrl} alt="attachment" className="mb-2 rounded-lg max-w-[180px]" />
+                  )}
+                  {/* Edit mode */}
+                  {editingMessageId === message.id ? (
+                    <div className="flex gap-2 items-center">
+                      <input
+                        value={editInput}
+                        onChange={e => setEditInput(e.target.value)}
+                        className="flex-1 px-2 py-1 rounded bg-slate-700 text-white text-xs"
+                      />
+                      <button onClick={() => handleEditMessage(message.id, editInput)} className="text-green-400 text-xs">Save</button>
+                      <button onClick={() => { setEditingMessageId(null); setEditInput(""); }} className="text-slate-400 text-xs">Cancel</button>
+                    </div>
+                  ) : (
+                    <p className="text-sm leading-relaxed">{message.content}</p>
+                  )}
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <span className={`text-xs font-medium ${message.isSent ? "text-purple-200" : "text-slate-400"}`}>{message.timestamp}</span>
+                    {message.isSent && (
+                      <span className="ml-1 flex items-center gap-0.5">
+                        {message.seen ? <CheckCheck size={16} className="text-blue-400" /> : message.delivered ? <CheckCheck size={16} className="text-slate-300" /> : <Check size={16} className="text-slate-300" />}
+                      </span>
+                    )}
+                  </div>
+                  {/* Reactions with tooltip for who reacted */}
+                  <div className="flex gap-1 mt-1">
+                    {message.reactions && message.reactions.map((r, i) => (
+                      <span
+                        key={i}
+                        className="text-xs select-none relative group"
+                      >
+                        {r.type}
+                        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 rounded bg-slate-800 text-white text-[10px] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
+                          {r.by}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                  {/* Message actions */}
+                  <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                    <button onClick={() => setReplyTo(message)} title="Reply" className="p-1 text-xs hover:text-purple-400"><CornerUpLeft size={14} /></button>
+                    <button onClick={() => setReactionPickerFor(message.id)} title="React" className="p-1 text-xs hover:text-purple-400"><Smile size={14} /></button>
+                    {reactionPickerFor === message.id && (
+                      <div className="absolute z-50 top-8 right-0">
+                        <Picker
+                          data={data}
+                          onEmojiSelect={(emoji: any) => {
+                            handleReact(message, emoji.native);
+                            setReactionPickerFor(null);
+                          }}
+                          theme="dark"
+                          emojiSize={20}
+                          maxFrequentRows={1}
+                        />
+                      </div>
+                    )}
+                    {/* Edit/Delete for own messages */}
+                    {message.isSent && (
+                      <>
+                        <button onClick={() => { setEditingMessageId(message.id); setEditInput(message.content); }} title="Edit" className="p-1 text-xs hover:text-blue-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" /></svg></button>
+                        <button onClick={() => handleDeleteMessage(message.id)} title="Delete" className="p-1 text-xs hover:text-red-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg></button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -389,10 +540,25 @@ export default function MessagesPage() {
 
           {/* Input Area */}
           <div className="px-4 sm:px-6 py-4 border-t border-slate-700/50 bg-slate-900">
-            <div className="flex items-center gap-2">
-              <button className="p-2.5 rounded-full hover:bg-slate-800 transition-all text-slate-400 hover:text-slate-300">
-                <Paperclip size={18} />
+            {replyTo && (
+              <div className="mb-2 flex items-center gap-2 bg-slate-800 px-3 py-1 rounded-lg text-xs text-purple-200">
+                Replying to: {replyTo.content}
+                <button onClick={() => setReplyTo(null)} className="ml-2 text-slate-400 hover:text-red-400">✕</button>
+              </div>
+            )}
+            <div className="flex items-center gap-2 relative">
+              <button className="p-2.5 rounded-full hover:bg-slate-800 transition-all text-slate-400 hover:text-slate-300 relative">
+                <label>
+                  <Paperclip size={18} />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                </label>
               </button>
+              {imagePreview && (
+                <div className="relative">
+                  <img src={imagePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover" />
+                  <button onClick={() => { setFile(null); setImagePreview(null); }} className="absolute -top-2 -right-2 bg-black text-white rounded-full w-5 h-5 flex items-center justify-center">✕</button>
+                </div>
+              )}
               <input
                 type="text"
                 placeholder="Type something nice..."
@@ -401,12 +567,21 @@ export default function MessagesPage() {
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 className="flex-1 px-4 py-2.5 rounded-full bg-slate-800 border border-slate-700 text-slate-50 placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:bg-slate-800 transition-all text-sm min-h-[40px]"
               />
-              <button className="p-2.5 rounded-full hover:bg-slate-800 transition-all text-slate-400 hover:text-slate-300">
+              <button
+                className="p-2.5 rounded-full hover:bg-slate-800 transition-all text-slate-400 hover:text-slate-300 relative"
+                onClick={() => setShowEmoji((v) => !v)}
+                type="button"
+              >
                 <Smile size={18} />
+                {showEmoji && (
+                  <div className="absolute bottom-12 right-0 z-50">
+                    <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="dark" />
+                  </div>
+                )}
               </button>
               <button
                 onClick={handleSendMessage}
-                disabled={!messageInput.trim()}
+                disabled={!messageInput.trim() && !file}
                 className="p-2.5 rounded-full bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-white font-bold shadow-lg"
               >
                 <Send size={18} />
@@ -414,6 +589,7 @@ export default function MessagesPage() {
             </div>
           </div>
         </div>
+
       ) : (
         <div className="hidden md:flex md:flex-1 md:items-center md:justify-center text-center">
           <div>
@@ -421,7 +597,12 @@ export default function MessagesPage() {
             <p className="text-white/50">Pick a convo to get chatting</p>
           </div>
         </div>
-      )}
+      )
+      }
     </div>
   );
 }
+
+export default MessagesPage;
+
+
