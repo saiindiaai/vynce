@@ -31,6 +31,7 @@ import { useAppStore } from "@/lib/store";
 
 type HouseType = "group_chat" | "community" | "house" | "broadcast";
 
+interface House {
 id: string;
 name: string;
 description: string;
@@ -59,6 +60,7 @@ interface Message {
 const LOCAL_HOUSES_KEY = "vynce_houses";
 const LOCAL_MESSAGES_KEY = "vynce_house_messages";
 
+export default function VynceHousePage() {
 const { showToast } = useAppStore();
 const [houses, setHouses] = useState<House[]>([]);
 const [messages, setMessages] = useState<Message[]>([]);
