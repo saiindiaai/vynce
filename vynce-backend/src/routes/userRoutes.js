@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getMe,
+  getUserStats,
   updateOnboarding,
   updateDisplayName,
   updateProfile,
@@ -30,6 +31,7 @@ const router = express.Router();
 
 // GET USER
 router.get("/me", protect, getMe);
+router.get("/stats", protect, getUserStats);
 
 // logoutUser
 router.post("/logout", protect, logoutUser);

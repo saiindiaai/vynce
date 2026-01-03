@@ -1,19 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Camera, Plus, FileText, Zap, Bookmark, Heart, Sparkles } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-
-const profileSections = [
-  { id: "drops", label: "Your Drops", icon: FileText, count: 127 },
-  { id: "moments", label: "Moments", icon: Zap, count: 89 },
-  { id: "boards", label: "Boards", icon: Bookmark, count: 12 },
-  { id: "saved", label: "Saved", icon: Heart, count: 234 },
-  { id: "aura", label: "Your Aura", icon: Sparkles, count: "12.4K" },
-];
+import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("drops");
+  const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState({ inMyGang: 0, mutualGangs: 0 });
+  const [drops, setDrops] = useState([]);
+  const [moments, setMoments] = useState([]);
+  const [boards, setBoards] = useState([]);
+
+  const profileSections = [
+    { id: "drops", label: "Your Drops", icon: FileText, count: drops.length },
+    { id: "moments", label: "Moments", icon: Zap, count: moments.length },
+    { id: "boards", label: "Boards", icon: Bookmark, count: boards.length },
+    { id: "saved", label: "Saved", icon: Heart, count: 234 },
+    { id: "aura", label: "Your Aura", icon: Sparkles, count: "12.4K" },
+  ];
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const [userRes, statsRes, dropsRes, momentsRes] = await Promise.all([
+          api.get("/users/me"),
+          api.get("/users/stats"),
+          api.get("/social/drops/user"),
+          api.get("/social/posts/user"),
+        ]);
+        setUser(userRes.data.user);
+        setStats(statsRes.data);
+        setDrops(dropsRes.data);
+        setMoments(momentsRes.data);
+        // boards placeholder
+      } catch (err) {
+        console.error("Failed to fetch profile data", err);
+      }
+    };
+    fetchProfileData();
+  }, []);
 
   return (
     <div className="animate-fadeIn pb-20">
@@ -36,14 +65,14 @@ export default function ProfilePage() {
         {/* Profile Info */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-2xl font-bold text-slate-50">Your Profile</h2>
+            <h2 className="text-2xl font-bold text-slate-50">{user?.displayName || "Your Profile"}</h2>
             <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-xs text-white">
               ✓
             </div>
           </div>
-          <p className="text-slate-400 mb-3">@username</p>
+          <p className="text-slate-400 mb-3">@{user?.username}</p>
           <p className="text-slate-200 text-sm leading-relaxed">
-            Creative designer 🎨 · Building the future of social 🚀 · Spreading good vibes ✨
+            {user?.bio || "No bio yet"}
           </p>
         </div>
 
@@ -54,19 +83,22 @@ export default function ProfilePage() {
               <div className="w-2 h-2 rounded-full bg-yellow-500" />
               <span className="text-xs text-slate-400">In My Gang</span>
             </div>
-            <div className="text-2xl font-bold text-slate-50">567</div>
+            <div className="text-2xl font-bold text-slate-50">{stats.inMyGang}</div>
           </div>
           <div className="clean-card p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-purple-500" />
               <span className="text-xs text-slate-400">Mutual Gangs</span>
             </div>
-            <div className="text-2xl font-bold text-slate-50">89</div>
+            <div className="text-2xl font-bold text-slate-50">{stats.mutualGangs}</div>
           </div>
         </div>
 
         {/* Edit Profile Button */}
-        <button className="w-full py-3 rounded-lg font-semibold text-slate-50 mb-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md">
+        <button 
+          onClick={() => router.push('/ecosystem/profile/account')}
+          className="w-full py-3 rounded-lg font-semibold text-slate-50 mb-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md"
+        >
           Edit Profile
         </button>
 
@@ -97,15 +129,20 @@ export default function ProfilePage() {
             <div className="text-center animate-fadeIn w-full">
               <FileText size={64} className="text-slate-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-50 mb-2">Your Drops</h3>
-              <p className="text-slate-400 mb-6">Content coming soon...</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer"
-                  />
-                ))}
-              </div>
+              {drops.length > 0 ? (
+                <div className="space-y-4">
+                  {drops.map((drop: any) => (
+                    <div key={drop._id} className="clean-card p-4 text-left">
+                      <p className="text-slate-200">{drop.content}</p>
+                      <p className="text-slate-400 text-sm mt-2">
+                        {new Date(drop.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 mb-6">No drops yet...</p>
+              )}
             </div>
           )}
 
@@ -113,7 +150,20 @@ export default function ProfilePage() {
             <div className="text-center animate-fadeIn">
               <Zap size={64} className="text-slate-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-50 mb-2">Moments</h3>
-              <p className="text-slate-400">Your epic moments appear here</p>
+              {moments.length > 0 ? (
+                <div className="space-y-4">
+                  {moments.map((moment: any) => (
+                    <div key={moment._id} className="clean-card p-4 text-left">
+                      <p className="text-slate-200">{moment.content}</p>
+                      <p className="text-slate-400 text-sm mt-2">
+                        {new Date(moment.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400">No moments yet</p>
+              )}
             </div>
           )}
 

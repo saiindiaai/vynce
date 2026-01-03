@@ -265,3 +265,20 @@ exports.editPost = async (req, res) => {
     res.status(500).json({ message: "Failed to edit post" });
   }
 };
+
+/* ================================
+   GET USER POSTS
+================================ */
+exports.getUserPosts = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const posts = await Post.find({ author: userId })
+      .populate("author", "username displayName uid")
+      .sort({ _id: -1 })
+      .limit(20);
+
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get user posts" });
+  }
+};

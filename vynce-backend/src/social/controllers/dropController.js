@@ -229,3 +229,20 @@ exports.shareDrop = async (req, res) => {
     res.status(500).json({ message: "Failed to share drop" });
   }
 };
+
+/* ================================
+   GET USER DROPS
+================================ */
+exports.getUserDrops = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const drops = await Drop.find({ author: userId })
+      .populate("author", "username displayName uid")
+      .sort({ _id: -1 })
+      .limit(20); // limit for profile
+
+    res.json(drops);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get user drops" });
+  }
+};

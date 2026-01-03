@@ -5,6 +5,7 @@ const { protect } = require("../../middleware/authMiddleware");
 const {
   createDrop,
   getDropFeed,
+  getUserDrops,
   toggleDropLike,
   toggleDropDislike,
   deleteDrop,
@@ -20,6 +21,7 @@ const {
 /* DROPS */
 router.post("/", protect, createDrop);
 router.get("/feed", protect, getDropFeed);
+router.get("/user", protect, getUserDrops);
 router.post("/:id/like", protect, toggleDropLike);
 router.post("/:id/dislike", protect, toggleDropDislike);
 router.post("/:id/share", protect, shareDrop);

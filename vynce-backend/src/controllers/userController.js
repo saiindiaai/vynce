@@ -124,6 +124,8 @@ exports.getMe = async (req, res) => {
         uid: user.uid,
         username: user.username,
         displayName: user.displayName,
+        bio: user.bio,
+        avatar: user.avatar,
         accountType: user.accountType,
         createdAt: user.createdAt,
       },
@@ -143,6 +145,23 @@ exports.getMe = async (req, res) => {
       },
     });
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* ================================
+   GET USER STATS
+   ================================ */
+exports.getUserStats = async (req, res) => {
+  try {
+    // For now, return placeholder stats
+    // In My Gang: number of houses user is in (placeholder)
+    // Mutual Gangs: number of mutual connections (placeholder)
+    res.json({
+      inMyGang: 567, // placeholder
+      mutualGangs: 89, // placeholder
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
