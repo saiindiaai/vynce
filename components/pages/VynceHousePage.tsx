@@ -2,28 +2,27 @@
 
 import { useAppStore } from "@/lib/store";
 import {
-  ChevronRight,
-  Copy,
-  Hash,
-  Home,
-  Lock,
-  Mail,
-  Menu,
-  MessageCircle,
-  MessageSquare,
-  MoreVertical,
-  Plus,
-  Radio,
-  Search,
-  Send,
-  Share2,
-  Users,
-  X
+    ChevronRight,
+    Copy,
+    Hash,
+    Home,
+    Lock,
+    Mail,
+    Menu,
+    MessageCircle,
+    MessageSquare,
+    MoreVertical,
+    Plus,
+    Radio,
+    Search,
+    Send,
+    Share2,
+    Users,
+    X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type HouseType = "group_chat" | "community" | "house" | "broadcast";
-type HouseRarity = "common" | "rare" | "epic" | "legendary" | "mythic";
 
 interface House {
   id: string;
@@ -31,7 +30,6 @@ interface House {
   description: string;
   purpose: string;
   type: HouseType;
-  rarity: HouseRarity;
   level: number;
   influence: number;
   members: number;
@@ -95,7 +93,6 @@ export default function VynceHousePage() {
   const [newHouseType, setNewHouseType] = useState<HouseType>("group_chat");
   const [newHousePrivate, setNewHousePrivate] = useState(false);
   const [newHousePurpose, setNewHousePurpose] = useState("");
-  const [newHouseRarity, setNewHouseRarity] = useState<HouseRarity>("common");
   const [newChannelName, setNewChannelName] = useState("");
   const [newChannelDescription, setNewChannelDescription] = useState("");
   const [newChannelPrivate, setNewChannelPrivate] = useState(false);
@@ -197,40 +194,6 @@ export default function VynceHousePage() {
     }
   };
 
-  const getRarityColor = (rarity: HouseRarity) => {
-    switch (rarity) {
-      case "common":
-        return "text-slate-400";
-      case "rare":
-        return "text-blue-400";
-      case "epic":
-        return "text-purple-400";
-      case "legendary":
-        return "text-amber-400";
-      case "mythic":
-        return "text-rose-400";
-      default:
-        return "text-slate-400";
-    }
-  };
-
-  const getRarityBg = (rarity: HouseRarity) => {
-    switch (rarity) {
-      case "common":
-        return "bg-slate-600/20";
-      case "rare":
-        return "bg-blue-600/20";
-      case "epic":
-        return "bg-purple-600/20";
-      case "legendary":
-        return "bg-amber-600/20";
-      case "mythic":
-        return "bg-rose-600/20";
-      default:
-        return "bg-slate-600/20";
-    }
-  };
-
   const createHouse = () => {
     if (!newHouseName.trim() || !newHousePurpose.trim()) {
       showToast?.("Please enter house name and purpose", "warning");
@@ -253,7 +216,6 @@ export default function VynceHousePage() {
       description: newHouseDescription.trim(),
       purpose: newHousePurpose.trim(),
       type: newHouseType,
-      rarity: newHouseRarity,
       level: 1,
       influence: 0,
       members: 1,
@@ -288,7 +250,6 @@ export default function VynceHousePage() {
     setNewHouseDescription("");
     setNewHousePurpose("");
     setNewHouseType("group_chat");
-    setNewHouseRarity("common");
     setNewHousePrivate(false);
     setShowCreateHouseModal(false);
     setSelectedHouseId(houseId);
@@ -482,9 +443,6 @@ export default function VynceHousePage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="truncate">{house.name}</span>
-                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${getRarityColor(house.rarity)} ${getRarityBg(house.rarity)}`}>
-                      {house.rarity.charAt(0).toUpperCase()}
-                    </span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-slate-500">Lv. {house.level}</span>
@@ -579,7 +537,7 @@ export default function VynceHousePage() {
             className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-purple-500/25 text-sm"
           >
             <Plus size={18} />
-            <span className="hidden sm:inline">Found House</span>
+            <span className="hidden sm:inline">Create House</span>
           </button>
         </div>
       </div>
@@ -670,9 +628,6 @@ export default function VynceHousePage() {
                       <h2 className="font-bold text-slate-50 text-sm truncate">
                         {selectedHouse.name}
                       </h2>
-                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${getRarityColor(selectedHouse.rarity)} ${getRarityBg(selectedHouse.rarity)}`}>
-                        {selectedHouse.rarity.charAt(0).toUpperCase()}
-                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <p className="text-xs text-slate-400 truncate flex items-center gap-1">
@@ -813,7 +768,7 @@ export default function VynceHousePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Influence:</span>
-                  <span className={`font-semibold ${getRarityColor(selectedHouse.rarity)}`}>
+                  <span className="font-semibold text-amber-300">
                     {selectedHouse.influence}
                   </span>
                 </div>
@@ -968,8 +923,8 @@ export default function VynceHousePage() {
             <div className="w-full max-w-md bg-slate-900 rounded-xl border border-slate-700/50 p-6 space-y-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-50">Found New House</h2>
-                  <p className="text-xs text-slate-400 mt-1">Choose wisely. Your house defines your powers.</p>
+                  <h2 className="text-2xl font-black text-slate-50">Create New House</h2>
+                  <p className="text-xs text-slate-400 mt-1">Create wisely. Your house defines your powers.</p>
                 </div>
                 <button
                   onClick={() => setShowCreateHouseModal(false)}
@@ -1003,28 +958,6 @@ export default function VynceHousePage() {
                               .join(" ")
                               .split(" ")[0]}
                           </span>
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-2">
-                    House Rarity <span className={getRarityColor(newHouseRarity)}>({newHouseRarity})</span>
-                  </label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {(["common", "rare", "epic", "legendary", "mythic"] as HouseRarity[]).map(
-                      (rarity) => (
-                        <button
-                          key={rarity}
-                          onClick={() => setNewHouseRarity(rarity)}
-                          className={`p-2 rounded text-xs font-bold transition-all border ${newHouseRarity === rarity
-                            ? `${getRarityBg(rarity)} border-current`
-                            : "bg-slate-800/40 border-slate-700/50 text-slate-500 hover:border-slate-600"
-                            } ${newHouseRarity === rarity ? getRarityColor(rarity) : ""}`}
-                        >
-                          {rarity.charAt(0).toUpperCase()}
                         </button>
                       )
                     )}
@@ -1234,13 +1167,6 @@ export default function VynceHousePage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-sm font-bold text-slate-50 truncate">{house.name}</h3>
-                            <span
-                              className={`text-xs font-bold px-1.5 py-0.5 rounded ${getRarityColor(
-                                house.rarity
-                              )} ${getRarityBg(house.rarity)}`}
-                            >
-                              {house.rarity.charAt(0).toUpperCase()}
-                            </span>
                           </div>
                           <p className="text-xs text-slate-400 line-clamp-2">{house.description}</p>
                           <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
