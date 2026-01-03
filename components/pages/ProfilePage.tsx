@@ -10,29 +10,37 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("drops");
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({ inMyGang: 0, mutualGangs: 0 });
+  const [aura, setAura] = useState({ totalAura: 0, thisWeek: 0, thisMonth: 0, allTimeRank: 0 });
   const [drops, setDrops] = useState([]);
   const [moments, setMoments] = useState([]);
   const [boards, setBoards] = useState([]);
+
+  const formatAura = (num: number) => {
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return num.toString();
+  };
 
   const profileSections = [
     { id: "drops", label: "Your Drops", icon: FileText, count: drops.length },
     { id: "moments", label: "Moments", icon: Zap, count: moments.length },
     { id: "boards", label: "Boards", icon: Bookmark, count: boards.length },
     { id: "saved", label: "Saved", icon: Heart, count: 234 },
-    { id: "aura", label: "Your Aura", icon: Sparkles, count: "12.4K" },
+    { id: "aura", label: "Your Aura", icon: Sparkles, count: formatAura(aura.totalAura) },
   ];
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const [userRes, statsRes, dropsRes, momentsRes] = await Promise.all([
+        const [userRes, statsRes, auraRes, dropsRes, momentsRes] = await Promise.all([
           api.get("/users/me"),
           api.get("/users/stats"),
+          api.get("/users/aura"),
           api.get("/social/drops/user"),
           api.get("/social/posts/user"),
         ]);
         setUser(userRes.data.user);
         setStats(statsRes.data);
+        setAura(auraRes.data);
         setDrops(dropsRes.data);
         setMoments(momentsRes.data);
         // boards placeholder
@@ -80,14 +88,14 @@ export default function ProfilePage() {
           <div className="clean-card p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-yellow-500" />
-              <span className="text-xs text-slate-400">In My Gang</span>
+              <span className="text-xs text-slate-400">My Gang</span>
             </div>
             <div className="text-2xl font-bold text-slate-50">{stats.inMyGang}</div>
           </div>
           <div className="clean-card p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-purple-500" />
-              <span className="text-xs text-slate-400">Mutual Gangs</span>
+              <span className="text-xs text-slate-400">In Gang</span>
             </div>
             <div className="text-2xl font-bold text-slate-50">{stats.mutualGangs}</div>
           </div>
@@ -187,20 +195,20 @@ export default function ProfilePage() {
               <div className="w-32 h-32 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 mx-auto mb-4 flex items-center justify-center">
                 <Sparkles size={64} className="text-white" />
               </div>
-              <h3 className="text-3xl font-bold text-slate-50 mb-2">12,456</h3>
+              <h3 className="text-3xl font-bold text-slate-50 mb-2">{aura.totalAura.toLocaleString()}</h3>
               <p className="text-slate-400 mb-6">Total Aura Earned</p>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">This Week</span>
-                  <span className="font-bold text-slate-50">+234</span>
+                  <span className="font-bold text-slate-50">{aura.thisWeek >= 0 ? '+' : ''}{aura.thisWeek}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">This Month</span>
-                  <span className="font-bold text-slate-50">+1,456</span>
+                  <span className="font-bold text-slate-50">{aura.thisMonth >= 0 ? '+' : ''}{aura.thisMonth}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">All Time Rank</span>
-                  <span className="font-bold text-purple-400">#127</span>
+                  <span className="font-bold text-purple-400">#{aura.allTimeRank}</span>
                 </div>
               </div>
             </div>

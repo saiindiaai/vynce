@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Camera, Plus, FileText, Zap, Bookmark, Heart, Sparkles } from "lucide-react";
-import { useAppStore } from "@/lib/store";
+import { Bookmark, Camera, FileText, Heart, Plus, Sparkles, Zap } from "lucide-react";
+import { useState } from "react";
 
 const profileSections = [
   { id: "drops", label: "Your Drops", icon: FileText, count: 127 },
@@ -52,14 +51,14 @@ export default function ProfilePage() {
           <div className="clean-card p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-yellow-500" />
-              <span className="text-xs text-slate-400">In My Gang</span>
+              <span className="text-xs text-slate-400">My Gang</span>
             </div>
             <div className="text-2xl font-bold text-slate-50">567</div>
           </div>
           <div className="clean-card p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-purple-500" />
-              <span className="text-xs text-slate-400">Mutual Gangs</span>
+              <span className="text-xs text-slate-400">In Gang</span>
             </div>
             <div className="text-2xl font-bold text-slate-50">89</div>
           </div>
