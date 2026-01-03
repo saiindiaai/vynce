@@ -1,33 +1,27 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { HOUSE_RANKS, HouseRankLetter, getHouseRankFullForm } from "@/lib/houseRanks";
-import {
-  Users,
-  Home,
-  Radio,
-  MessageSquare,
-  Plus,
-  Search,
-  Settings,
-  Send,
-  X,
-  Star,
-  Lock,
-  Globe,
-  Zap,
-  User,
-  ChevronDown,
-  Phone,
-  Video,
-  Play,
-  Book,
-  Edit2,
-  Trash2,
-  Copy,
-  LogOut,
-} from "lucide-react";
+import { HOUSE_RANKS, HouseRankLetter } from "@/lib/houseRanks";
 import { useAppStore } from "@/lib/store";
+import {
+    Book,
+    ChevronDown,
+    Home,
+    Lock,
+    MessageSquare,
+    Phone,
+    Play,
+    Plus,
+    Radio,
+    Search,
+    Send,
+    Settings,
+    Star,
+    Trash2,
+    Users,
+    Video,
+    X
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 type HouseType = "group_chat" | "community" | "house" | "broadcast";
 
