@@ -24,6 +24,10 @@ const houseMessageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "HouseMessage",
+  },
   timestamp: {
     type: Date,
     default: Date.now,

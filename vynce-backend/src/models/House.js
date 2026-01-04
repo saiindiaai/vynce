@@ -47,6 +47,22 @@ const houseSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  members: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ["leader", "member"],
+      default: "member",
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
   crest: {
     type: String,
   },

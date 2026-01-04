@@ -5,6 +5,7 @@ const auth = require("../middleware/auth");
 
 // House routes
 router.post("/", auth, houseController.createHouse);
+router.post("/:houseId/join", auth, houseController.joinHouse);
 router.get("/", auth, houseController.getHouses);
 router.get("/:houseId", auth, houseController.getHouse);
 

@@ -67,7 +67,34 @@ export default function VynceHousePage() {
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [showShareHouseSheet, setShowShareHouseSheet] = useState(false);
-  // Touch/swipe state for mobile gestures (edge swipes only)
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const handleMessageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessageInput(e.target.value);
+
+    if (selectedHouseId && selectedChannelId) {
+      const userId = localStorage.getItem("userId");
+      const userName = localStorage.getItem("username") || "User";
+
+      socket.emit("start-typing", {
+        houseId: selectedHouseId,
+        channelId: selectedChannelId,
+        userId,
+        userName,
+      });
+
+      if (typingTimeout) clearTimeout(typingTimeout);
+
+      setTypingTimeout(setTimeout(() => {
+        socket.emit("stop-typing", {
+          houseId: selectedHouseId,
+          channelId: selectedChannelId,
+          userId,
+          userName,
+        });
+      }, 1000));
+    }
+  };
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touching, setTouching] = useState(false);
@@ -144,6 +171,31 @@ export default function VynceHousePage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [channelMessages]);
 
+  // Socket listeners
+  useEffect(() => {
+    const handleNewMessage = (message: HouseMessage) => {
+      setChannelMessages((prev) => [...prev, message]);
+    };
+
+    const handleUserTyping = (data: { userName: string }) => {
+      setTypingUsers((prev) => [...new Set([...prev, data.userName])]);
+    };
+
+    const handleUserStopTyping = (data: { userName: string }) => {
+      setTypingUsers((prev) => prev.filter(name => name !== data.userName));
+    };
+
+    socket.on("new-house-message", handleNewMessage);
+    socket.on("user-typing", handleUserTyping);
+    socket.on("user-stop-typing", handleUserStopTyping);
+
+    return () => {
+      socket.off("new-house-message", handleNewMessage);
+      socket.off("user-typing", handleUserTyping);
+      socket.off("user-stop-typing", handleUserStopTyping);
+    };
+  }, []);
+
   const getTypeIcon = (type: HouseType) => {
     switch (type) {
       case "group_chat":
@@ -208,6 +260,18 @@ export default function VynceHousePage() {
     }
   };
 
+  const isMemberOfHouse = (houseId: string) => {
+    const userId = localStorage.getItem("userId");
+    const house = houses.find(h => h._id === houseId);
+    return house?.members?.some(m => m.user._id === userId || m.user === userId);
+  };
+
+  const isLeaderOfHouse = (houseId: string) => {
+    const userId = localStorage.getItem("userId");
+    const house = houses.find(h => h._id === houseId);
+    return house?.members?.some(m => (m.user._id === userId || m.user === userId) && m.role === "leader");
+  };
+
   const createChannel = async () => {
     if (!newChannelName.trim() || !selectedHouseId) {
       showToast?.("Please enter a channel name", "warning");
@@ -239,48 +303,24 @@ export default function VynceHousePage() {
     }
   };
 
-  const joinHouse = (houseId: string) => {
-    const house = houses.find(h => h._id === houseId);
-    if (!house) return;
-
-    // Check if already a member
-    if (members[houseId]?.some(m => m.username === "You")) {
-      showToast?.(`You're already a member of ${house.name}`, "info");
-      return;
+  const joinHouse = async (houseId: string) => {
+    try {
+      const res = await api.post(`/houses/${houseId}/join`);
+      // Update the house in state
+      setHouses((prev) =>
+        prev.map((h) => (h._id === houseId ? res.data : h))
+      );
+      showToast?.(`Joined ${res.data.name}!`, "success");
+      setSelectedHouseId(houseId);
+      if (res.data.channels.length > 0) {
+        setSelectedChannelId(res.data.channels[0]._id);
+        setExpandedHouses((prev) => new Set([...prev, houseId]));
+      }
+    } catch (error: any) {
+      console.error("Failed to join house:", error);
+      showToast?.(error.response?.data?.message || "Failed to join house", "error");
     }
-
-    // Add user as member
-    setMembers((prev) => ({
-      ...prev,
-      [houseId]: [
-        ...(prev[houseId] || []),
-        {
-          id: `member_${Date.now()}`,
-          username: "You",
-          role: "member",
-          joinedAt: Date.now(),
-          isOnline: true,
-          influence: 10,
-          loyalty: 50,
-          powers: [],
-        },
-      ],
-    }));
-
-    // Update house members count
-    setHouses((prev) =>
-      prev.map((h) =>
-        h._id === houseId ? { ...h, members: h.members + 1 } : h
-      )
-    );
-
-    showToast?.(`Joined ${house.name}!`, "success");
-    setSelectedHouseId(houseId);
-    if (house.channels.length > 0) {
-      setSelectedChannelId(house.channels[0]._id);
-      setExpandedHouses((prev) => new Set([...prev, houseId]));
-    }
-    setShowGlobalSearch(false);
+  };
   };
 
   const shareHouse = (option: string) => {
@@ -318,6 +358,7 @@ export default function VynceHousePage() {
     try {
       const res = await api.post(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages`, {
         content: messageInput.trim(),
+        replyTo: replyTo?._id,
       });
 
       // Emit to socket
@@ -325,9 +366,11 @@ export default function VynceHousePage() {
         houseId: selectedHouseId,
         channelId: selectedChannelId,
         message: res.data,
+        userId: localStorage.getItem("userId"),
       });
 
       setMessageInput("");
+      setReplyTo(null);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
@@ -429,7 +472,7 @@ export default function VynceHousePage() {
                   ))}
 
                   {/* Create Channel Button */}
-                  {selectedHouseId === house._id && (
+                  {selectedHouseId === house._id && isLeaderOfHouse(house._id) && (
                     <button
                       key="add-channel"
                       onClick={() => setShowCreateChannelModal(true)}
@@ -568,8 +611,8 @@ export default function VynceHousePage() {
 
         {/* Center - Chat View */}
         <div className="flex-1 flex flex-col bg-slate-900/40 rounded-xl sm:border border-slate-700/10 overflow-hidden transition-all">
-          {selectedHouse && selectedChannel ? (
-            <>
+          { (selectedHouse && selectedChannel && isMemberOfHouse(selectedHouse._id) ? (
+            <div className="contents">
               {/* Chat Header */}
               <div className="h-14 px-4 py-3 border-b border-slate-700/30 bg-slate-900/80 flex-shrink-0 flex items-center justify-between group/header">
                 <div className="flex items-center gap-3 min-w-0 flex-1 cursor-help" title={`Purpose: ${selectedHouse.purpose}`}>
@@ -642,12 +685,18 @@ export default function VynceHousePage() {
                   </div>
                 ) : (
                   channelMessages.map((msg) => (
-                    <div key={msg._id} className="group">
+                    <div key={msg._id} className="group relative">
                       <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-800/30 transition-all">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                           {msg.userName.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
+                          {msg.replyTo && (
+                            <div className="mb-1 p-2 bg-slate-800/30 rounded border-l-2 border-slate-600">
+                              <p className="text-xs text-slate-400">Replying to {msg.replyTo.userName}</p>
+                              <p className="text-xs text-slate-500 truncate">{msg.replyTo.content}</p>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 mb-0.5">
                             <p className="font-semibold text-slate-50 text-sm">
                               {msg.userName}
@@ -662,6 +711,13 @@ export default function VynceHousePage() {
                           <p className="text-sm text-slate-300 break-words">{msg.content}</p>
                         </div>
                       </div>
+                      <button
+                        onClick={() => setReplyTo(msg)}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700/50 rounded transition-all"
+                        title="Reply"
+                      >
+                        <MessageCircle size={14} className="text-slate-400" />
+                      </button>
                     </div>
                   ))
                 )}
@@ -670,12 +726,31 @@ export default function VynceHousePage() {
 
               {/* Message Input */}
               <div className="px-4 py-3 border-t border-slate-700/20 bg-slate-900/70 flex-shrink-0">
+                {replyTo && (
+                  <div className="mb-2 p-2 bg-slate-800/50 rounded-lg border-l-2 border-purple-500 flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-purple-300">Replying to {replyTo.userName}</p>
+                      <p className="text-xs text-slate-400 truncate">{replyTo.content}</p>
+                    </div>
+                    <button
+                      onClick={() => setReplyTo(null)}
+                      className="text-slate-500 hover:text-slate-300 ml-2"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+                {typingUsers.length > 0 && (
+                  <div className="mb-2 text-xs text-slate-500 italic">
+                    {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+                  </div>
+                )}
                 <div className="flex items-end gap-2">
                   <input
                     type="text"
                     placeholder={`Message #${selectedChannel.name}`}
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={handleMessageInputChange}
                     onKeyPress={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -693,7 +768,7 @@ export default function VynceHousePage() {
                   </button>
                 </div>
               </div>
-            </>
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <Home size={48} className="text-slate-600 mb-4" />
@@ -792,6 +867,48 @@ export default function VynceHousePage() {
           </div>
         )}
       </div>
+
+              {/* Message Input */}
+              <div className="px-4 py-3 border-t border-slate-700/20 bg-slate-900/70 flex-shrink-0">
+                <div className="flex items-end gap-2">
+                  <input
+                    type="text"
+                    placeholder={`Message #${selectedChannel.name}`}
+                    value={messageInput}
+                    onChange={handleMessageInputChange}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    className="flex-1 px-3 py-3 sm:py-2 bg-slate-800/50 border border-slate-700/40 rounded-2xl text-slate-50 placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!messageInput.trim()}
+                    className="p-3 sm:p-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl transition-all flex-shrink-0 shadow-sm"
+                  >
+                    <Send size={18} />
+                  </button>
+                </div>
+              </div>
+            </div> ) : selectedHouse ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <Lock size={48} className="mx-auto text-slate-500 mb-4" />
+                <h3 className="text-lg font-semibold text-slate-300 mb-2">Join to Chat</h3>
+                <p className="text-slate-500 mb-4">You must be a member to participate in this house's conversations.</p>
+                <button
+                  onClick={() => joinHouse(selectedHouse._id)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  Join House
+                </button>
+              </div>
+            </div>
+          ) : null ) }
+        </div>
 
       {/* Mobile Members Drawer (slide from right) */}
       {showMembersDrawer && selectedHouse && (

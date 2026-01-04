@@ -5,6 +5,7 @@ const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
 const connectDB = require("./src/config/db");
+const House = require("./src/models/House");
 const startExpiryJob = require("./src/cron/expireInventory");
 
 dotenv.config();
@@ -64,10 +65,20 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   // House Chat
-  socket.on("join-house-channel", (data) => {
+  socket.on("join-house-channel", async (data) => {
     const { houseId, channelId, userId } = data;
-    socket.join(`house-${houseId}-channel-${channelId}`);
-    console.log(`User ${userId} joined house ${houseId} channel ${channelId}`);
+    try {
+      const house = await House.findById(houseId);
+      if (!house) return;
+
+      const isMember = house.members.some(m => m.user.toString() === userId);
+      if (!isMember) return;
+
+      socket.join(`house-${houseId}-channel-${channelId}`);
+      console.log(`User ${userId} joined house ${houseId} channel ${channelId}`);
+    } catch (error) {
+      console.error("Error joining house channel:", error);
+    }
   });
 
   socket.on("leave-house-channel", (data) => {
@@ -75,9 +86,49 @@ io.on("connection", (socket) => {
     socket.leave(`house-${houseId}-channel-${channelId}`);
   });
 
-  socket.on("send-house-message", (data) => {
-    const { houseId, channelId, message } = data;
-    io.to(`house-${houseId}-channel-${channelId}`).emit("new-house-message", message);
+  socket.on("send-house-message", async (data) => {
+    const { houseId, channelId, message, userId } = data;
+    try {
+      const house = await House.findById(houseId);
+      if (!house) return;
+
+      const isMember = house.members.some(m => m.user.toString() === userId);
+      if (!isMember) return;
+
+      io.to(`house-${houseId}-channel-${channelId}`).emit("new-house-message", message);
+    } catch (error) {
+      console.error("Error sending house message:", error);
+    }
+  });
+
+  socket.on("start-typing", async (data) => {
+    const { houseId, channelId, userId, userName } = data;
+    try {
+      const house = await House.findById(houseId);
+      if (!house) return;
+
+      const isMember = house.members.some(m => m.user.toString() === userId);
+      if (!isMember) return;
+
+      socket.to(`house-${houseId}-channel-${channelId}`).emit("user-typing", { userName });
+    } catch (error) {
+      console.error("Error start typing:", error);
+    }
+  });
+
+  socket.on("stop-typing", async (data) => {
+    const { houseId, channelId, userId, userName } = data;
+    try {
+      const house = await House.findById(houseId);
+      if (!house) return;
+
+      const isMember = house.members.some(m => m.user.toString() === userId);
+      if (!isMember) return;
+
+      socket.to(`house-${houseId}-channel-${channelId}`).emit("user-stop-typing", { userName });
+    } catch (error) {
+      console.error("Error stop typing:", error);
+    }
   });
 
   // Social Chat

@@ -15,6 +15,11 @@ exports.createHouse = async (req, res) => {
       purpose,
       type,
       foundedBy: userId,
+      members: [{
+        user: userId,
+        role: "leader",
+        joinedAt: new Date(),
+      }],
     });
 
     // Create default #general channel
@@ -36,10 +41,42 @@ exports.createHouse = async (req, res) => {
   }
 };
 
+// Join a house
+exports.joinHouse = async (req, res) => {
+  try {
+    const { houseId } = req.params;
+    const userId = req.userId;
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Check if already a member
+    const isMember = house.members.some(m => m.user.toString() === userId);
+    if (isMember) {
+      return res.status(400).json({ message: "Already a member" });
+    }
+
+    house.members.push({
+      user: userId,
+      role: "member",
+      joinedAt: new Date(),
+    });
+
+    await house.save();
+    await house.populate("members.user", "username");
+
+    res.json(house);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get all houses
 exports.getHouses = async (req, res) => {
   try {
-    const houses = await House.find().populate("foundedBy", "username").populate("channels");
+    const houses = await House.find().populate("foundedBy", "username").populate("channels").populate("members.user", "username");
     res.json(houses);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -65,6 +102,17 @@ exports.createChannel = async (req, res) => {
     const { name, description } = req.body;
     const userId = req.userId;
     const houseId = req.params.houseId;
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Check if user is leader
+    const member = house.members.find(m => m.user.toString() === userId);
+    if (!member || member.role !== "leader") {
+      return res.status(403).json({ message: "Only house leader can create channels" });
+    }
 
     const channel = new Channel({
       houseId,
@@ -97,9 +145,20 @@ exports.getChannels = async (req, res) => {
 // Send a message to a channel
 exports.sendMessage = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, replyTo } = req.body;
     const userId = req.userId;
     const { houseId, channelId } = req.params;
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Check if user is member
+    const isMember = house.members.some(m => m.user.toString() === userId);
+    if (!isMember) {
+      return res.status(403).json({ message: "Must be a house member to send messages" });
+    }
 
     const user = await User.findById(userId);
 
@@ -109,6 +168,7 @@ exports.sendMessage = async (req, res) => {
       userId,
       userName: user.username,
       content,
+      replyTo,
     });
 
     await message.save();
@@ -121,10 +181,24 @@ exports.sendMessage = async (req, res) => {
 // Get messages for a channel
 exports.getMessages = async (req, res) => {
   try {
+    const userId = req.userId;
+    const { houseId } = req.params;
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Check if user is member
+    const isMember = house.members.some(m => m.user.toString() === userId);
+    if (!isMember) {
+      return res.status(403).json({ message: "Must be a house member to view messages" });
+    }
+
     const messages = await HouseMessage.find({
-      houseId: req.params.houseId,
+      houseId,
       channelId: req.params.channelId,
-    }).sort({ timestamp: 1 });
+    }).populate('replyTo').sort({ timestamp: 1 });
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: error.message });
