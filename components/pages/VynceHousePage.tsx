@@ -500,7 +500,7 @@ export default function VynceHousePage() {
   const houseMembers = selectedHouseId ? (members[selectedHouseId] || []) : [];
 
   return (
-    <div className="animate-fadeIn pb-24 sm:pb-0 w-full h-full flex flex-col bg-slate-950">
+    <div className="animate-fadeIn w-full h-full flex flex-col bg-slate-950">
       {/* Header */}
       <div className="h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex-shrink-0 flex items-center justify-between">
         <div>

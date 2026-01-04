@@ -99,7 +99,7 @@ export default function VynceSocialUI() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Page Rendering */}
-            <div className="animate-fadeIn w-full">
+            <div className="animate-fadeIn w-full h-full">
               {currentPage === "home" && <HomePage />}
               {currentPage === "capsules" && <CapsulesPage />}
               {currentPage === "drops" && <DropsPage />}
