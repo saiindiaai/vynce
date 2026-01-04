@@ -28,6 +28,7 @@ exports.createHouse = async (req, res) => {
     house.channels.push(channel._id);
 
     await house.save();
+    await house.populate('channels');
 
     res.status(201).json(house);
   } catch (error) {

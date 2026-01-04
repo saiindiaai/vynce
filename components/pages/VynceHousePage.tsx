@@ -431,6 +431,7 @@ export default function VynceHousePage() {
                   {/* Create Channel Button */}
                   {selectedHouseId === house._id && (
                     <button
+                      key="add-channel"
                       onClick={() => setShowCreateChannelModal(true)}
                       className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-slate-500 hover:bg-slate-800/40 hover:text-slate-400 transition-all text-left"
                     >
