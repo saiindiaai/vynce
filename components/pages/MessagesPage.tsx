@@ -1,10 +1,11 @@
 "use client";
 
+import { api } from "@/lib/api";
+import socket from "@/lib/socket";
+import { Conversation, SocialMessage } from "@/types";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import {
-  Check,
-  CheckCheck,
   ChevronLeft,
   CornerUpLeft,
   MoreVertical,
@@ -17,188 +18,77 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface Message {
-  id: number;
-  sender: string;
-  senderAvatar: string;
-  content: string;
-  timestamp: string;
-  isSent: boolean;
-  read?: boolean;
-  delivered?: boolean;
-  seen?: boolean;
-  imageUrl?: string;
-  replyTo?: Message | null;
-  reactions?: { type: string; by: string }[];
-}
-interface Conversation {
-  id: number;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unread: number;
-  isOnline: boolean;
-}
-
-const conversations: Conversation[] = [
-  {
-    id: 1,
-    name: "Alex Orbit",
-    avatar: "🎵",
-    lastMessage: "That production is fire! 🔥",
-    lastMessageTime: "2m",
-    unread: 2,
-    isOnline: true,
-  },
-  {
-    id: 2,
-    name: "Jane Cosmos",
-    avatar: "🎨",
-    lastMessage: "Thanks for the feedback!",
-    lastMessageTime: "15m",
-    unread: 0,
-    isOnline: true,
-  },
-  {
-    id: 3,
-    name: "Tech Warrior",
-    avatar: "💻",
-    lastMessage: "Want to collaborate on the project?",
-    lastMessageTime: "1h",
-    unread: 1,
-    isOnline: false,
-  },
-  {
-    id: 4,
-    name: "Design Flow",
-    avatar: "🎭",
-    lastMessage: "The UI looks amazing!",
-    lastMessageTime: "3h",
-    unread: 0,
-    isOnline: true,
-  },
-  {
-    id: 5,
-    name: "Creative Studio",
-    avatar: "🎬",
-    lastMessage: "Let's schedule a call",
-    lastMessageTime: "Yesterday",
-    unread: 0,
-    isOnline: false,
-  },
-];
-
-const mockMessages: Record<number, Message[]> = {
-  1: [
-    {
-      id: 1,
-      sender: "Alex Orbit",
-      senderAvatar: "🎵",
-      content: "Hey! How's the new track coming?",
-      timestamp: "10:30 AM",
-      isSent: false,
-    },
-    {
-      id: 2,
-      sender: "You",
-      senderAvatar: "👤",
-      content: "Pretty good! Just finished the mixing",
-      timestamp: "10:32 AM",
-      isSent: true,
-    },
-    {
-      id: 3,
-      sender: "Alex Orbit",
-      senderAvatar: "🎵",
-      content: "That production is fire! 🔥",
-      timestamp: "10:33 AM",
-      isSent: false,
-    },
-  ],
-  2: [
-    {
-      id: 1,
-      sender: "Jane Cosmos",
-      senderAvatar: "🎨",
-      content: "Love your latest art series!",
-      timestamp: "9:15 AM",
-      isSent: false,
-    },
-    {
-      id: 2,
-      sender: "You",
-      senderAvatar: "👤",
-      content: "Thank you! It took ages to finish",
-      timestamp: "9:18 AM",
-      isSent: true,
-    },
-    {
-      id: 3,
-      sender: "Jane Cosmos",
-      senderAvatar: "🎨",
-      content: "Thanks for the feedback!",
-      timestamp: "9:20 AM",
-      isSent: false,
-    },
-  ],
-  3: [
-    {
-      id: 1,
-      sender: "Tech Warrior",
-      senderAvatar: "💻",
-      content: "Want to collaborate on the project?",
-      timestamp: "8:45 AM",
-      isSent: false,
-    },
-  ],
-  4: [
-    {
-      id: 1,
-      sender: "Design Flow",
-      senderAvatar: "🎭",
-      content: "The UI looks amazing!",
-      timestamp: "Yesterday",
-      isSent: false,
-    },
-  ],
-  5: [
-    {
-      id: 1,
-      sender: "Creative Studio",
-      senderAvatar: "🎬",
-      content: "Let's schedule a call",
-      timestamp: "Yesterday",
-      isSent: false,
-    },
-  ],
-};
-
-
 function MessagesPage() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>(mockMessages[selectedConversation?.id || 1]);
+  const [messages, setMessages] = useState<SocialMessage[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [replyTo, setReplyTo] = useState<SocialMessage | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [reactionPickerFor, setReactionPickerFor] = useState<number | null>(null);
-  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [reactionPickerFor, setReactionPickerFor] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editInput, setEditInput] = useState("");
   const [searchInMessages, setSearchInMessages] = useState("");
-  const [unreadMessageId, setUnreadMessageId] = useState<number | null>(null);
+  const [unreadMessageId, setUnreadMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Load conversations
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const res = await api.get("/social/chat/conversations");
+        setConversations(res.data);
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
+      }
+    };
+    loadConversations();
+  }, []);
+
+  // Load messages when conversation changes
   useEffect(() => {
     if (selectedConversation) {
-      setMessages(mockMessages[selectedConversation.id]);
-      // Simulate unread message for demo
-      setUnreadMessageId(mockMessages[selectedConversation.id].find(m => !m.seen && !m.isSent)?.id || null);
+      const loadMessages = async () => {
+        try {
+          const res = await api.get(`/social/chat/conversations/${selectedConversation._id}/messages`);
+          setMessages(res.data);
+        } catch (error) {
+          console.error("Failed to load messages:", error);
+        }
+      };
+      loadMessages();
     }
+  }, [selectedConversation]);
+
+  // Socket setup
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      socket.emit("join-user-room", userId);
+    }
+
+    socket.on("new-social-message", (message: SocialMessage) => {
+      if (selectedConversation && message.conversationId === selectedConversation._id) {
+        setMessages(prev => [...prev, message]);
+      }
+      // Update conversations list
+      setConversations(prev =>
+        prev.map(conv =>
+          conv._id === message.conversationId
+            ? { ...conv, lastMessage: message, lastMessageTime: message.timestamp }
+            : conv
+        )
+      );
+    });
+
+    return () => {
+      socket.off("new-social-message");
+    };
   }, [selectedConversation]);
 
   // Track mobile breakpoint on client to avoid using `window` during render
@@ -225,30 +115,23 @@ function MessagesPage() {
     }
   }, [unreadMessageId]);
 
-  const handleSendMessage = () => {
-    if (messageInput.trim() || file) {
-      const newMessage: Message = {
-        id: messages.length + 1,
-        sender: "You",
-        senderAvatar: "👤",
-        content: messageInput,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        isSent: true,
-        read: false,
-        delivered: true,
-        seen: false,
-        imageUrl: imagePreview || undefined,
-        replyTo,
-        reactions: [],
-      };
-      setMessages([...messages, newMessage]);
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !selectedConversation) return;
+
+    try {
+      const res = await api.post(`/social/chat/conversations/${selectedConversation._id}/messages`, {
+        content: messageInput.trim(),
+      });
+
+      // Emit to socket
+      socket.emit("send-social-message", {
+        toUserId: selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id,
+        message: res.data,
+      });
+
       setMessageInput("");
-      setFile(null);
-      setImagePreview(null);
-      setReplyTo(null);
-      setShowEmoji(false);
-      setIsTyping(true);
-      setTimeout(() => setIsTyping(false), 1500);
+    } catch (error) {
+      console.error("Failed to send message:", error);
     }
   };
 
@@ -267,14 +150,15 @@ function MessagesPage() {
     }
   };
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    const otherParticipant = conv.participants.find(p => p._id !== localStorage.getItem("userId"));
+    return otherParticipant?.username.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
-  function handleReact(message: Message, emoji: string) {
+  function handleReact(message: SocialMessage, emoji: string) {
     setMessages((msgs) =>
       msgs.map((m) =>
-        m.id === message.id
+        m._id === message._id
           ? { ...m, reactions: [...(m.reactions || []), { type: emoji, by: "You" }] }
           : m
       )
@@ -282,10 +166,10 @@ function MessagesPage() {
   }
 
   // Edit message
-  function handleEditMessage(messageId: number, newContent: string) {
+  function handleEditMessage(messageId: string, newContent: string) {
     setMessages((msgs) =>
       msgs.map((m) =>
-        m.id === messageId ? { ...m, content: newContent } : m
+        m._id === messageId ? { ...m, content: newContent } : m
       )
     );
     setEditingMessageId(null);
@@ -293,8 +177,8 @@ function MessagesPage() {
   }
 
   // Delete message
-  function handleDeleteMessage(messageId: number) {
-    setMessages((msgs) => msgs.filter((m) => m.id !== messageId));
+  function handleDeleteMessage(messageId: string) {
+    setMessages((msgs) => msgs.filter((m) => m._id !== messageId));
   }
 
   // Filtered messages for search
@@ -327,9 +211,9 @@ function MessagesPage() {
         <div className="flex-1 overflow-y-auto">
           {filteredConversations.map((conversation, idx) => (
             <button
-              key={conversation.id}
+              key={conversation._id}
               onClick={() => setSelectedConversation(conversation)}
-              className={`w-full px-4 py-3.5 flex items-center gap-3 transition-all duration-200 border-b border-slate-700/50 hover:bg-slate-800/50 ${selectedConversation?.id === conversation.id
+              className={`w-full px-4 py-3.5 flex items-center gap-3 transition-all duration-200 border-b border-slate-700/50 hover:bg-slate-800/50 ${selectedConversation?._id === conversation._id
                 ? "bg-slate-800 border-l-4 border-l-purple-500"
                 : ""
                 }`}
@@ -337,39 +221,24 @@ function MessagesPage() {
               {/* Avatar */}
               <div className="relative flex-shrink-0">
                 <div
-                  className={`w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold shadow-lg ${idx % 3 === 0
-                    ? "from-purple-500 to-pink-500"
-                    : idx % 3 === 1
-                      ? "from-blue-500 to-cyan-500"
-                      : "from-green-500 to-emerald-500"
-                    }`}
+                  className={`w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold shadow-lg from-purple-500 to-pink-500`}
                 >
-                  {conversation.avatar}
+                  {conversation.participants.find(p => p._id !== localStorage.getItem("userId"))?.username.charAt(0) || "?"}
                 </div>
-                {conversation.isOnline && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900 shadow-lg" />
-                )}
               </div>
 
               {/* Conversation Info */}
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center justify-between gap-2 mb-0.5">
                   <span className="font-bold text-sm text-slate-50 truncate">
-                    {conversation.name}
+                    {conversation.participants.find(p => p._id !== localStorage.getItem("userId"))?.username || "Unknown"}
                   </span>
                   <span className="text-xs text-slate-500 flex-shrink-0">
-                    {conversation.lastMessageTime}
+                    {new Date(conversation.lastMessageTime).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 truncate">{conversation.lastMessage}</p>
+                <p className="text-xs text-slate-400 truncate">{conversation.lastMessage?.content || "No messages yet"}</p>
               </div>
-
-              {/* Unread Badge */}
-              {conversation.unread > 0 && (
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center shadow-lg">
-                  <span className="text-xs font-black text-white">{conversation.unread}</span>
-                </div>
-              )}
             </button>
           ))}
         </div>
@@ -399,14 +268,14 @@ function MessagesPage() {
                 <ChevronLeft size={20} />
               </button>
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-base sm:text-lg font-bold shadow-lg">
-                {selectedConversation.avatar}
+                {selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?.username.charAt(0) || "?"}
               </div>
               <div>
                 <h3 className="font-black text-slate-50 text-sm sm:text-base">
-                  {selectedConversation.name}
+                  {selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?.username || "Unknown"}
                 </h3>
                 <p className="text-xs text-green-400 font-medium">
-                  {selectedConversation.isOnline ? "● active now" : "● away"}
+                  ● active now
                 </p>
               </div>
             </div>
@@ -429,12 +298,12 @@ function MessagesPage() {
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col bg-slate-900">
             {filteredMessages.map((message) => (
               <div
-                key={message.id}
-                id={`msg-${message.id}`}
-                className={`flex ${message.isSent ? "justify-end" : "justify-start"} animate-slideInUp group relative`}
+                key={message._id}
+                id={`msg-${message._id}`}
+                className={`flex ${message.senderId === localStorage.getItem("userId") ? "justify-end" : "justify-start"} animate-slideInUp group relative`}
               >
                 <div
-                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${message.isSent
+                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${message.senderId === localStorage.getItem("userId")
                     ? "bg-purple-600 border-purple-500 text-white shadow-lg"
                     : "bg-slate-800 border-slate-700 text-slate-50"
                     }`}
@@ -448,26 +317,23 @@ function MessagesPage() {
                     <img src={message.imageUrl} alt="attachment" className="mb-2 rounded-lg max-w-[180px]" />
                   )}
                   {/* Edit mode */}
-                  {editingMessageId === message.id ? (
+                  {editingMessageId === message._id ? (
                     <div className="flex gap-2 items-center">
                       <input
                         value={editInput}
                         onChange={e => setEditInput(e.target.value)}
                         className="flex-1 px-2 py-1 rounded bg-slate-700 text-white text-xs"
                       />
-                      <button onClick={() => handleEditMessage(message.id, editInput)} className="text-green-400 text-xs">Save</button>
+                      <button onClick={() => handleEditMessage(message._id, editInput)} className="text-green-400 text-xs">Save</button>
                       <button onClick={() => { setEditingMessageId(null); setEditInput(""); }} className="text-slate-400 text-xs">Cancel</button>
                     </div>
                   ) : (
                     <p className="text-sm leading-relaxed">{message.content}</p>
                   )}
                   <div className="flex items-center gap-1 mt-1.5">
-                    <span className={`text-xs font-medium ${message.isSent ? "text-purple-200" : "text-slate-400"}`}>{message.timestamp}</span>
-                    {message.isSent && (
-                      <span className="ml-1 flex items-center gap-0.5">
-                        {message.seen ? <CheckCheck size={16} className="text-blue-400" /> : message.delivered ? <CheckCheck size={16} className="text-slate-300" /> : <Check size={16} className="text-slate-300" />}
-                      </span>
-                    )}
+                    <span className={`text-xs font-medium ${message.senderId === localStorage.getItem("userId") ? "text-purple-200" : "text-slate-400"}`}>
+                      {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
                   </div>
                   {/* Reactions with tooltip for who reacted */}
                   <div className="flex gap-1 mt-1">
@@ -486,8 +352,8 @@ function MessagesPage() {
                   {/* Message actions */}
                   <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition flex gap-1">
                     <button onClick={() => setReplyTo(message)} title="Reply" className="p-1 text-xs hover:text-purple-400"><CornerUpLeft size={14} /></button>
-                    <button onClick={() => setReactionPickerFor(message.id)} title="React" className="p-1 text-xs hover:text-purple-400"><Smile size={14} /></button>
-                    {reactionPickerFor === message.id && (
+                    <button onClick={() => setReactionPickerFor(message._id)} title="React" className="p-1 text-xs hover:text-purple-400"><Smile size={14} /></button>
+                    {reactionPickerFor === message._id && (
                       <div className="absolute z-50 top-8 right-0">
                         <Picker
                           data={data}
@@ -502,10 +368,10 @@ function MessagesPage() {
                       </div>
                     )}
                     {/* Edit/Delete for own messages */}
-                    {message.isSent && (
+                    {message.senderId === localStorage.getItem("userId") && (
                       <>
-                        <button onClick={() => { setEditingMessageId(message.id); setEditInput(message.content); }} title="Edit" className="p-1 text-xs hover:text-blue-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" /></svg></button>
-                        <button onClick={() => handleDeleteMessage(message.id)} title="Delete" className="p-1 text-xs hover:text-red-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg></button>
+                        <button onClick={() => { setEditingMessageId(message._id); setEditInput(message.content); }} title="Edit" className="p-1 text-xs hover:text-blue-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" /></svg></button>
+                        <button onClick={() => handleDeleteMessage(message._id)} title="Delete" className="p-1 text-xs hover:text-red-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg></button>
                       </>
                     )}
                   </div>

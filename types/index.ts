@@ -67,3 +67,74 @@ export interface Post {
   liked?: boolean;
   saved?: boolean;
 }
+
+// Chat Types
+export type HouseType = "group_chat" | "community" | "house" | "broadcast";
+
+export interface House {
+  _id: string;
+  name: string;
+  description: string;
+  purpose: string;
+  type: "group_chat" | "community" | "house" | "broadcast";
+  level: number;
+  influence: number;
+  members: number;
+  isPrivate: boolean;
+  isPinned: boolean;
+  createdAt: string;
+  foundedBy: string;
+  crest?: string;
+  channels: Channel[];
+  allyHouses: string[];
+  rivalHouses: string[];
+  history: string[];
+}
+
+export interface Channel {
+  _id: string;
+  houseId: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface HouseMessage {
+  _id: string;
+  houseId: string;
+  channelId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface Conversation {
+  _id: string;
+  participants: User[];
+  lastMessage?: SocialMessage;
+  lastMessageTime: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SocialMessage {
+  _id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  delivered: boolean;
+  reactions?: { type: string; by: string }[];
+  replyTo?: SocialMessage;
+  imageUrl?: string;
+}
+
+export interface User {
+  _id: string;
+  username: string;
+  displayName?: string;
+}

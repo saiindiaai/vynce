@@ -1,67 +1,29 @@
 "use client";
 
+import { api } from "@/lib/api";
+import socket from "@/lib/socket";
 import { useAppStore } from "@/lib/store";
+import { House, HouseMessage, HouseType } from "@/types";
 import {
-    ChevronRight,
-    Copy,
-    Hash,
-    Home,
-    Lock,
-    Mail,
-    Menu,
-    MessageCircle,
-    MessageSquare,
-    MoreVertical,
-    Plus,
-    Radio,
-    Search,
-    Send,
-    Share2,
-    Users,
-    X
+  ChevronRight,
+  Copy,
+  Hash,
+  Home,
+  Lock,
+  Mail,
+  Menu,
+  MessageCircle,
+  MessageSquare,
+  MoreVertical,
+  Plus,
+  Radio,
+  Search,
+  Send,
+  Share2,
+  Users,
+  X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-type HouseType = "group_chat" | "community" | "house" | "broadcast";
-
-interface House {
-  id: string;
-  name: string;
-  description: string;
-  purpose: string;
-  type: HouseType;
-  level: number;
-  influence: number;
-  members: number;
-  isPrivate: boolean;
-  isPinned: boolean;
-  createdAt: number;
-  foundedBy: string;
-  crest?: string;
-  channels: Channel[];
-  allyHouses: string[];
-  rivalHouses: string[];
-  history: string[];
-}
-
-interface Channel {
-  id: string;
-  houseId: string;
-  name: string;
-  description: string;
-  isPrivate: boolean;
-  createdAt: number;
-}
-
-interface Message {
-  id: string;
-  houseId: string;
-  channelId: string;
-  userId: string;
-  userName: string;
-  content: string;
-  timestamp: number;
-}
 
 interface HouseMember {
   id: string;
@@ -81,7 +43,7 @@ const LOCAL_MEMBERS_KEY = "vynce_house_members_hierarchical";
 export default function VynceHousePage() {
   const { showToast } = useAppStore();
   const [houses, setHouses] = useState<House[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [channelMessages, setChannelMessages] = useState<HouseMessage[]>([]);
   const [selectedHouseId, setSelectedHouseId] = useState<string | null>(null);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,7 +52,7 @@ export default function VynceHousePage() {
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [newHouseName, setNewHouseName] = useState("");
   const [newHouseDescription, setNewHouseDescription] = useState("");
-  const [newHouseType, setNewHouseType] = useState<HouseType>("group_chat");
+  const [newHouseType, setNewHouseType] = useState<House["type"]>("group_chat");
   const [newHousePrivate, setNewHousePrivate] = useState(false);
   const [newHousePurpose, setNewHousePurpose] = useState("");
   const [newChannelName, setNewChannelName] = useState("");
@@ -110,59 +72,77 @@ export default function VynceHousePage() {
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touching, setTouching] = useState(false);
 
-  // Load from localStorage
+  // Load houses from API
   useEffect(() => {
-    try {
-      const savedHouses = localStorage.getItem(LOCAL_HOUSES_KEY);
-      const savedMessages = localStorage.getItem(LOCAL_MESSAGES_KEY);
-      const savedMembers = localStorage.getItem(LOCAL_MEMBERS_KEY);
-      if (savedHouses) {
-        const parsedHouses = JSON.parse(savedHouses);
-        setHouses(parsedHouses);
-        if (parsedHouses.length > 0) {
-          setSelectedHouseId(parsedHouses[0].id);
-          if (parsedHouses[0].channels.length > 0) {
-            setSelectedChannelId(parsedHouses[0].channels[0].id);
-            setExpandedHouses(new Set([parsedHouses[0].id]));
+    const loadHouses = async () => {
+      try {
+        const res = await api.get("/houses");
+        setHouses(res.data);
+        if (res.data.length > 0) {
+          setSelectedHouseId(res.data[0]._id);
+          if (res.data[0].channels.length > 0) {
+            setSelectedChannelId(res.data[0].channels[0]._id);
+            setExpandedHouses(new Set([res.data[0]._id]));
           }
         }
+      } catch (error) {
+        console.error("Failed to load houses:", error);
       }
-      if (savedMessages) setMessages(JSON.parse(savedMessages));
-      if (savedMembers) setMembers(JSON.parse(savedMembers));
-    } catch (err) {
-      // ignore
-    }
+    };
+    loadHouses();
   }, []);
 
-  // Save to localStorage
+  // Load messages when channel changes
   useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_HOUSES_KEY, JSON.stringify(houses));
-    } catch (err) {
-      // ignore
+    if (selectedHouseId && selectedChannelId) {
+      const loadMessages = async () => {
+        try {
+          const res = await api.get(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages`);
+          setChannelMessages(res.data);
+        } catch (error) {
+          console.error("Failed to load messages:", error);
+        }
+      };
+      loadMessages();
     }
-  }, [houses]);
+  }, [selectedHouseId, selectedChannelId]);
 
+  // Socket setup
   useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_MESSAGES_KEY, JSON.stringify(messages));
-    } catch (err) {
-      // ignore
+    const userId = localStorage.getItem("userId"); // Assuming userId is stored
+    if (userId) {
+      socket.emit("join-user-room", userId);
     }
-  }, [messages]);
 
+    socket.on("new-house-message", (message: HouseMessage) => {
+      if (message.houseId === selectedHouseId && message.channelId === selectedChannelId) {
+        setChannelMessages(prev => [...prev, message]);
+      }
+    });
+
+    return () => {
+      socket.off("new-house-message");
+    };
+  }, [selectedHouseId, selectedChannelId]);
+
+  // Join/leave house channels
   useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_MEMBERS_KEY, JSON.stringify(members));
-    } catch (err) {
-      // ignore
+    if (selectedHouseId && selectedChannelId) {
+      const userId = localStorage.getItem("userId");
+      socket.emit("join-house-channel", { houseId: selectedHouseId, channelId: selectedChannelId, userId });
     }
-  }, [members]);
+
+    return () => {
+      if (selectedHouseId && selectedChannelId) {
+        socket.emit("leave-house-channel", { houseId: selectedHouseId, channelId: selectedChannelId });
+      }
+    };
+  }, [selectedHouseId, selectedChannelId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [channelMessages]);
 
   const getTypeIcon = (type: HouseType) => {
     switch (type) {
@@ -194,100 +174,73 @@ export default function VynceHousePage() {
     }
   };
 
-  const createHouse = () => {
+  const createHouse = async () => {
     if (!newHouseName.trim() || !newHousePurpose.trim()) {
       showToast?.("Please enter house name and purpose", "warning");
       return;
     }
 
-    const houseId = `house_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const defaultChannel: Channel = {
-      id: `ch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      houseId,
-      name: "general",
-      description: "General discussion",
-      isPrivate: false,
-      createdAt: Date.now(),
-    };
+    try {
+      const res = await api.post("/houses", {
+        name: newHouseName.trim(),
+        description: newHouseDescription.trim(),
+        purpose: newHousePurpose.trim(),
+        type: newHouseType,
+      });
 
-    const house: House = {
-      id: houseId,
-      name: newHouseName.trim(),
-      description: newHouseDescription.trim(),
-      purpose: newHousePurpose.trim(),
-      type: newHouseType,
-      level: 1,
-      influence: 0,
-      members: 1,
-      isPrivate: newHousePrivate,
-      isPinned: false,
-      createdAt: Date.now(),
-      foundedBy: "You",
-      channels: [defaultChannel],
-      allyHouses: [],
-      rivalHouses: [],
-      history: [`House ${newHouseName} founded with purpose: ${newHousePurpose}`],
-    };
-
-    setHouses((prev) => [house, ...prev]);
-    setMembers((prev) => ({
-      ...prev,
-      [houseId]: [
-        {
-          id: "current_user",
-          username: "You",
-          role: "founder",
-          joinedAt: Date.now(),
-          isOnline: true,
-          influence: 50,
-          loyalty: 100,
-          powers: ["House Leadership", "Channel Management", "Member Invite"],
-        },
-      ],
-    }));
-    showToast?.(`House "${newHouseName}" established! Your destiny awaits.`, "success");
-    setNewHouseName("");
-    setNewHouseDescription("");
-    setNewHousePurpose("");
-    setNewHouseType("group_chat");
-    setNewHousePrivate(false);
-    setShowCreateHouseModal(false);
-    setSelectedHouseId(houseId);
-    setSelectedChannelId(defaultChannel.id);
-    setExpandedHouses((prev) => new Set([...prev, houseId]));
+      // Add the created house to the state
+      setHouses((prev) => [res.data, ...prev]);
+      showToast?.(`House "${newHouseName}" established! Your destiny awaits.`, "success");
+      setNewHouseName("");
+      setNewHouseDescription("");
+      setNewHousePurpose("");
+      setNewHouseType("group_chat");
+      setNewHousePrivate(false);
+      setShowCreateHouseModal(false);
+      setSelectedHouseId(res.data._id);
+      if (res.data.channels && res.data.channels.length > 0) {
+        setSelectedChannelId(res.data.channels[0]._id);
+        setExpandedHouses((prev) => new Set([...prev, res.data._id]));
+      }
+    } catch (error) {
+      console.error("Failed to create house:", error);
+      showToast?.("Failed to create house", "error");
+    }
   };
 
-  const createChannel = () => {
+  const createChannel = async () => {
     if (!newChannelName.trim() || !selectedHouseId) {
       showToast?.("Please enter a channel name", "warning");
       return;
     }
 
-    const channel: Channel = {
-      id: `ch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      houseId: selectedHouseId,
-      name: newChannelName.trim().toLowerCase().replace(/\s+/g, "-"),
-      description: newChannelDescription.trim(),
-      isPrivate: newChannelPrivate,
-      createdAt: Date.now(),
-    };
+    try {
+      const res = await api.post(`/houses/${selectedHouseId}/channels`, {
+        name: newChannelName.trim().toLowerCase().replace(/\s+/g, "-"),
+        description: newChannelDescription.trim(),
+      });
 
-    setHouses((prev) =>
-      prev.map((h) =>
-        h.id === selectedHouseId ? { ...h, channels: [...h.channels, channel] } : h
-      )
-    );
+      // Update houses state
+      setHouses((prev) =>
+        prev.map((h) =>
+          h._id === selectedHouseId ? { ...h, channels: [...h.channels, res.data] } : h
+        )
+      );
 
-    showToast?.(`Channel #${channel.name} created!`, "success");
-    setNewChannelName("");
-    setNewChannelDescription("");
-    setNewChannelPrivate(false);
-    setShowCreateChannelModal(false);
-    setSelectedChannelId(channel.id);
+      showToast?.(`Channel #${res.data.name} created!`, "success");
+      setNewChannelName("");
+      setNewChannelDescription("");
+      setNewChannelPrivate(false);
+      setShowCreateChannelModal(false);
+      setSelectedChannelId(res.data._id);
+    } catch (error) {
+      console.error("Failed to create channel:", error);
+      showToast?.("Failed to create channel", "error");
+    }
   };
 
   const joinHouse = (houseId: string) => {
-    const house = houses.find(h => h.id === houseId);
+    const house = houses.find(h => h._id === houseId);
     if (!house) return;
 
     // Check if already a member
@@ -317,14 +270,14 @@ export default function VynceHousePage() {
     // Update house members count
     setHouses((prev) =>
       prev.map((h) =>
-        h.id === houseId ? { ...h, members: h.members + 1 } : h
+        h._id === houseId ? { ...h, members: h.members + 1 } : h
       )
     );
 
     showToast?.(`Joined ${house.name}!`, "success");
     setSelectedHouseId(houseId);
     if (house.channels.length > 0) {
-      setSelectedChannelId(house.channels[0].id);
+      setSelectedChannelId(house.channels[0]._id);
       setExpandedHouses((prev) => new Set([...prev, houseId]));
     }
     setShowGlobalSearch(false);
@@ -332,7 +285,7 @@ export default function VynceHousePage() {
 
   const shareHouse = (option: string) => {
     if (!selectedHouse) return;
-    const houseUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse.id}`;
+    const houseUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse._id}`;
     const shareText = `Check out "${selectedHouse.name}" on Vynce! 🏰\n${selectedHouse.description}\nLevel: ${selectedHouse.level} | Influence: ${selectedHouse.influence}`;
 
     switch (option) {
@@ -359,21 +312,25 @@ export default function VynceHousePage() {
     setShowShareHouseSheet(false);
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!messageInput.trim() || !selectedHouseId || !selectedChannelId) return;
 
-    const message: Message = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      houseId: selectedHouseId,
-      channelId: selectedChannelId,
-      userId: "current_user",
-      userName: "You",
-      content: messageInput.trim(),
-      timestamp: Date.now(),
-    };
+    try {
+      const res = await api.post(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages`, {
+        content: messageInput.trim(),
+      });
 
-    setMessages((prev) => [...prev, message]);
-    setMessageInput("");
+      // Emit to socket
+      socket.emit("send-house-message", {
+        houseId: selectedHouseId,
+        channelId: selectedChannelId,
+        message: res.data,
+      });
+
+      setMessageInput("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
   };
 
   const toggleHouseExpand = (houseId: string) => {
@@ -416,25 +373,25 @@ export default function VynceHousePage() {
           </div>
         ) : (
           houses.map((house) => (
-            <div key={house.id}>
+            <div key={house._id}>
               {/* House Item */}
               <button
                 onClick={() => {
-                  setSelectedHouseId(house.id);
-                  toggleHouseExpand(house.id);
+                  setSelectedHouseId(house._id);
+                  toggleHouseExpand(house._id);
                   if (house.channels.length > 0) {
-                    setSelectedChannelId(house.channels[0].id);
+                    setSelectedChannelId(house.channels[0]._id);
                   }
                   setShowHousesSidebar(false);
                 }}
-                className={`w-full flex items-start gap-2 px-3 py-2 rounded-lg transition-all text-left text-sm font-medium ${selectedHouseId === house.id
+                className={`w-full flex items-start gap-2 px-3 py-2 rounded-lg transition-all text-left text-sm font-medium ${selectedHouseId === house._id
                   ? "bg-purple-600/30 text-purple-200"
                   : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
                   }`}
               >
                 <ChevronRight
                   size={16}
-                  className={`transition-transform flex-shrink-0 mt-0.5 ${expandedHouses.has(house.id) ? "rotate-90" : ""
+                  className={`transition-transform flex-shrink-0 mt-0.5 ${expandedHouses.has(house._id) ? "rotate-90" : ""
                     }`}
                 />
                 <div className={`p-1 rounded flex-shrink-0 mt-0.5 ${getTypeColor(house.type)}`}>
@@ -452,16 +409,16 @@ export default function VynceHousePage() {
               </button>
 
               {/* Channels (expandable) */}
-              {expandedHouses.has(house.id) && (
+              {expandedHouses.has(house._id) && (
                 <div className="ml-4 space-y-0.5 py-1 border-l border-slate-700/30 pl-2">
                   {house.channels.map((channel) => (
                     <button
-                      key={channel.id}
+                      key={channel._id}
                       onClick={() => {
-                        setSelectedChannelId(channel.id);
+                        setSelectedChannelId(channel._id);
                         setShowHousesSidebar(false);
                       }}
-                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all text-left ${selectedChannelId === channel.id
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all text-left ${selectedChannelId === channel._id
                         ? "bg-purple-600/20 text-purple-200"
                         : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-300"
                         }`}
@@ -472,7 +429,7 @@ export default function VynceHousePage() {
                   ))}
 
                   {/* Create Channel Button */}
-                  {selectedHouseId === house.id && (
+                  {selectedHouseId === house._id && (
                     <button
                       onClick={() => setShowCreateChannelModal(true)}
                       className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-slate-500 hover:bg-slate-800/40 hover:text-slate-400 transition-all text-left"
@@ -490,13 +447,8 @@ export default function VynceHousePage() {
     </>
   );
 
-  const selectedHouse = houses.find((h) => h.id === selectedHouseId);
-  const selectedChannel = selectedHouse?.channels.find((c) => c.id === selectedChannelId);
-  const channelMessages = selectedChannelId
-    ? messages
-      .filter((m) => m.channelId === selectedChannelId)
-      .sort((a, b) => a.timestamp - b.timestamp)
-    : [];
+  const selectedHouse = houses.find((h) => h._id === selectedHouseId);
+  const selectedChannel = selectedHouse?.channels.find((c) => c._id === selectedChannelId);
   const houseMembers = selectedHouseId ? (members[selectedHouseId] || []) : [];
 
   return (
@@ -689,7 +641,7 @@ export default function VynceHousePage() {
                   </div>
                 ) : (
                   channelMessages.map((msg) => (
-                    <div key={msg.id} className="group">
+                    <div key={msg._id} className="group">
                       <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-800/30 transition-all">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                           {msg.userName.charAt(0)}
@@ -1156,7 +1108,7 @@ export default function VynceHousePage() {
                 )
                 .map((house) => (
                   <div
-                    key={house.id}
+                    key={house._id}
                     className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/30 hover:border-slate-700/60 transition-all cursor-pointer group"
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -1179,7 +1131,7 @@ export default function VynceHousePage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => joinHouse(house.id)}
+                        onClick={() => joinHouse(house._id)}
                         className="ml-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold rounded-lg transition-all flex-shrink-0"
                       >
                         Join
@@ -1270,13 +1222,13 @@ export default function VynceHousePage() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    value={`${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse.id}`}
+                    value={`${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse._id}`}
                     readOnly
                     className={`flex-1 px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-slate-50 outline-none min-h-[40px] text-sm`}
                   />
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse.id}`);
+                      navigator.clipboard.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse._id}`);
                       showToast?.("House link copied!", "success");
                     }}
                     className={`px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold hover:scale-105 transition-transform focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
