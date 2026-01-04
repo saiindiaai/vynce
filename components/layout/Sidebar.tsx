@@ -5,6 +5,7 @@ import {
   Activity,
   AlertCircle,
   ArrowLeft,
+  Bell,
   Bookmark,
   ChevronDown,
   Code,
@@ -38,6 +39,7 @@ export default function Sidebar() {
 
   const moreMenuItems = [
     { id: "creator_hub" as const, label: "Creator Hub", icon: Code },
+    { id: "notifications" as const, label: "Notifications", icon: Bell },
     { id: "activity" as const, label: "Your Activity", icon: Activity },
     { id: "saved" as const, label: "Saved", icon: Bookmark },
     { id: "report" as const, label: "Report a Problem", icon: AlertCircle },

@@ -23,106 +23,106 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
 
   const menuItems = isOwnPost
     ? [
-        {
-          id: "delete",
-          label: "Delete Post",
-          icon: XCircle,
-          color: "text-red-500",
-          action: async () => {
-            try {
-              if (variant === "drops") {
-                await deleteDrop(postId);
-              } else {
-                await deletePost(postId);
-              }
-              // TODO: Remove post from UI or refresh feed
-              console.log("Post deleted");
-            } catch (error) {
-              console.error("Failed to delete post:", error);
+      {
+        id: "delete",
+        label: "Delete Post",
+        icon: XCircle,
+        color: "text-red-500",
+        action: async () => {
+          try {
+            if (variant === "drops") {
+              await deleteDrop(postId);
+            } else {
+              await deletePost(postId);
             }
-            onClose();
-          },
+            // TODO: Remove post from UI or refresh feed
+            console.log("Post deleted");
+          } catch (error) {
+            console.error("Failed to delete post:", error);
+          }
+          onClose();
         },
-        {
-          id: "edit",
-          label: "Edit Post",
-          icon: Star,
-          color: themeClasses.textPrimary,
-          action: () => console.log("Edit post"),
+      },
+      {
+        id: "edit",
+        label: "Edit Post",
+        icon: Star,
+        color: themeClasses.textPrimary,
+        action: () => console.log("Edit post"),
+      },
+      {
+        id: "copy-link",
+        label: "Copy Link",
+        icon: Link2,
+        color: themeClasses.textPrimary,
+        action: () => {
+          navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
+          onClose();
         },
-        {
-          id: "copy-link",
-          label: "Copy Link",
-          icon: Link2,
-          color: themeClasses.textPrimary,
-          action: () => {
-            navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
-            onClose();
-          },
-        },
-      ]
+      },
+    ]
     : [
-        {
-          id: "interested",
-          label: "I WANT THIS MOREEEEEEEE",
-          icon: Star,
-          color: themeClasses.textPrimary,
-          action: () => {
-            console.log("Interested");
-            onClose();
-          },
+      {
+        id: "interested",
+        label: "This matches my Aura",
+        icon: Star,
+        color: themeClasses.textPrimary,
+        action: () => {
+          console.log("Interested");
+          onClose();
         },
-        {
-          id: "not-interested",
-          label: "I DON'T WANT THISSSSSSSS",
-          icon: EyeOff,
-          color: themeClasses.textPrimary,
-          action: () => {
-            console.log("Not interested");
-            onClose();
-          },
+      },
+      {
+        id: "not-interested",
+        label: "This doesn't match my Aura",
+        icon: EyeOff,
+        color: themeClasses.textPrimary,
+        action: () => {
+          console.log("Not interested");
+          onClose();
         },
-        {
-          id: "follow",
-          label: "ADD HIM TO IN GANG",
-          icon: UserPlus,
-          color: themeClasses.textPrimary,
-          action: () => {
-            console.log("Follow");
-            onClose();
-          },
+      },
+      {
+        id: "follow",
+        label: "Add to In Gang",
+        icon: UserPlus,
+        color: themeClasses.textPrimary,
+        action: () => {
+          console.log("Follow");
+          onClose();
         },
-        {
-          id: "save",
-          label: "MARK THIS DROP",
-          icon: Bookmark,
-          color: themeClasses.textPrimary,
-          action: () => {
-            console.log("Save");
-            onClose();
-          },
+      },
+      {
+        id: "save",
+        label: "Save",
+        icon: Bookmark,
+        color: themeClasses.textPrimary,
+        action: () => {
+          console.log("Save");
+          onClose();
         },
-        {
-          id: "copy-link",
-          label: "COPY LINK",
-          icon: Link2,
-          color: themeClasses.textPrimary,
-          action: () => {
-            navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
-            onClose();
-          },
+      },
+      {
+        id: "copy-link",
+        label: "Copy Link",
+        icon: Link2,
+        color: themeClasses.textPrimary,
+        action: () => {
+          navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
+          onClose();
         },
-        {
-          id: "report",
-          label: "ORDER VIOLATION",
-          icon: Flag,
-          color: "text-red-500",
-          action: () => {
-            console.log("Report");
-            onClose();
-          },
+      },
+      {
+        id: "report",
+        label: "Order Violation",
+        icon: Flag,
+        color: "text-red-500",
+        action: () => {
+          console.log("Report");
+          onClose();
         },
-      ];
+      },
+    ];
 
   return (
     <>
@@ -142,9 +142,8 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
               <button
                 key={item.id}
                 onClick={item.action}
-                className={`w-full flex items-center gap-4 p-4 transition-all hover:bg-gray-700/30 animate-slideIn ${
-                  item.id === "report" || item.id === "delete" ? "hover:bg-red-500/10" : ""
-                }`}
+                className={`w-full flex items-center gap-4 p-4 transition-all hover:bg-gray-700/30 animate-slideIn ${item.id === "report" || item.id === "delete" ? "hover:bg-red-500/10" : ""
+                  }`}
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
                 <item.icon size={22} className={item.color} />

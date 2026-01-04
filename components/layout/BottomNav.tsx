@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
-import { Gavel, Home, PlayCircle, Radio } from "lucide-react";
+import { Gavel, Home, Link as LinkIcon, PlayCircle, Radio } from "lucide-react";
 
 export default function BottomNav() {
   const { currentPage, setCurrentPage } = useAppStore();
@@ -9,6 +9,7 @@ export default function BottomNav() {
   const navItems = [
     { id: "home" as const, label: "Home", icon: Home },
     { id: "capsules" as const, label: "Capsules", icon: PlayCircle },
+    { id: "drops" as const, label: "Drops", icon: LinkIcon },
     { id: "vynce_house" as const, label: "House", icon: Radio },
     { id: "fight" as const, label: "Fight", icon: Gavel },
   ];

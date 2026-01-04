@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
-import { Menu, Bell, MessageCircle } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { Bell, Menu, MessageCircle, Plus } from "lucide-react";
 
 export default function TopBar() {
   const { currentPage, setCurrentPage, toggleSidebar } = useAppStore();
@@ -29,16 +28,28 @@ export default function TopBar() {
         {/* Center: Empty space for future use */}
         <div className="flex-1" />
 
-        {/* Right: Messages + Notifications */}
+        {/* Right: Messages + Notifications + Creator Hub */}
         <div className="flex items-center gap-2">
+          {/* Creator Hub (+) Button */}
+          <button
+            onClick={() => setCurrentPage("creator_hub")}
+            className={`p-2 rounded-lg transition-all duration-200 min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === "creator_hub"
+                ? "bg-purple-700 text-white"
+                : "hover:bg-purple-700/70 text-purple-300 hover:text-white"
+              }`}
+            aria-label="Creator Hub"
+            title="Creator Hub"
+          >
+            <Plus size={22} />
+          </button>
+
           {/* Messages Button */}
           <button
             onClick={() => setCurrentPage("messages")}
-            className={`p-2 rounded-lg transition-all duration-200 relative min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
-              currentPage === "messages"
+            className={`p-2 rounded-lg transition-all duration-200 relative min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === "messages"
                 ? "bg-slate-800 text-slate-50"
                 : "hover:bg-slate-800/60 text-slate-300 hover:text-slate-50"
-            }`}
+              }`}
             aria-label="Messages - view your conversations"
             title="Messages"
           >
@@ -54,11 +65,10 @@ export default function TopBar() {
           {/* Notifications Button */}
           <button
             onClick={() => setCurrentPage("notifications")}
-            className={`p-2 rounded-lg transition-all duration-200 relative min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${
-              currentPage === "notifications"
+            className={`p-2 rounded-lg transition-all duration-200 relative min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2 ${currentPage === "notifications"
                 ? "bg-slate-800 text-slate-50"
                 : "hover:bg-slate-800/60 text-slate-300 hover:text-slate-50"
-            }`}
+              }`}
             aria-label="Notifications - view updates and interactions"
             title="Notifications"
           >
