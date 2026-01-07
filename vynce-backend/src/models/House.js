@@ -27,8 +27,14 @@ const houseSchema = new mongoose.Schema({
     default: 0,
   },
   members: {
-    type: Number,
-    default: 0,
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "User",
+    default: [],
+  },
+  pendingMembers: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "User",
+    default: [],
   },
   isPrivate: {
     type: Boolean,

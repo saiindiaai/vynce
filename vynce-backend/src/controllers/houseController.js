@@ -2,6 +2,7 @@ const House = require("../models/House");
 const Channel = require("../models/Channel");
 const HouseMessage = require("../models/HouseMessage");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 
 // Create a new house
 exports.createHouse = async (req, res) => {
@@ -15,6 +16,7 @@ exports.createHouse = async (req, res) => {
       purpose,
       type,
       foundedBy: userId,
+      members: [userId],
     });
 
     // Create default #general channel
@@ -59,6 +61,95 @@ exports.getHouse = async (req, res) => {
   }
 };
 
+// Join a house
+exports.joinHouse = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Check if already a member
+    if (house.members.some(id => String(id) === String(userId))) {
+      return res.status(400).json({ message: "Already a member of this house" });
+    }
+
+    // Check if request already pending
+    if (house.pendingMembers.some(id => String(id) === String(userId))) {
+      return res.status(400).json({ message: "Join request already pending" });
+    }
+
+    // Add to pending members
+    house.pendingMembers.push(userId);
+    await house.save();
+
+    // Notify house creator
+    const requester = await User.findById(userId);
+    await Notification.create({
+      user: house.foundedBy,
+      type: "HOUSE_JOIN_REQUEST",
+      title: "House join request",
+      message: `${requester.username} requested to join your house`,
+      metadata: { houseId: house._id, requesterId: userId },
+      priority: "HIGH",
+      pinned: true,
+    });
+
+    res.status(200).json({ message: "Join request sent" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Approve a member
+exports.approveMember = async (req, res) => {
+  try {
+    const adminId = req.userId;
+    const houseId = req.params.houseId;
+    const { userId } = req.body; // User to approve
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Only creator can approve
+    if (String(house.foundedBy) !== String(adminId)) {
+      return res.status(403).json({ error: "Only the house creator can approve members" });
+    }
+
+    // Check if user is in pending
+    const pendingIndex = house.pendingMembers.findIndex(id => String(id) === String(userId));
+    if (pendingIndex === -1) {
+      return res.status(400).json({ message: "User not in pending members" });
+    }
+
+    // Move from pending to members
+    house.pendingMembers.splice(pendingIndex, 1);
+    house.members.push(userId);
+    await house.save();
+
+    // Notify the approved user
+    const approver = await User.findById(adminId);
+    await Notification.create({
+      user: userId,
+      type: "HOUSE_JOIN_APPROVED",
+      title: "House join approved",
+      message: `${approver.username} approved your join request for house "${house.name}"`,
+      metadata: { houseId: house._id, approverId: adminId },
+      priority: "HIGH",
+      pinned: true,
+    });
+
+    res.status(200).json({ message: "Member approved successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Create a channel in a house
 exports.createChannel = async (req, res) => {
   try {
@@ -66,20 +157,29 @@ exports.createChannel = async (req, res) => {
     const userId = req.userId;
     const houseId = req.params.houseId;
 
-    // Fetch the house to check if user is the creator
+    // Fetch the house to check permissions
     const house = await House.findById(houseId);
     if (!house) {
       return res.status(404).json({ message: "House not found" });
     }
 
+    const isCreator = String(house.foundedBy) === String(userId);
+    const isApprovedMember = house.members.some(id => String(id) === String(userId));
+
+    console.log("HOUSE CREATOR:", house.foundedBy);
+    console.log("REQUEST USER:", userId);
+    console.log("IS CREATOR:", isCreator);
+    console.log("IS APPROVED MEMBER:", isApprovedMember);
+    console.log("PENDING MEMBERS:", house.pendingMembers);
+
     // Only creator can create channels
-    if (String(house.foundedBy) !== String(userId)) {
-      console.warn("Blocked channel creation for non-creator", {
+    if (!isCreator && !isApprovedMember) {
+      console.warn("Blocked channel creation for non-member", {
         userId: userId,
         houseId: houseId
       });
       return res.status(403).json({
-        error: "Only the house creator can manage channels"
+        error: "You are not allowed to access this chat"
       });
     }
 
@@ -107,20 +207,29 @@ exports.getChannels = async (req, res) => {
     const userId = req.userId;
     const houseId = req.params.houseId;
 
-    // Fetch the house to check if user is the creator
+    // Fetch the house to check permissions
     const house = await House.findById(houseId);
     if (!house) {
       return res.status(404).json({ message: "House not found" });
     }
 
-    // Only creator can access channels
-    if (String(house.foundedBy) !== String(userId)) {
-      console.warn("Blocked channels fetch for non-creator", {
+    const isCreator = String(house.foundedBy) === String(userId);
+    const isApprovedMember = house.members.some(id => String(id) === String(userId));
+
+    console.log("HOUSE CREATOR:", house.foundedBy);
+    console.log("REQUEST USER:", userId);
+    console.log("IS CREATOR:", isCreator);
+    console.log("IS APPROVED MEMBER:", isApprovedMember);
+    console.log("PENDING MEMBERS:", house.pendingMembers);
+
+    // Only creator and approved members can access channels
+    if (!isCreator && !isApprovedMember) {
+      console.warn("Blocked channels fetch for non-member", {
         userId: userId,
         houseId: houseId
       });
       return res.status(403).json({
-        error: "Chat is only accessible to the house creator"
+        error: "You are not allowed to access this chat"
       });
     }
 
@@ -138,20 +247,29 @@ exports.sendMessage = async (req, res) => {
     const userId = req.userId;
     const { houseId, channelId } = req.params;
 
-    // Fetch the house to check if user is the creator
+    // Fetch the house to check permissions
     const house = await House.findById(houseId);
     if (!house) {
       return res.status(404).json({ message: "House not found" });
     }
 
-    // Only creator can send messages
-    if (String(house.foundedBy) !== String(userId)) {
-      console.warn("Blocked chat send for non-creator", {
+    const isCreator = String(house.foundedBy) === String(userId);
+    const isApprovedMember = house.members.some(id => String(id) === String(userId));
+
+    console.log("HOUSE CREATOR:", house.foundedBy);
+    console.log("REQUEST USER:", userId);
+    console.log("IS CREATOR:", isCreator);
+    console.log("IS APPROVED MEMBER:", isApprovedMember);
+    console.log("PENDING MEMBERS:", house.pendingMembers);
+
+    // Only creator and approved members can send messages
+    if (!isCreator && !isApprovedMember) {
+      console.warn("Blocked chat send for non-member", {
         userId: userId,
         houseId: houseId
       });
       return res.status(403).json({
-        error: "Chat is only accessible to the house creator"
+        error: "You are not allowed to access this chat"
       });
     }
 
@@ -178,20 +296,29 @@ exports.getMessages = async (req, res) => {
     const userId = req.userId;
     const { houseId, channelId } = req.params;
 
-    // Fetch the house to check if user is the creator
+    // Fetch the house to check permissions
     const house = await House.findById(houseId);
     if (!house) {
       return res.status(404).json({ message: "House not found" });
     }
 
-    // Only creator can fetch messages
-    if (String(house.foundedBy) !== String(userId)) {
-      console.warn("Blocked chat fetch for non-creator", {
+    const isCreator = String(house.foundedBy) === String(userId);
+    const isApprovedMember = house.members.some(id => String(id) === String(userId));
+
+    console.log("HOUSE CREATOR:", house.foundedBy);
+    console.log("REQUEST USER:", userId);
+    console.log("IS CREATOR:", isCreator);
+    console.log("IS APPROVED MEMBER:", isApprovedMember);
+    console.log("PENDING MEMBERS:", house.pendingMembers);
+
+    // Only creator and approved members can fetch messages
+    if (!isCreator && !isApprovedMember) {
+      console.warn("Blocked chat fetch for non-member", {
         userId: userId,
         houseId: houseId
       });
       return res.status(403).json({
-        error: "Chat is only accessible to the house creator"
+        error: "You are not allowed to access this chat"
       });
     }
 

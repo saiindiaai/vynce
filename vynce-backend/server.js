@@ -64,6 +64,7 @@ const economyRoutes = require("./src/routes/economyRoutes");
 const inventoryRoutes = require("./src/routes/inventoryRoutes");
 const houseRoutes = require("./src/routes/houseRoutes");
 const socialChatRoutes = require("./src/routes/socialChatRoutes");
+const notificationRoutes = require("./src/routes/notificationRoutes");
 
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/store", storeRoutes);
@@ -77,6 +78,7 @@ app.use("/api/social/posts", require("./src/social/routes/postRoutes"));
 app.use("/api/social/drops", require("./src/social/routes/dropRoutes"));
 app.use("/api/houses", houseRoutes);
 app.use("/api/social/chat", socialChatRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 // Socket.IO setup
@@ -95,12 +97,21 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (String(house.foundedBy) !== String(userId)) {
-        console.warn("Blocked socket join for non-creator", {
+      const isCreator = String(house.foundedBy) === String(userId);
+      const isApprovedMember = house.members.some(id => String(id) === String(userId));
+
+      console.log("HOUSE CREATOR:", house.foundedBy);
+      console.log("REQUEST USER:", userId);
+      console.log("IS CREATOR:", isCreator);
+      console.log("IS APPROVED MEMBER:", isApprovedMember);
+      console.log("PENDING MEMBERS:", house.pendingMembers);
+
+      if (!isCreator && !isApprovedMember) {
+        console.warn("Blocked socket join for non-member", {
           userId: userId,
           houseId: houseId
         });
-        socket.emit("error", { message: "Chat is only accessible to the house creator" });
+        socket.emit("error", { message: "You are not allowed to access this chat" });
         return;
       }
 
@@ -127,12 +138,21 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (String(house.foundedBy) !== String(userId)) {
-        console.warn("Blocked socket send for non-creator", {
+      const isCreator = String(house.foundedBy) === String(userId);
+      const isApprovedMember = house.members.some(id => String(id) === String(userId));
+
+      console.log("HOUSE CREATOR:", house.foundedBy);
+      console.log("REQUEST USER:", userId);
+      console.log("IS CREATOR:", isCreator);
+      console.log("IS APPROVED MEMBER:", isApprovedMember);
+      console.log("PENDING MEMBERS:", house.pendingMembers);
+
+      if (!isCreator && !isApprovedMember) {
+        console.warn("Blocked socket send for non-member", {
           userId: userId,
           houseId: houseId
         });
-        socket.emit("error", { message: "Chat is only accessible to the house creator" });
+        socket.emit("error", { message: "You are not allowed to access this chat" });
         return;
       }
 

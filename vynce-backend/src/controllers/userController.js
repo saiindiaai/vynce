@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Drop = require("../social/models/Drop");
 const Post = require("../social/models/Post");
+const Notification = require("../models/Notification");
 const bcrypt = require("bcryptjs");
 const { generateToken } = require("../utils/generateToken");
 
@@ -238,7 +239,7 @@ exports.getUserAura = async (req, res) => {
     ]);
 
     const weeklyAura = ((weeklyDropStats[0]?.totalLikes || 0) + (weeklyPostStats[0]?.totalLikes || 0)) -
-                       ((weeklyDropStats[0]?.totalDislikes || 0) + (weeklyPostStats[0]?.totalDislikes || 0));
+      ((weeklyDropStats[0]?.totalDislikes || 0) + (weeklyPostStats[0]?.totalDislikes || 0));
 
     // Calculate monthly aura
     const monthlyDropStats = await Drop.aggregate([
@@ -264,7 +265,7 @@ exports.getUserAura = async (req, res) => {
     ]);
 
     const monthlyAura = ((monthlyDropStats[0]?.totalLikes || 0) + (monthlyPostStats[0]?.totalLikes || 0)) -
-                        ((monthlyDropStats[0]?.totalDislikes || 0) + (monthlyPostStats[0]?.totalDislikes || 0));
+      ((monthlyDropStats[0]?.totalDislikes || 0) + (monthlyPostStats[0]?.totalDislikes || 0));
 
     // Calculate all-time rank
     // First, get all users' total aura
@@ -796,6 +797,17 @@ exports.followUser = async (req, res) => {
     // Add to target's followers list
     targetUser.followers.push(userId);
     await targetUser.save();
+
+    // Notify the target user
+    await Notification.create({
+      user: targetUserId,
+      type: "NEW_FOLLOWER",
+      title: "New follower",
+      message: `${user.username} started following you`,
+      metadata: { followerId: userId },
+      priority: "NORMAL",
+      pinned: false,
+    });
 
     res.json({
       message: "User followed successfully",

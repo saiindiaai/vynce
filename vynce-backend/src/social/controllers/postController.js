@@ -1,4 +1,6 @@
 const Post = require("../models/Post");
+const Notification = require("../../models/Notification");
+const User = require("../../models/User");
 
 /* CREATE POST */
 exports.createPost = async (req, res) => {
@@ -83,14 +85,22 @@ exports.getFeed = async (req, res) => {
    TOGGLE LIKE / UNLIKE
 ================================ */
 exports.toggleLike = async (req, res) => {
+  console.log("LIKE CONTROLLER HIT");
+  console.log("REQ USER ID:", req.userId);
   try {
     const { id: postId } = req.params;
     const userId = req.userId;
 
+    console.log("POST ID:", postId);
+    console.log("USER ID:", userId);
+
     const post = await Post.findById(postId);
     if (!post) {
+      console.log("POST NOT FOUND");
       return res.status(404).json({ message: "Post not found" });
     }
+
+    console.log("POST AUTHOR:", post.author);
 
     const likeIndex = post.likes.findIndex((uid) =>
       uid.equals(userId)
@@ -113,6 +123,26 @@ exports.toggleLike = async (req, res) => {
         post.dislikes.splice(dislikeIndex, 1);
       }
       liked = true;
+
+      // Notify post author if not self-like
+      console.log("CHECKING SELF LIKE:", String(post.author), "vs", String(userId));
+      if (!post.author.equals(userId)) {
+        console.log("CREATING NOTIFICATION");
+        const liker = await User.findById(userId);
+        console.log("LIKER:", liker.username);
+        await Notification.create({
+          user: post.author,
+          type: "POST_LIKED",
+          title: "New like",
+          message: `${liker.username} liked your post`,
+          metadata: { postId: post._id },
+          priority: "NORMAL",
+          pinned: false,
+        });
+        console.log("NOTIFICATION CREATED");
+      } else {
+        console.log("SELF LIKE, NO NOTIFICATION");
+      }
     }
 
     await post.save();
