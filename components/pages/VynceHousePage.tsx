@@ -59,6 +59,9 @@ export default function VynceHousePage() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touching, setTouching] = useState(false);
+  // Header scroll behavior state
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   // Load houses from API
   useEffect(() => {
@@ -131,6 +134,28 @@ export default function VynceHousePage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [channelMessages]);
+
+  // Header scroll behavior - hide on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
+
+      // Only trigger on significant scroll changes to avoid jitter
+      if (scrollDelta > 5) {
+        if (scrollingDown && currentScrollY > 50) {
+          setHeaderVisible(false);
+        } else if (!scrollingDown) {
+          setHeaderVisible(true);
+        }
+        lastScrollY.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const getTypeIcon = (type: HouseType) => {
     switch (type) {
@@ -340,7 +365,12 @@ export default function VynceHousePage() {
   return (
     <div className="animate-fadeIn w-full h-full flex flex-col bg-slate-950">
       {/* Header */}
-      <div className="h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex-shrink-0 flex items-center justify-between">
+      <div
+        className={`sticky top-0 h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex-shrink-0 flex items-center justify-between transition-transform duration-300 ease-out ${
+          headerVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
+        }`}
+        style={{ zIndex: 10 }}
+      >
         <div>
           <h1 className="text-2xl font-black text-slate-50">Vynce Houses</h1>
           <p className="text-xs text-slate-400">Exclusive groups built on hierarchy, loyalty, and influence</p>
