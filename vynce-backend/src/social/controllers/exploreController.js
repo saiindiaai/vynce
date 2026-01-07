@@ -76,15 +76,27 @@ exports.getExploreMain = async (req, res) => {
       rank: ["A", "B", "C"][idx] || "D", // mock rank
     }));
 
-    // Recommendations, Shorts, Live Events (mocked for now)
+
+    // Recommendations (mocked for now)
     const recommendations = [
       { name: "UI Wizards", icon: "🧙‍♂️", reason: "Because you like Design" },
       { name: "Next.js Pros", icon: "⚡", reason: "Trending in Tech" },
     ];
-    const shorts = [
-      { id: 1, title: "Epic Drop!", thumb: "https://placehold.co/80x120", user: "@alex" },
-      { id: 2, title: "UI Hack", thumb: "https://placehold.co/80x120", user: "@jane" },
-    ];
+
+    // Shorts: Fetch latest 6 drops as shorts
+    const dropsRaw = await Drop.find({})
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .populate('author', 'username')
+      .lean();
+    const shorts = dropsRaw.map((drop) => ({
+      id: drop._id,
+      title: drop.content.length > 20 ? drop.content.slice(0, 20) + '...' : drop.content,
+      thumb: 'https://placehold.co/80x120', // Placeholder, replace with real media if available
+      user: drop.author && drop.author.username ? `@${drop.author.username}` : '@unknown',
+    }));
+
+    // Live Events (mocked for now)
     const liveEvents = [
       { id: 1, name: "Live Coding", viewers: 120, icon: "💻" },
       { id: 2, name: "Art Jam", viewers: 80, icon: "🎨" },
