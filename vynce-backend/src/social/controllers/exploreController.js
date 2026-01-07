@@ -29,12 +29,31 @@ const House = require("../../models/House");
 exports.getExploreMain = async (req, res) => {
   try {
 
-    // Trending Topics: Top 3 tags by post count (mocked for now)
-    const trendingTopics = [
-      { name: "Design Trends", tag: "#Design", posts: 156000, trend: 28, trending: true },
-      { name: "React Updates", tag: "#React", posts: 142000, trend: 25, trending: false },
-      { name: "UI Design", tag: "#UIDesign", posts: 98000, trend: 18, trending: false },
-    ];
+    // Trending Topics: Parse hashtags from post content and count frequency
+    const posts = await Post.find({}, { content: 1 }).lean();
+    const hashtagCounts = {};
+    const hashtagRegex = /#(\w+)/g;
+    posts.forEach(post => {
+      const tags = post.content.match(hashtagRegex);
+      if (tags) {
+        tags.forEach(tag => {
+          const lowerTag = tag.toLowerCase();
+          hashtagCounts[lowerTag] = (hashtagCounts[lowerTag] || 0) + 1;
+        });
+      }
+    });
+    // Convert to array and sort by count
+    const sortedTags = Object.entries(hashtagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    // Trending topics format
+    const trendingTopics = sortedTags.map(([tag, count], idx) => ({
+      name: tag.replace('#', '').replace(/\b\w/g, l => l.toUpperCase()),
+      tag,
+      posts: count,
+      trend: 10 + idx * 5, // mock trend %
+      trending: idx === 0
+    }));
 
     // Houses: Top 3 by members (from DB)
     const housesRaw = await House.find({})
