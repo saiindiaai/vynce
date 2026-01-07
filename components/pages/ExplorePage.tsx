@@ -1,25 +1,12 @@
 "use client";
 
+
 import HouseCard from "@/components/explore/HouseCard";
 import TrendingTopic from "@/components/explore/TrendingTopic";
+import { fetchExploreData } from "@/lib/explore";
 import { PlayCircle, Search, Share2, Shield, Star, Tag, TrendingUp, Users, Zap } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 const PAGE_SIZE = 4;
-// Mock data for new features
-const recommendations = [
-  { name: "UI Wizards", icon: "🧙‍♂️", reason: "Because you like Design" },
-  { name: "Next.js Pros", icon: "⚡", reason: "Trending in Tech" },
-];
-
-const shorts = [
-  { id: 1, title: "Epic Drop!", thumb: "https://placehold.co/80x120", user: "@alex" },
-  { id: 2, title: "UI Hack", thumb: "https://placehold.co/80x120", user: "@jane" },
-];
-
-const liveEvents = [
-  { id: 1, name: "Live Coding", viewers: 120, icon: "💻" },
-  { id: 2, name: "Art Jam", viewers: 80, icon: "🎨" },
-];
 
 const categories = [
   { name: "Tech", icon: <Users size={16} /> },
@@ -28,59 +15,6 @@ const categories = [
   { name: "Music", icon: <Zap size={16} /> },
 ];
 
-type House = {
-  name: string;
-  icon: string;
-  members: string;
-  online: number;
-  gradient: string;
-  isJoined: boolean;
-  rank: string;
-};
-
-const houses: House[] = [
-  {
-    name: "Gaming",
-    icon: "🎮",
-    members: "67.8K",
-    online: 2300,
-    gradient: "from-green-500 to-emerald-500",
-    isJoined: true,
-    rank: "A",
-  },
-  {
-    name: "Music",
-    icon: "🎵",
-    members: "34.1K",
-    online: 1120,
-    gradient: "from-orange-500 to-yellow-500",
-    isJoined: false,
-    rank: "B",
-  },
-  {
-    name: "Photography",
-    icon: "📷",
-    members: "29.3K",
-    online: 987,
-    gradient: "from-indigo-500 to-purple-500",
-    isJoined: true,
-    rank: "C",
-  },
-];
-
-type TrendingTopicType = {
-  name: string;
-  tag: string;
-  posts: number;
-  trend: number;
-  trending: boolean;
-};
-
-const trendingTopics: TrendingTopicType[] = [
-  { name: "Design Trends", tag: "#Design", posts: 156000, trend: 28, trending: true },
-  { name: "React Updates", tag: "#React", posts: 142000, trend: 25, trending: false },
-  { name: "UI Design", tag: "#UIDesign", posts: 98000, trend: 18, trending: false },
-];
 
 export default function ExplorePage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +35,24 @@ export default function ExplorePage() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Explore API data
+  const [exploreData, setExploreData] = useState<any>(null);
+  const [exploreLoading, setExploreLoading] = useState(true);
+  const [exploreError, setExploreError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setExploreLoading(true);
+    fetchExploreData()
+      .then((data) => {
+        setExploreData(data);
+        setExploreLoading(false);
+      })
+      .catch((err) => {
+        setExploreError("Failed to load explore data");
+        setExploreLoading(false);
+      });
+  }, []);
+
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
@@ -118,14 +70,27 @@ export default function ExplorePage() {
     }, 800);
   };
 
+  const houses = exploreData?.houses || [];
+  const trendingTopics = exploreData?.trendingTopics || [];
+  const recommendations = exploreData?.recommendations || [];
+  const drops = exploreData?.shorts || [];
+  const liveEvents = exploreData?.liveEvents || [];
+
   const visibleHouses = houses.slice(0, housePage * PAGE_SIZE);
-  const visibleDrops = Array.from({ length: dropPage * PAGE_SIZE }, (_, i) => i + 1);
+  const visibleDrops = drops.slice(0, dropPage * PAGE_SIZE);
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
     if (el.scrollHeight - el.scrollTop - el.clientHeight < 100) {
       setHousePage((p) => Math.min(p + 1, Math.ceil(houses.length / PAGE_SIZE)));
       setDropPage((p) => Math.min(p + 1, 3));
     }
+  }
+
+  if (exploreLoading) {
+    return <div className="p-8 text-center text-slate-400">Loading explore...</div>;
+  }
+  if (exploreError) {
+    return <div className="p-8 text-center text-red-400">{exploreError}</div>;
   }
 
   return (
@@ -211,15 +176,15 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* Drops Horizontal Scroll (was Shorts) */}
+      {/* Drops Horizontal Scroll */}
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Drops</h3>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {shorts.map((short) => (
-            <div key={short.id} className="min-w-[80px] flex flex-col items-center">
-              <img src={short.thumb} alt={short.title} className="rounded-lg w-20 h-28 object-cover mb-1" />
-              <div className="text-xs text-white truncate w-20">{short.title}</div>
-              <div className="text-[10px] text-slate-400">{short.user}</div>
+          {drops.map((drop) => (
+            <div key={drop.id} className="min-w-[80px] flex flex-col items-center">
+              <img src={drop.thumb} alt={drop.title} className="rounded-lg w-20 h-28 object-cover mb-1" />
+              <div className="text-xs text-white truncate w-20">{drop.title}</div>
+              <div className="text-[10px] text-slate-400">{drop.user}</div>
             </div>
           ))}
         </div>
@@ -303,14 +268,14 @@ export default function ExplorePage() {
           Trending Drops
         </h3>
         <div className="grid grid-cols-3 gap-3">
-          {visibleDrops.map((i) => (
+          {visibleDrops.map((drop, i) => (
             <div
-              key={i}
+              key={drop.id}
               className="aspect-square rounded-2xl overflow-hidden group cursor-pointer animate-slideIn transition-all duration-300 relative clean-card border border-slate-600/50 hover:border-slate-500/50 hover:shadow-lg hover:shadow-purple-500/20"
               style={{ animationDelay: `${i * 50}ms` }}
               tabIndex={0}
-              aria-label={`Preview Drop ${i}`}
-              onMouseEnter={() => setPreview({ type: 'user', name: `Dropper${i}` })}
+              aria-label={`Preview Drop ${drop.title}`}
+              onMouseEnter={() => setPreview({ type: 'user', name: drop.user })}
               onMouseLeave={() => setPreview(null)}
             >
               <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 opacity-60 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110 transform"></div>
@@ -321,7 +286,7 @@ export default function ExplorePage() {
             </div>
           ))}
         </div>
-        {visibleDrops.length < 9 && <div className="text-center text-slate-400 py-2">Loading more drops...</div>}
+        {visibleDrops.length < drops.length && <div className="text-center text-slate-400 py-2">Loading more drops...</div>}
       </div>
       {/* Preview Popover (mocked, global) */}
       {preview && (
