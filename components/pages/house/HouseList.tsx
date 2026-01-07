@@ -33,7 +33,7 @@ function HouseList({
   getTypeColor,
 }: HouseListProps) {
   return (
-    <>
+    <div className="h-full flex flex-col">
       {/* Search */}
       <div className="p-3 border-b border-slate-700/30 flex-shrink-0">
         <div className="relative">
@@ -52,7 +52,7 @@ function HouseList({
       </div>
 
       {/* Houses & Channels List */}
-      <div className="flex-1 overflow-y-auto space-y-1 p-2">
+      <div className="flex-1 overflow-y-auto space-y-1 p-2 min-h-0">
         {houses.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-xs text-slate-400">No houses yet</p>
@@ -65,8 +65,8 @@ function HouseList({
               <button
                 onClick={() => onSelectHouse(house._id)}
                 className={`w-full flex items-start gap-2 px-3 py-2 rounded-lg transition-all text-left text-sm font-medium ${selectedHouseId === house._id
-                    ? "bg-purple-600/30 text-purple-200"
-                    : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
+                  ? "bg-purple-600/30 text-purple-200"
+                  : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
                   }`}
               >
                 <ChevronRight
@@ -96,8 +96,8 @@ function HouseList({
                       key={channel._id}
                       onClick={() => onSelectChannel(channel._id)}
                       className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all text-left ${selectedChannelId === channel._id
-                          ? "bg-purple-600/20 text-purple-200"
-                          : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-300"
+                        ? "bg-purple-600/20 text-purple-200"
+                        : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-300"
                         }`}
                     >
                       <Hash size={14} />
@@ -121,7 +121,7 @@ function HouseList({
           ))
         )}
       </div>
-    </>
+    </div>
   );
 }
 

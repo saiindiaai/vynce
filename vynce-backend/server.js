@@ -64,11 +64,11 @@ const economyRoutes = require("./src/routes/economyRoutes");
 const inventoryRoutes = require("./src/routes/inventoryRoutes");
 const houseRoutes = require("./src/routes/houseRoutes");
 const socialChatRoutes = require("./src/routes/socialChatRoutes");
-<<<<<<< HEAD
+
 const notificationRoutes = require("./src/routes/notificationRoutes");
-=======
+
 const exploreRoutes = require("./src/social/routes/exploreRoutes");
->>>>>>> 4a4aa32381772e66dd87c992b591c5c644e48cb9
+
 
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/store", storeRoutes);

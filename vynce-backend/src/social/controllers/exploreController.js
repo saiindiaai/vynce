@@ -55,8 +55,13 @@ exports.getExploreMain = async (req, res) => {
       trending: idx === 0
     }));
 
-    // Houses: Top 3 by members (from DB)
-    const housesRaw = await House.find({})
+    // Houses: Top 3 by members (from DB), excluding user's houses
+    const housesRaw = await House.find({
+      $and: [
+        { foundedBy: { $ne: req.user._id } },
+        { members: { $nin: [req.user._id] } }
+      ]
+    })
       .sort({ members: -1 })
       .limit(3)
       .lean();

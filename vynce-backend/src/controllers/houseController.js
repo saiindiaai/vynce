@@ -41,7 +41,13 @@ exports.createHouse = async (req, res) => {
 // Get all houses
 exports.getHouses = async (req, res) => {
   try {
-    const houses = await House.find().populate("foundedBy", "username").populate("channels");
+    const userId = req.userId;
+    const houses = await House.find({
+      $or: [
+        { foundedBy: userId },
+        { members: userId }
+      ]
+    }).populate("foundedBy", "username").populate("channels");
     res.json(houses);
   } catch (error) {
     res.status(500).json({ message: error.message });
