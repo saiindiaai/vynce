@@ -4,8 +4,10 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
+const jwt = require("jsonwebtoken");
 const connectDB = require("./src/config/db");
 const startExpiryJob = require("./src/cron/expireInventory");
+const House = require("./src/models/House");
 
 dotenv.config();
 
@@ -16,6 +18,24 @@ const io = socketIo(server, {
     origin: "*",
     methods: ["GET", "POST"],
   },
+});
+
+// Socket authentication middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token || socket.handshake.query.token;
+  if (!token) {
+    return next(new Error("Authentication error"));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id || decoded._id || decoded.uid;
+    if (!socket.userId) {
+      return next(new Error("Invalid token"));
+    }
+    next();
+  } catch (err) {
+    next(new Error("Authentication error"));
+  }
 });
 
 // middleware
@@ -61,13 +81,34 @@ app.use("/api/social/chat", socialChatRoutes);
 
 // Socket.IO setup
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("User connected:", socket.id, "UserId:", socket.userId);
 
   // House Chat
-  socket.on("join-house-channel", (data) => {
-    const { houseId, channelId, userId } = data;
-    socket.join(`house-${houseId}-channel-${channelId}`);
-    console.log(`User ${userId} joined house ${houseId} channel ${channelId}`);
+  socket.on("join-house-channel", async (data) => {
+    const { houseId, channelId } = data;
+    const userId = socket.userId;
+
+    try {
+      const house = await House.findById(houseId);
+      if (!house) {
+        socket.emit("error", { message: "House not found" });
+        return;
+      }
+
+      if (String(house.foundedBy) !== String(userId)) {
+        console.warn("Blocked socket join for non-creator", {
+          userId: userId,
+          houseId: houseId
+        });
+        socket.emit("error", { message: "Chat is only accessible to the house creator" });
+        return;
+      }
+
+      socket.join(`house-${houseId}-channel-${channelId}`);
+      console.log(`User ${userId} joined house ${houseId} channel ${channelId}`);
+    } catch (error) {
+      socket.emit("error", { message: "Server error" });
+    }
   });
 
   socket.on("leave-house-channel", (data) => {
@@ -75,9 +116,30 @@ io.on("connection", (socket) => {
     socket.leave(`house-${houseId}-channel-${channelId}`);
   });
 
-  socket.on("send-house-message", (data) => {
+  socket.on("send-house-message", async (data) => {
     const { houseId, channelId, message } = data;
-    io.to(`house-${houseId}-channel-${channelId}`).emit("new-house-message", message);
+    const userId = socket.userId;
+
+    try {
+      const house = await House.findById(houseId);
+      if (!house) {
+        socket.emit("error", { message: "House not found" });
+        return;
+      }
+
+      if (String(house.foundedBy) !== String(userId)) {
+        console.warn("Blocked socket send for non-creator", {
+          userId: userId,
+          houseId: houseId
+        });
+        socket.emit("error", { message: "Chat is only accessible to the house creator" });
+        return;
+      }
+
+      io.to(`house-${houseId}-channel-${channelId}`).emit("new-house-message", message);
+    } catch (error) {
+      socket.emit("error", { message: "Server error" });
+    }
   });
 
   // Social Chat

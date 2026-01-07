@@ -28,9 +28,9 @@ exports.createHouse = async (req, res) => {
     house.channels.push(channel._id);
 
     await house.save();
-    await house.populate('channels');
+    const populatedHouse = await House.findById(house._id).populate('channels');
 
-    res.status(201).json(house);
+    res.status(201).json(populatedHouse);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -66,6 +66,23 @@ exports.createChannel = async (req, res) => {
     const userId = req.userId;
     const houseId = req.params.houseId;
 
+    // Fetch the house to check if user is the creator
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Only creator can create channels
+    if (String(house.foundedBy) !== String(userId)) {
+      console.warn("Blocked channel creation for non-creator", {
+        userId: userId,
+        houseId: houseId
+      });
+      return res.status(403).json({
+        error: "Only the house creator can manage channels"
+      });
+    }
+
     const channel = new Channel({
       houseId,
       name,
@@ -87,6 +104,26 @@ exports.createChannel = async (req, res) => {
 // Get channels for a house
 exports.getChannels = async (req, res) => {
   try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+
+    // Fetch the house to check if user is the creator
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Only creator can access channels
+    if (String(house.foundedBy) !== String(userId)) {
+      console.warn("Blocked channels fetch for non-creator", {
+        userId: userId,
+        houseId: houseId
+      });
+      return res.status(403).json({
+        error: "Chat is only accessible to the house creator"
+      });
+    }
+
     const channels = await Channel.find({ houseId: req.params.houseId });
     res.json(channels);
   } catch (error) {
@@ -100,6 +137,23 @@ exports.sendMessage = async (req, res) => {
     const { content } = req.body;
     const userId = req.userId;
     const { houseId, channelId } = req.params;
+
+    // Fetch the house to check if user is the creator
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Only creator can send messages
+    if (String(house.foundedBy) !== String(userId)) {
+      console.warn("Blocked chat send for non-creator", {
+        userId: userId,
+        houseId: houseId
+      });
+      return res.status(403).json({
+        error: "Chat is only accessible to the house creator"
+      });
+    }
 
     const user = await User.findById(userId);
 
@@ -121,6 +175,26 @@ exports.sendMessage = async (req, res) => {
 // Get messages for a channel
 exports.getMessages = async (req, res) => {
   try {
+    const userId = req.userId;
+    const { houseId, channelId } = req.params;
+
+    // Fetch the house to check if user is the creator
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Only creator can fetch messages
+    if (String(house.foundedBy) !== String(userId)) {
+      console.warn("Blocked chat fetch for non-creator", {
+        userId: userId,
+        houseId: houseId
+      });
+      return res.status(403).json({
+        error: "Chat is only accessible to the house creator"
+      });
+    }
+
     const messages = await HouseMessage.find({
       houseId: req.params.houseId,
       channelId: req.params.channelId,
