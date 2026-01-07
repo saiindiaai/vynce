@@ -59,9 +59,6 @@ export default function VynceHousePage() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touching, setTouching] = useState(false);
-  // Header scroll behavior state
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const lastScrollY = useRef(0);
 
   // Load houses from API
   useEffect(() => {
@@ -134,28 +131,6 @@ export default function VynceHousePage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [channelMessages]);
-
-  // Header scroll behavior - hide on scroll down, show on scroll up
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollingDown = currentScrollY > lastScrollY.current;
-      const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
-
-      // Only trigger on significant scroll changes to avoid jitter
-      if (scrollDelta > 5) {
-        if (scrollingDown && currentScrollY > 50) {
-          setHeaderVisible(false);
-        } else if (!scrollingDown) {
-          setHeaderVisible(true);
-        }
-        lastScrollY.current = currentScrollY;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const getTypeIcon = (type: HouseType) => {
     switch (type) {
@@ -366,10 +341,8 @@ export default function VynceHousePage() {
     <div className="animate-fadeIn w-full h-full flex flex-col bg-slate-950">
       {/* Header */}
       <div
-        className={`sticky top-0 h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex-shrink-0 flex items-center justify-between transition-transform duration-300 ease-out ${
-          headerVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
-        }`}
-        style={{ zIndex: 10 }}
+        className="fixed top-16 left-0 right-0 h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex items-center justify-between"
+        style={{ zIndex: 30 }}
       >
         <div>
           <h1 className="text-2xl font-black text-slate-50">Vynce Houses</h1>
@@ -413,6 +386,7 @@ export default function VynceHousePage() {
       {/* Main Content - Three Column Layout */}
       <div
         className="flex-1 flex overflow-hidden gap-0 sm:gap-3 px-2 sm:px-3 py-3 relative"
+        style={{ marginTop: '184px' }}
         onTouchStart={(e) => {
           const t = e.touches[0];
           setTouchStartX(t.clientX);
@@ -534,7 +508,7 @@ export default function VynceHousePage() {
           {selectedHouse && selectedChannel ? (
             <>
               {/* Chat Header */}
-              <div className="h-14 px-4 py-3 border-b border-slate-700/30 bg-slate-900/80 flex-shrink-0 flex items-center justify-between group/header">
+              <div className="fixed top-32 left-0 right-0 h-14 px-4 py-3 border-b border-slate-700/30 bg-slate-900/80 flex items-center justify-between group/header" style={{ zIndex: 25 }}>
                 <div className="flex items-center gap-3 min-w-0 flex-1 cursor-help" title={`Purpose: ${selectedHouse.purpose}`}>
                   <div className={`p-2 rounded-lg flex-shrink-0 ${getTypeColor(selectedHouse.type)}`}>
                     {getTypeIcon(selectedHouse.type)}
@@ -594,7 +568,7 @@ export default function VynceHousePage() {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-900/20 to-slate-900/40 flex flex-col justify-end">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-900/20 to-slate-900/40 flex flex-col justify-end" style={{ marginBottom: '120px' }}>
                 {channelMessages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center flex-1">
                     <MessageSquare size={40} className="text-slate-600 mb-3" />
@@ -632,7 +606,7 @@ export default function VynceHousePage() {
               </div>
 
               {/* Message Input */}
-              <div className="px-4 py-3 border-t border-slate-700/20 bg-slate-900/70 flex-shrink-0">
+              <div className="fixed bottom-16 left-0 right-0 px-4 py-3 border-t border-slate-700/20 bg-slate-900/70" style={{ zIndex: 50 }}>
                 <div className="flex items-end gap-2">
                   <input
                     type="text"
