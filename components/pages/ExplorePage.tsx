@@ -166,7 +166,7 @@ export default function ExplorePage() {
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">For You</h3>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {recommendations.map((rec, i) => (
+          {recommendations.map((rec: any, i: number) => (
             <div key={i} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
               <div className="text-3xl mb-2">{rec.icon}</div>
               <div className="font-bold mb-1">{rec.name}</div>
@@ -180,7 +180,7 @@ export default function ExplorePage() {
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Drops</h3>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {drops.map((drop) => (
+          {drops.map((drop: any) => (
             <div key={drop.id} className="min-w-[80px] flex flex-col items-center">
               <img src={drop.thumb} alt={drop.title} className="rounded-lg w-20 h-28 object-cover mb-1" />
               <div className="text-xs text-white truncate w-20">{drop.title}</div>
@@ -194,7 +194,7 @@ export default function ExplorePage() {
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Live Now</h3>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {liveEvents.map((event) => (
+          {liveEvents.map((event: any) => (
             <div key={event.id} className="min-w-[140px] p-3 rounded-xl bg-gradient-to-br from-purple-700 to-pink-700 text-white flex flex-col items-center border border-slate-700">
               <div className="text-2xl mb-1">{event.icon}</div>
               <div className="font-bold mb-1">{event.name}</div>
@@ -208,7 +208,7 @@ export default function ExplorePage() {
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Categories</h3>
         <div className="flex gap-2 flex-wrap">
-          {categories.map((cat, i) => (
+          {categories.map((cat: any, i: number) => (
             <button key={i} className="px-4 py-2 rounded-full bg-slate-800 text-white flex items-center gap-2 border border-slate-700 text-sm font-medium hover:bg-purple-700/40 transition">
               {cat.icon}
               {cat.name}
@@ -228,7 +228,7 @@ export default function ExplorePage() {
           </h3>
         </div>
         <div className="space-y-2">
-          {trendingTopics.map((topic, idx) => (
+          {trendingTopics.map((topic: any, idx: number) => (
             <TrendingTopic key={topic.tag} topic={topic} />
           ))}
         </div>
@@ -240,7 +240,7 @@ export default function ExplorePage() {
           Trending Houses
         </h3>
         <div className="grid grid-cols-2 gap-3">
-          {visibleHouses.map((house, idx) => (
+          {visibleHouses.map((house: any, idx: number) => (
             <div key={house.name} className="relative group">
               {idx === 0 && <span className="absolute -top-2 -right-2 bg-yellow-400 text-xs text-black px-2 py-0.5 rounded-full font-bold z-10 flex items-center gap-1"><Star size={12} />Top 1%</span>}
               {idx === visibleHouses.length - 1 && <span className="absolute -top-2 -left-2 bg-green-500 text-xs text-white px-2 py-0.5 rounded-full font-bold z-10">New</span>}
@@ -268,7 +268,7 @@ export default function ExplorePage() {
           Trending Drops
         </h3>
         <div className="grid grid-cols-3 gap-3">
-          {visibleDrops.map((drop, i) => (
+          {visibleDrops.map((drop: any, i: number) => (
             <div
               key={drop.id}
               className="aspect-square rounded-2xl overflow-hidden group cursor-pointer animate-slideIn transition-all duration-300 relative clean-card border border-slate-600/50 hover:border-slate-500/50 hover:shadow-lg hover:shadow-purple-500/20"

@@ -14,6 +14,7 @@ exports.protect = (req, res, next) => {
 
     // IMPORTANT: support both id and uid
     req.userId = decoded.id || decoded._id || decoded.uid;
+    req.user = { _id: req.userId }; // Add for compatibility with code expecting req.user._id
 
     if (!req.userId) {
       return res.status(401).json({ message: "Invalid token payload" });
