@@ -54,6 +54,34 @@ exports.getHouses = async (req, res) => {
   }
 };
 
+// Search houses globally
+exports.searchHouses = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) {
+      return res.json([]);
+    }
+
+    const houses = await House.find({
+      isPrivate: false,
+      name: { $regex: q, $options: 'i' }
+    })
+      .populate("foundedBy", "username")
+      .limit(20)
+      .select('name level members influence type description');
+
+    // Add member count
+    const housesWithCount = houses.map(house => ({
+      ...house.toObject(),
+      memberCount: house.members.length
+    }));
+
+    res.json(housesWithCount);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get a specific house
 exports.getHouse = async (req, res) => {
   try {
