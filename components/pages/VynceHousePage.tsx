@@ -5,34 +5,26 @@ import socket from "@/lib/socket";
 import { useAppStore } from "@/lib/store";
 import { House, HouseMessage, HouseType } from "@/types";
 import {
-  Copy,
-  Edit,
-  Flag,
   Hash,
   Home,
-  Info,
-  LogOut,
-  Mail,
   Menu,
-  MessageCircle,
   MessageSquare,
   MoreVertical,
   Plus,
   Radio,
   Search,
   Send,
-  Settings,
   Share2,
-  Trash,
-  Users,
-  VolumeX,
-  X
+  Users
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { CreateChannelModal } from "./house/CreateChannelModal";
 import { CreateHouseModal } from "./house/CreateHouseModal";
+import GlobalHouseSearch from "./house/GlobalHouseSearch";
 import { HouseMember } from "./house/HouseConstants";
 import HouseList from "./house/HouseList";
+import HouseMenu from "./house/HouseMenu";
+import HouseShareSheet from "./house/HouseShareSheet";
 import { MembersSidebar } from "./house/MembersSidebar";
 
 export default function VynceHousePage() {
@@ -198,7 +190,8 @@ export default function VynceHousePage() {
     if (house.foundedBy === userId || (house.foundedBy as any)?._id === userId) {
       return "creator";
     }
-    if (house.members && house.members.includes(userId)) {
+    // members can be a number (count) or array of member ids; handle both safely
+    if (Array.isArray(house.members) && house.members.includes(userId)) {
       return "member";
     }
     return null;
@@ -347,6 +340,7 @@ export default function VynceHousePage() {
   const selectedHouse = houses.find((h) => h._id === selectedHouseId);
   const selectedChannel = selectedHouse?.channels.find((c) => c._id === selectedChannelId);
   const houseMembers = selectedHouseId ? (members[selectedHouseId] || []) : [];
+  const selectedHouseRole = selectedHouse ? getUserRole(selectedHouse) : null;
 
   return (
     <div className="animate-fadeIn w-full h-full flex flex-col bg-slate-950">
@@ -591,132 +585,13 @@ export default function VynceHousePage() {
                           className="fixed inset-0 z-30"
                           onClick={() => setShowHouseMenu(false)}
                         />
-                        <div className="absolute right-0 top-full mt-2 w-60 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
-                          <div className="py-1">
-                            {selectedHouse ? (
-                              getUserRole(selectedHouse) === "creator" ? (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("Edit House coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <Edit size={16} />
-                                    Edit House
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("Manage Members coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <Users size={16} />
-                                    Manage Members
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("House Settings coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <Settings size={16} />
-                                    House Settings
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("Mute Notifications coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <VolumeX size={16} />
-                                    Mute Notifications
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      shareHouse("copy");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <Copy size={16} />
-                                    Copy House Link
-                                  </button>
-                                  <div className="my-1 border-t border-slate-700"></div>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      if (confirm("Are you sure you want to delete this house? This action cannot be undone.")) {
-                                        showToast?.("Delete House coming soon", "info");
-                                      }
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center gap-3 transition-colors"
-                                  >
-                                    <Trash size={16} />
-                                    Delete House
-                                  </button>
-                                </>
-                              ) : selectedHouse && getUserRole(selectedHouse) === "member" ? (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("View House Info coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <Info size={16} />
-                                    View House Info
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("Mute Notifications coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <VolumeX size={16} />
-                                    Mute Notifications
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      shareHouse("copy");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <Copy size={16} />
-                                    Copy House Link
-                                  </button>
-                                  <div className="my-1 border-t border-slate-700"></div>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("Leave House coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-3 transition-colors"
-                                  >
-                                    <LogOut size={16} />
-                                    Leave House
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setShowHouseMenu(false);
-                                      showToast?.("Report House coming soon", "info");
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center gap-3 transition-colors"
-                                  >
-                                    <Flag size={16} />
-                                    Report House
-                                  </button>
-                                </>
-                              ) : null) : null}
-                          </div>
-                        </div>
+                        <HouseMenu
+                          selectedHouse={selectedHouse}
+                          selectedHouseRole={selectedHouseRole}
+                          onClose={() => setShowHouseMenu(false)}
+                          shareHouse={shareHouse}
+                          showToast={showToast}
+                        />
                       </>
                     )}
                   </div>
@@ -843,178 +718,25 @@ export default function VynceHousePage() {
         onCreateChannel={createChannel}
       />
 
-      {/* Global House Search Modal */}
       {showGlobalSearch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-2xl bg-slate-900 rounded-xl border border-slate-700/50 p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-black text-slate-50">Discover Houses</h2>
-                <p className="text-xs text-slate-400 mt-1">Explore and join public houses</p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowGlobalSearch(false);
-                  setGlobalSearchQuery("");
-                  setGlobalSearchResults([]);
-                }}
-                className="p-2 hover:bg-slate-800 rounded-lg transition-all text-slate-400 hover:text-slate-50"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search houses by name..."
-                value={globalSearchQuery}
-                onChange={(e) => setGlobalSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-50 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {globalSearchResults.map((house) => (
-                <div
-                  key={house._id}
-                  className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/30 hover:border-slate-700/60 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`p-2 rounded-lg flex-shrink-0 ${getTypeColor(house.type)}`}>
-                        {getTypeIcon(house.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-bold text-slate-50 truncate">{house.name}</h3>
-                        </div>
-                        <p className="text-xs text-slate-400 line-clamp-2">{house.description}</p>
-                        <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
-                          <span>Lv. {house.level}</span>
-                          <span>•</span>
-                          <span>{house.memberCount || 0} members</span>
-                          <span>•</span>
-                          <span>⚡ {house.influence}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => joinHouse(house._id)}
-                      className="ml-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold rounded-lg transition-all flex-shrink-0"
-                    >
-                      Join
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {globalSearchQuery && globalSearchResults.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-slate-400">No houses found</p>
-                  <p className="text-xs text-slate-500 mt-1">Try a different search term</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <GlobalHouseSearch
+          query={globalSearchQuery}
+          setQuery={setGlobalSearchQuery}
+          results={globalSearchResults}
+          onClose={() => { setShowGlobalSearch(false); setGlobalSearchQuery(""); setGlobalSearchResults([]); }}
+          joinHouse={joinHouse}
+          getTypeIcon={getTypeIcon}
+          getTypeColor={getTypeColor}
+        />
       )}
 
-      {/* House Share Sheet */}
-      {showShareHouseSheet && selectedHouse && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn"
-            onClick={() => setShowShareHouseSheet(false)}
-          />
-
-          {/* Sheet */}
-          <div className={`fixed inset-x-0 bottom-0 z-50 animate-slideIn max-w-2xl mx-auto p-4`}>
-            <div className={`rounded-3xl bg-slate-800 border border-slate-700 overflow-hidden shadow-2xl`}>
-              {/* Header */}
-              <div className={`flex items-center justify-between p-4 border-b border-slate-700`}>
-                <h3 className={`text-lg font-bold text-slate-50`}>Share {selectedHouse.name}</h3>
-                <button
-                  onClick={() => setShowShareHouseSheet(false)}
-                  className={`p-2 rounded-lg hover:bg-slate-700/50 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
-                >
-                  <X size={20} className={`text-slate-400`} />
-                </button>
-              </div>
-
-              {/* Share Options */}
-              <div className="p-4 grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => shareHouse("copy")}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all hover:scale-105 bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/50 focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
-                >
-                  <div className={`p-3 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500`}>
-                    <Copy size={24} className="text-white" />
-                  </div>
-                  <span className={`text-sm font-semibold text-slate-50 text-center`}>Copy Link</span>
-                </button>
-
-                <button
-                  onClick={() => shareHouse("dm")}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all hover:scale-105 bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/50 focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
-                >
-                  <div className={`p-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500`}>
-                    <MessageCircle size={24} className="text-white" />
-                  </div>
-                  <span className={`text-sm font-semibold text-slate-50 text-center`}>Send DM</span>
-                </button>
-
-                <button
-                  onClick={() => shareHouse("email")}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all hover:scale-105 bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/50 focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
-                >
-                  <div className={`p-3 rounded-full bg-gradient-to-br from-orange-500 to-red-500`}>
-                    <Mail size={24} className="text-white" />
-                  </div>
-                  <span className={`text-sm font-semibold text-slate-50 text-center`}>Email</span>
-                </button>
-
-                <button
-                  onClick={() => shareHouse("share")}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all hover:scale-105 bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/50 focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
-                >
-                  <div className={`p-3 rounded-full bg-gradient-to-br from-green-500 to-cyan-500`}>
-                    <Share2 size={24} className="text-white" />
-                  </div>
-                  <span className={`text-sm font-semibold text-slate-50 text-center`}>More Options</span>
-                </button>
-              </div>
-
-              {/* Link Input */}
-              <div className={`p-4 border-t border-slate-700`}>
-                <label className={`block text-sm font-semibold text-slate-400 mb-2`}>House Link</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={`${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse._id}`}
-                    readOnly
-                    className={`flex-1 px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-slate-50 outline-none min-h-[40px] text-sm`}
-                  />
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/houses?house=${selectedHouse._id}`);
-                      showToast?.("House link copied!", "success");
-                    }}
-                    className={`px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold hover:scale-105 transition-transform focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500`}
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <HouseShareSheet
+        show={showShareHouseSheet}
+        onClose={() => setShowShareHouseSheet(false)}
+        selectedHouse={selectedHouse}
+        shareHouse={shareHouse}
+        showToast={showToast}
+      />
     </div >
   );
 }
