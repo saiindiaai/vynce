@@ -17,6 +17,7 @@ import {
   Share2,
   Users
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CreateChannelModal } from "./house/CreateChannelModal";
 import { CreateHouseModal } from "./house/CreateHouseModal";
@@ -29,6 +30,7 @@ import { MembersSidebar } from "./house/MembersSidebar";
 
 export default function VynceHousePage() {
   const { showToast } = useAppStore();
+  const searchParams = useSearchParams();
   const [houses, setHouses] = useState<House[]>([]);
   const [channelMessages, setChannelMessages] = useState<HouseMessage[]>([]);
   const [selectedHouseId, setSelectedHouseId] = useState<string | null>(null);
@@ -67,11 +69,22 @@ export default function VynceHousePage() {
       try {
         const res = await api.get("/houses");
         setHouses(res.data);
-        if (res.data.length > 0) {
-          setSelectedHouseId(res.data[0]._id);
-          if (res.data[0].channels.length > 0) {
-            setSelectedChannelId(res.data[0].channels[0]._id);
-            setExpandedHouses(new Set([res.data[0]._id]));
+
+        // Check if there's a discover query parameter (for discovery search)
+        const discoverParam = searchParams.get("discover");
+
+        if (discoverParam) {
+          // Open the discovery modal and auto-search the house name
+          setShowGlobalSearch(true);
+          setGlobalSearchQuery(discoverParam);
+        } else {
+          // Default behavior - select first house
+          if (res.data.length > 0) {
+            setSelectedHouseId(res.data[0]._id);
+            if (res.data[0].channels.length > 0) {
+              setSelectedChannelId(res.data[0].channels[0]._id);
+              setExpandedHouses(new Set([res.data[0]._id]));
+            }
           }
         }
       } catch (error) {
@@ -79,7 +92,7 @@ export default function VynceHousePage() {
       }
     };
     loadHouses();
-  }, []);
+  }, [searchParams]);
 
   // Load messages when channel changes
   useEffect(() => {

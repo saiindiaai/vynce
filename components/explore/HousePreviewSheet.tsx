@@ -25,10 +25,10 @@ const HousePreviewSheet: React.FC<HousePreviewSheetProps> = ({ open, onClose, ho
   const memberCount = house.memberCount || house.members?.length || 0;
 
   const handleGoToHouse = () => {
-    // Navigate to the vynce_house page and pass the house ID
+    // Navigate to the vynce_house page with house name for discovery search
     setCurrentPage("vynce_house");
-    // Navigate and add query param to identify which house
-    router.push(`/social?house=${house._id}`);
+    // Pass the house name as a search query parameter to auto-open discovery and search
+    router.push(`/social?discover=${encodeURIComponent(house.name)}`);
     onClose();
   };
 
