@@ -69,6 +69,9 @@ const notificationRoutes = require("./src/routes/notificationRoutes");
 
 const exploreRoutes = require("./src/social/routes/exploreRoutes");
 
+const forYouRoutes = require("./src/social/routes/forYouRoutes");
+const categoriesRoutes = require("./src/social/routes/categoriesRoutes");
+
 
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/store", storeRoutes);
@@ -81,6 +84,8 @@ app.use("/api/reports", reportRoutes); // ⭐ NEW
 app.use("/api/social/posts", require("./src/social/routes/postRoutes"));
 app.use("/api/social/drops", require("./src/social/routes/dropRoutes"));
 app.use("/api/social/explore", exploreRoutes);
+app.use("/api/social/explore", forYouRoutes);
+app.use("/api/social/explore", categoriesRoutes);
 app.use("/api/houses", houseRoutes);
 app.use("/api/social/chat", socialChatRoutes);
 app.use("/api/notifications", notificationRoutes);

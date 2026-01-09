@@ -1,28 +1,37 @@
 "use client";
 
-
 import HouseCard from "@/components/explore/HouseCard";
 import TrendingTopic from "@/components/explore/TrendingTopic";
+import { fetchCategories } from "@/lib/categories";
 import { fetchExploreData } from "@/lib/explore";
-import { PlayCircle, Search, Share2, Shield, Star, Tag, TrendingUp, Users, Zap } from "lucide-react";
+import { fetchForYou } from "@/lib/forYou";
+import { Search, Share2, Shield, Star, TrendingUp } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 const PAGE_SIZE = 4;
 
-const categories = [
-  { name: "Tech", icon: <Users size={16} /> },
-  { name: "Art", icon: <Tag size={16} /> },
-  { name: "Gaming", icon: <PlayCircle size={16} /> },
-  { name: "Music", icon: <Zap size={16} /> },
-];
-
-
 export default function ExplorePage() {
+  // Categories state
+  const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  useEffect(() => {
+    setCategoriesLoading(true);
+    fetchCategories()
+      .then((data) => {
+        setCategories(data);
+        setCategoriesLoading(false);
+      })
+      .catch(() => {
+        setCategoriesError("Failed to load categories");
+        setCategoriesLoading(false);
+      });
+  }, []);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [housePage, setHousePage] = useState(1);
   const [dropPage, setDropPage] = useState(1);
-  const [preview, setPreview] = useState<{ type: 'user' | 'house', name: string } | null>(null);
+  const [preview, setPreview] = useState<{ type: 'user' | 'house' | 'drop', name: string } | null>(null);
   const FILTERS = [
     { id: "all", label: "All" },
     { id: "users", label: "Users" },
@@ -40,6 +49,11 @@ export default function ExplorePage() {
   const [exploreLoading, setExploreLoading] = useState(true);
   const [exploreError, setExploreError] = useState<string | null>(null);
 
+  // For You section state
+  const [forYou, setForYou] = useState<any>({ drops: [], houses: [], creators: [] });
+  const [forYouLoading, setForYouLoading] = useState(true);
+  const [forYouError, setForYouError] = useState<string | null>(null);
+
   useEffect(() => {
     setExploreLoading(true);
     fetchExploreData()
@@ -50,6 +64,17 @@ export default function ExplorePage() {
       .catch((err) => {
         setExploreError("Failed to load explore data");
         setExploreLoading(false);
+      });
+    // Fetch For You
+    setForYouLoading(true);
+    fetchForYou()
+      .then((data) => {
+        setForYou(data);
+        setForYouLoading(false);
+      })
+      .catch(() => {
+        setForYouError("Failed to load recommendations");
+        setForYouLoading(false);
       });
   }, []);
 
@@ -72,7 +97,7 @@ export default function ExplorePage() {
 
   const houses = exploreData?.houses || [];
   const trendingTopics = exploreData?.trendingTopics || [];
-  const recommendations = exploreData?.recommendations || [];
+  // Remove recommendations (mock) from exploreData
   const drops = exploreData?.shorts || [];
   const liveEvents = exploreData?.liveEvents || [];
 
@@ -162,59 +187,69 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* Personalized Recommendations */}
+      {/* For You: Backend-driven recommendations */}
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">For You</h3>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {recommendations.map((rec: any, i: number) => (
-            <div key={i} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
-              <div className="text-3xl mb-2">{rec.icon}</div>
-              <div className="font-bold mb-1">{rec.name}</div>
-              <div className="text-xs text-slate-400">{rec.reason}</div>
-            </div>
-          ))}
-        </div>
+        {forYouLoading ? (
+          <div className="text-slate-400">Loading...</div>
+        ) : forYouError ? (
+          <div className="text-red-400">{forYouError}</div>
+        ) : (!forYou.drops.length && !forYou.houses.length && !forYou.creators.length) ? (
+          <div className="text-slate-400">Nothing to recommend yet</div>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {/* Drops */}
+            {forYou.drops.map((drop: any) => (
+              <div key={drop._id} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
+                <div className="text-3xl mb-2">📝</div>
+                <div className="font-bold mb-1">{drop.title || drop.content?.slice(0, 20) || 'Drop'}</div>
+                <div className="text-xs text-slate-400">by {drop.author?.username || 'unknown'}</div>
+              </div>
+            ))}
+            {/* Houses */}
+            {forYou.houses.map((house: any) => (
+              <div key={house._id} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
+                <div className="text-3xl mb-2">🏠</div>
+                <div className="font-bold mb-1">{house.name}</div>
+                <div className="text-xs text-slate-400">{house.members} members</div>
+              </div>
+            ))}
+            {/* Creators */}
+            {forYou.creators.map((drop: any) => (
+              <div key={drop._id} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
+                <div className="text-3xl mb-2">👤</div>
+                <div className="font-bold mb-1">{drop.title || drop.content?.slice(0, 20) || 'Drop'}</div>
+                <div className="text-xs text-slate-400">by {drop.author?.username || 'unknown'}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Drops Horizontal Scroll */}
-      <div className="mb-6">
-        <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Drops</h3>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {drops.map((drop: any) => (
-            <div key={drop.id} className="min-w-[80px] flex flex-col items-center">
-              <img src={drop.thumb} alt={drop.title} className="rounded-lg w-20 h-28 object-cover mb-1" />
-              <div className="text-xs text-white truncate w-20">{drop.title}</div>
-              <div className="text-[10px] text-slate-400">{drop.user}</div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Live Events & Rooms */}
-      <div className="mb-6">
-        <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Live Now</h3>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {liveEvents.map((event: any) => (
-            <div key={event.id} className="min-w-[140px] p-3 rounded-xl bg-gradient-to-br from-purple-700 to-pink-700 text-white flex flex-col items-center border border-slate-700">
-              <div className="text-2xl mb-1">{event.icon}</div>
-              <div className="font-bold mb-1">{event.name}</div>
-              <div className="text-xs text-pink-200">{event.viewers} watching</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Drops section removed as per requirements. Only Trending Drops below. */}
 
-      {/* Category & Tag Navigation */}
+
+
+      {/* Categories: backend-driven */}
       <div className="mb-6">
         <h3 className="text-sm font-bold text-slate-50 mb-2 uppercase tracking-widest">Categories</h3>
-        <div className="flex gap-2 flex-wrap">
-          {categories.map((cat: any, i: number) => (
-            <button key={i} className="px-4 py-2 rounded-full bg-slate-800 text-white flex items-center gap-2 border border-slate-700 text-sm font-medium hover:bg-purple-700/40 transition">
-              {cat.icon}
-              {cat.name}
-            </button>
-          ))}
-        </div>
+        {categoriesLoading ? (
+          <div className="text-slate-400">Loading...</div>
+        ) : categoriesError ? (
+          <div className="text-red-400">{categoriesError}</div>
+        ) : categories.length === 0 ? (
+          <div className="text-slate-400">No categories yet</div>
+        ) : (
+          <div className="flex gap-2 flex-wrap">
+            {categories.map((cat: any, i: number) => (
+              <button key={i} className="px-4 py-2 rounded-full bg-slate-800 text-white flex items-center gap-2 border border-slate-700 text-sm font-medium hover:bg-purple-700/40 transition">
+                {cat.name}
+                <span className="ml-1 text-xs text-slate-400">{cat.score}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ...removed duplicate search bar... */}
@@ -275,10 +310,15 @@ export default function ExplorePage() {
               style={{ animationDelay: `${i * 50}ms` }}
               tabIndex={0}
               aria-label={`Preview Drop ${drop.title}`}
-              onMouseEnter={() => setPreview({ type: 'user', name: drop.user })}
+              onMouseEnter={() => setPreview({ type: 'drop', name: drop.title })}
               onMouseLeave={() => setPreview(null)}
             >
-              <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 opacity-60 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110 transform"></div>
+              {drop.thumb && (
+                <img src={drop.thumb} alt={drop.title} className="w-full h-full object-cover" />
+              )}
+              <div className="absolute bottom-2 left-2 right-2 bg-black/60 rounded px-2 py-1 text-xs text-white truncate">
+                {drop.title}
+              </div>
               <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
                 <button aria-label="Share" className="p-1 rounded-full bg-slate-800 hover:bg-purple-700 text-white"><Share2 size={14} /></button>
                 <button aria-label="Report" className="p-1 rounded-full bg-slate-800 hover:bg-red-700 text-white"><Shield size={14} /></button>
