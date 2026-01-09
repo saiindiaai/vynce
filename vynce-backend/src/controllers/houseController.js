@@ -122,7 +122,9 @@ exports.joinHouse = async (req, res) => {
 
     // Notify house creator
     const requester = await User.findById(userId);
-    await Notification.create({
+    console.log("Creating notification for house creator:", house.foundedBy);
+    console.log("Requester:", requester.username);
+    const notification = await Notification.create({
       user: house.foundedBy,
       type: "HOUSE_JOIN_REQUEST",
       title: "House join request",
@@ -131,6 +133,7 @@ exports.joinHouse = async (req, res) => {
       priority: "HIGH",
       pinned: true,
     });
+    console.log("Notification created:", notification._id);
 
     res.status(200).json({ message: "Join request sent" });
   } catch (error) {

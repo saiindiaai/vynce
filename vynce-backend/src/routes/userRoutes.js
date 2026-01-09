@@ -15,7 +15,6 @@ const {
   updateNotifications,
   updatePrivacy,
   searchUsers,
-  getNotifications,
   getPublicProfile,
   logoutUser,
   deleteAccount,
@@ -27,6 +26,8 @@ const {
   followUser,
   unfollowUser,
 } = require("../controllers/userController");
+
+const { getNotifications } = require("../controllers/notificationController");
 
 const { protect } = require("../middleware/authMiddleware");
 

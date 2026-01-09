@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { api } from "@/lib/api";
-import { Bell, Check, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { Bell, Check, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function NotificationsPage() {
   const { theme } = useTheme();
@@ -14,6 +14,9 @@ export default function NotificationsPage() {
   const [activeNotificationId, setActiveNotificationId] = useState<string | null>(null);
 
   const handleNotificationClick = (notification: any, index: number) => {
+    console.log("Notification clicked:", notification);
+    console.log("Notification type:", notification.type);
+    console.log("Is HOUSE_JOIN_REQUEST:", notification.type === 'HOUSE_JOIN_REQUEST');
     if (notification.type === 'HOUSE_JOIN_REQUEST') {
       // Toggle active state - clicking same notification again cancels
       setActiveNotificationId(activeNotificationId === `${index}` ? null : `${index}`);
@@ -72,6 +75,7 @@ export default function NotificationsPage() {
     const load = async () => {
       try {
         const res = await api.get("/users/notifications");
+        console.log("Notifications received:", res.data);
         setNotifications(res.data || []);
       } catch (e) {
         console.log("Failed loading notifications");
@@ -97,11 +101,9 @@ export default function NotificationsPage() {
           return (
             <div
               key={i}
-              className={`card-matte p-4 rounded-2xl border border-white/10 flex items-center gap-4 transition-all duration-200 cursor-pointer ${
-                isActive ? 'ring-2 ring-purple-500 shadow-xl scale-[1.02]' : ''
-              } ${
-                isBlurred ? 'blur-sm opacity-40' : ''
-              }`}
+              className={`card-matte p-4 rounded-2xl border border-white/10 flex items-center gap-4 transition-all duration-200 cursor-pointer ${isActive ? 'ring-2 ring-purple-500 shadow-xl scale-[1.02]' : ''
+                } ${isBlurred ? 'blur-sm opacity-40' : ''
+                }`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleNotificationClick(n, i);
