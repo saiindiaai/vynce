@@ -359,7 +359,7 @@ export default function VynceHousePage() {
     <div className="animate-fadeIn w-full h-full flex flex-col bg-slate-950">
       {/* Header */}
       <div
-        className="fixed top-16 left-0 right-0 h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex items-center justify-between"
+        className={`fixed top-16 left-0 right-0 h-16 px-4 sm:px-6 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm shadow-sm flex items-center justify-between transition-opacity duration-200 ${sidebarOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100'}`}
         style={{ zIndex: 30 }}
       >
         <div>
