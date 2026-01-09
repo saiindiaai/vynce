@@ -24,6 +24,7 @@ import { CreateHouseModal } from "./house/CreateHouseModal";
 import GlobalHouseSearch from "./house/GlobalHouseSearch";
 import { HouseMember } from "./house/HouseConstants";
 import HouseList from "./house/HouseList";
+import HouseMembersDropdown from "./house/HouseMembersDropdown";
 import HouseMenu from "./house/HouseMenu";
 import HouseShareSheet from "./house/HouseShareSheet";
 import { MembersSidebar } from "./house/MembersSidebar";
@@ -58,6 +59,7 @@ export default function VynceHousePage() {
   const [globalSearchResults, setGlobalSearchResults] = useState<House[]>([]);
   const [showShareHouseSheet, setShowShareHouseSheet] = useState(false);
   const [showHouseMenu, setShowHouseMenu] = useState(false);
+  const [showMembersDropdown, setShowMembersDropdown] = useState(false);
   // Touch/swipe state for mobile gestures (edge swipes only)
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
@@ -568,20 +570,26 @@ export default function VynceHousePage() {
                   >
                     <Share2 size={16} />
                   </button>
-                  <button
-                    onClick={() => {
-                      if (typeof window !== "undefined" && window.innerWidth < 640) {
-                        setShowMembersDrawer(true);
-                      } else {
-                        setShowMembersSidebar(!showMembersSidebar);
-                      }
-                    }}
-                    className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
-                    title="Members (open list)"
-                    aria-label="Open members list"
-                  >
-                    <Users size={16} />
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowMembersDropdown(v => !v); }}
+                      className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
+                      title="Members (open list)"
+                      aria-label="Open members list"
+                    >
+                      <Users size={16} />
+                    </button>
+
+                    {showMembersDropdown && (
+                      <HouseMembersDropdown
+                        selectedHouse={selectedHouse}
+                        houseMembers={houseMembers}
+                        selectedHouseRole={selectedHouseRole}
+                        onClose={() => setShowMembersDropdown(false)}
+                        showToast={showToast}
+                      />
+                    )}
+                  </div>
                   <div className="relative">
                     <button
                       onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowHouseMenu(v => !v); }}
