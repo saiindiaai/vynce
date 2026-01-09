@@ -6,6 +6,7 @@ import ShareSheet from "@/components/PostActions/ShareSheet";
 import { fetchDropFeed, toggleDropDislike, toggleDropLike } from "@/lib/drops";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, ThumbsDown } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface Author {
@@ -31,9 +32,10 @@ interface DropFeedResponse {
   hasMore: boolean;
 }
 
-export default function DropsPage() {
-  const { likedPosts, dislikedPosts, savedPosts, toggleLike, toggleDislike, toggleSave } =
-    useAppStore();
+const DropsPage = () => {
+  const { likedPosts, dislikedPosts, savedPosts, toggleLike, toggleDislike, toggleSave } = useAppStore();
+  const searchParams = useSearchParams();
+  const dropRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [drops, setDrops] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
@@ -102,6 +104,19 @@ export default function DropsPage() {
     loadDrops();
   }, []);
 
+  // Scroll to drop if ?post=ID is present
+  useEffect(() => {
+    const postId = searchParams.get("post");
+    if (postId && dropRefs.current[postId]) {
+      dropRefs.current[postId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Optionally, highlight the drop
+      dropRefs.current[postId]?.classList.add("ring-4", "ring-purple-500");
+      setTimeout(() => {
+        dropRefs.current[postId]?.classList.remove("ring-4", "ring-purple-500");
+      }, 1600);
+    }
+  }, [drops, searchParams]);
+
   // Infinite scroll observer
   useEffect(() => {
     if (!loadMoreRef.current) return;
@@ -154,7 +169,7 @@ export default function DropsPage() {
     try {
       const response = await toggleDropLike(dropId);
       // Update with server response
-      setDrops((prev) => prev.map((d) => 
+      setDrops((prev) => prev.map((d) =>
         d.id === dropId ? { ...d, aura: response.aura, isLikedByMe: response.liked, isDislikedByMe: false } : d
       ));
     } catch (error) {
@@ -209,7 +224,7 @@ export default function DropsPage() {
     try {
       const response = await toggleDropDislike(dropId);
       // Update with server response
-      setDrops((prev) => prev.map((d) => 
+      setDrops((prev) => prev.map((d) =>
         d.id === dropId ? { ...d, aura: response.aura, isDislikedByMe: response.disliked, isLikedByMe: false } : d
       ));
     } catch (error) {
@@ -257,6 +272,7 @@ export default function DropsPage() {
           return (
             <article
               key={drop.id}
+              ref={el => { dropRefs.current[drop.id] = el as HTMLDivElement | null; }}
               className="animate-slideIn bg-slate-800/60 backdrop-blur-sm border border-slate-700/40 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
@@ -319,8 +335,8 @@ export default function DropsPage() {
                 <button
                   onClick={() => handleToggleLike(drop.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isLiked
-                      ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/10"
-                      : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-purple-600/20 hover:border-purple-500/40 hover:text-purple-300"
+                    ? "bg-purple-600/30 border border-purple-500/50 text-purple-300 shadow-lg shadow-purple-500/10"
+                    : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-purple-600/20 hover:border-purple-500/40 hover:text-purple-300"
                     }`}
                   aria-label="Give Aura"
                   title="Aura"
@@ -333,8 +349,8 @@ export default function DropsPage() {
                 <button
                   onClick={() => handleToggleDislike(drop.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isDisliked
-                      ? "bg-orange-600/30 border border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/10"
-                      : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-orange-600/20 hover:border-orange-500/40 hover:text-orange-300"
+                    ? "bg-orange-600/30 border border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/10"
+                    : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-orange-600/20 hover:border-orange-500/40 hover:text-orange-300"
                     }`}
                   aria-label="Lame"
                   title="Lame"
@@ -366,8 +382,8 @@ export default function DropsPage() {
                 <button
                   onClick={() => toggleSave(drop.id.toString())}
                   className={`flex-1 flex items-center justify-center py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isSaved
-                      ? "text-yellow-300 bg-yellow-600/30 border border-yellow-500/50 shadow-lg shadow-yellow-500/10"
-                      : "text-slate-300 bg-slate-700/40 border border-slate-600/30 hover:text-yellow-300 hover:bg-yellow-600/20 hover:border-yellow-500/40"
+                    ? "text-yellow-300 bg-yellow-600/30 border border-yellow-500/50 shadow-lg shadow-yellow-500/10"
+                    : "text-slate-300 bg-slate-700/40 border border-slate-600/30 hover:text-yellow-300 hover:bg-yellow-600/20 hover:border-yellow-500/40"
                     }`}
                   aria-label="Save"
                   title="Save"
@@ -422,4 +438,7 @@ export default function DropsPage() {
       )}
     </div>
   );
-}
+};
+
+export default DropsPage;
+

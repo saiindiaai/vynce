@@ -6,6 +6,7 @@ import ShareSheet from "@/components/PostActions/ShareSheet";
 import { fetchSocialFeed } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, ThumbsDown } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const stories = [
@@ -41,6 +42,30 @@ interface FeedResponse {
 }
 
 export default function HomePage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [posts, setPosts] = useState<any[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Open post modal if ?post=ID is present
+  useEffect(() => {
+    const postId = searchParams.get("post");
+    if (postId && posts.length > 0) {
+      // Check if post exists in feed
+      const found = posts.find((p) => p.id === postId);
+      if (found) {
+        setActiveMenu(null); // Close any open menus
+        setActiveShare(null);
+        setActiveComments(null);
+        // Open the post menu/modal for this post
+        setActiveMenu(postId);
+      }
+    }
+  }, [searchParams, posts]);
   const {
     likedPosts,
     dislikedPosts,
@@ -53,13 +78,6 @@ export default function HomePage() {
     setCurrentCapsuleIndex,
     setCurrentPage,
   } = useAppStore();
-
-  const [posts, setPosts] = useState<any[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const timeAgo = (dateString: string) => {
     const now = new Date();
@@ -138,9 +156,9 @@ export default function HomePage() {
     return () => observerRef.current?.disconnect();
   }, [hasMore, loading]);
 
-  const [activeComments, setActiveComments] = useState<number | null>(null);
-  const [activeShare, setActiveShare] = useState<number | null>(null);
-  const [activeMenu, setActiveMenu] = useState<number | null>(null);
+  const [activeComments, setActiveComments] = useState<string | null>(null);
+  const [activeShare, setActiveShare] = useState<string | null>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   const updatePostComments = (postId: string | number, newCount: number) => {
     setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, comments: newCount } : p)));
@@ -368,7 +386,7 @@ export default function HomePage() {
         <ShareSheet
           isOpen={true}
           onClose={() => setActiveShare(null)}
-          postId={activeShare}
+          postId={Number(activeShare)}
           variant="home"
         />
       )}
@@ -376,8 +394,16 @@ export default function HomePage() {
       {activeMenu !== null && (
         <PostMenu
           isOpen={true}
-          onClose={() => setActiveMenu(null)}
-          postId={activeMenu}
+          onClose={() => {
+            setActiveMenu(null);
+            // Remove ?post=ID from URL when modal closes
+            if (searchParams.get("post")) {
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("post");
+              router.replace(`?${params.toString()}`, { scroll: false });
+            }
+          }}
+          postId={Number(activeMenu)}
           isOwnPost={false}
           variant="home"
         />
