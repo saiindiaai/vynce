@@ -1,5 +1,6 @@
 "use client";
 
+import DropPreviewSheet from "@/components/drops/DropPreviewSheet";
 import HouseCard from "@/components/explore/HouseCard";
 import TrendingTopic from "@/components/explore/TrendingTopic";
 import { fetchCategories } from "@/lib/categories";
@@ -31,7 +32,7 @@ export default function ExplorePage() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [housePage, setHousePage] = useState(1);
   const [dropPage, setDropPage] = useState(1);
-  const [preview, setPreview] = useState<{ type: 'user' | 'house' | 'drop', name: string } | null>(null);
+  const [previewDrop, setPreviewDrop] = useState<any | null>(null);
   const FILTERS = [
     { id: "all", label: "All" },
     { id: "users", label: "Users" },
@@ -110,6 +111,10 @@ export default function ExplorePage() {
       setDropPage((p) => Math.min(p + 1, 3));
     }
   }
+
+
+  // Used for previewing houses (e.g., on hover)
+  const [preview, setPreview] = useState<{ type: string; name: any } | null>(null);
 
   if (exploreLoading) {
     return <div className="p-8 text-center text-slate-400">Loading explore...</div>;
@@ -306,19 +311,15 @@ export default function ExplorePage() {
           {visibleDrops.map((drop: any, i: number) => (
             <div
               key={drop.id}
-              className="aspect-square rounded-2xl overflow-hidden group cursor-pointer animate-slideIn transition-all duration-300 relative clean-card border border-slate-600/50 hover:border-slate-500/50 hover:shadow-lg hover:shadow-purple-500/20"
+              className="rounded-2xl group cursor-pointer animate-slideIn transition-all duration-300 relative clean-card border border-slate-600/50 hover:border-slate-500/50 hover:shadow-lg hover:shadow-purple-500/20 p-4 bg-slate-900"
               style={{ animationDelay: `${i * 50}ms` }}
               tabIndex={0}
               aria-label={`Preview Drop ${drop.title}`}
-              onMouseEnter={() => setPreview({ type: 'drop', name: drop.title })}
-              onMouseLeave={() => setPreview(null)}
+              onClick={() => setPreviewDrop(drop)}
             >
-              {drop.thumb && (
-                <img src={drop.thumb} alt={drop.title} className="w-full h-full object-cover" />
-              )}
-              <div className="absolute bottom-2 left-2 right-2 bg-black/60 rounded px-2 py-1 text-xs text-white truncate">
-                {drop.title}
-              </div>
+              <div className="text-base font-semibold text-white mb-2 truncate">{drop.title}</div>
+              {drop.content && <div className="text-sm text-slate-300 line-clamp-3 mb-2 whitespace-pre-line">{drop.content}</div>}
+              <div className="text-xs text-slate-400">by {drop.user || drop.author?.username || "unknown"}</div>
               <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
                 <button aria-label="Share" className="p-1 rounded-full bg-slate-800 hover:bg-purple-700 text-white"><Share2 size={14} /></button>
                 <button aria-label="Report" className="p-1 rounded-full bg-slate-800 hover:bg-red-700 text-white"><Shield size={14} /></button>
@@ -328,14 +329,8 @@ export default function ExplorePage() {
         </div>
         {visibleDrops.length < drops.length && <div className="text-center text-slate-400 py-2">Loading more drops...</div>}
       </div>
-      {/* Preview Popover (mocked, global) */}
-      {preview && (
-        <div className="fixed bottom-8 right-8 z-50 bg-slate-900 border border-slate-700 rounded-xl p-4 shadow-xl animate-fadeIn w-64">
-          <div className="font-bold text-white mb-1">{preview.type === 'user' ? 'User Preview' : 'House Preview'}</div>
-          <div className="text-slate-200">{preview.name}</div>
-          <div className="text-xs text-slate-400 mt-2">(Mocked preview popover)</div>
-        </div>
-      )}
+      {/* Drop Preview Sheet */}
+      <DropPreviewSheet open={!!previewDrop} onClose={() => setPreviewDrop(null)} drop={previewDrop} />
     </div>
   );
 }
