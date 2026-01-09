@@ -47,7 +47,7 @@ exports.getHouses = async (req, res) => {
         { foundedBy: userId },
         { members: userId }
       ]
-    }).populate("foundedBy", "username").populate("channels");
+    }).populate("foundedBy", "username").populate("members", "username").populate("channels");
     res.json(houses);
   } catch (error) {
     res.status(500).json({ message: error.message });

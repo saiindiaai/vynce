@@ -79,11 +79,11 @@ export interface House {
   type: "group_chat" | "community" | "house" | "broadcast";
   level: number;
   influence: number;
-  members: number;
+  members: any[]; // Array of populated user objects or IDs
   isPrivate: boolean;
   isPinned: boolean;
   createdAt: string;
-  foundedBy: string;
+  foundedBy: string | any; // Can be string or populated user object
   crest?: string;
   channels: Channel[];
   allyHouses: string[];

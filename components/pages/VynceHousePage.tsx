@@ -113,21 +113,23 @@ export default function VynceHousePage() {
 
   // Load house members when house changes
   useEffect(() => {
-    if (!selectedHouseId || !selectedHouse) return;
+    if (!selectedHouseId) return;
+
+    const selectedHouse = houses.find((h) => h._id === selectedHouseId);
+    if (!selectedHouse) return;
 
     const loadMembers = async () => {
       try {
-        // Fetch approved members
-        const res = await api.get(`/houses/${selectedHouseId}/members`);
-        const approvedMembers: HouseMember[] = res.data.map((m: any) => ({
-          id: m._id || m.id,
-          username: m.username,
-          role: (m.role || 'member') as HouseMember['role'],
-          isOnline: m.isOnline || false,
-          joinedAt: m.joinedAt || Date.now(),
-          influence: m.influence || 0,
-          loyalty: m.loyalty || 0,
-          powers: m.powers || []
+        // Get members from the house data (now populated)
+        const approvedMembers: HouseMember[] = (selectedHouse.members || []).map((member: any) => ({
+          id: member._id || member.id || member,
+          username: member.username || 'Unknown',
+          role: 'member',
+          isOnline: false,
+          joinedAt: Date.now(), // We don't have this info
+          influence: 0,
+          loyalty: 0,
+          powers: []
         }));
 
         // Always include creator at the top
@@ -163,31 +165,29 @@ export default function VynceHousePage() {
         }));
       } catch (err) {
         console.error("Failed to load house members", err);
-        // Even if API fails, still include creator
-        if (selectedHouse) {
-          const founderId = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
-            ? (selectedHouse.foundedBy as any)._id || (selectedHouse.foundedBy as any).id
-            : selectedHouse.foundedBy as string;
-          const founderUsername = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
-            ? (selectedHouse.foundedBy as any).username || 'Creator'
-            : 'Creator';
+        // Even if something fails, still include creator
+        const founderId = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
+          ? (selectedHouse.foundedBy as any)._id || (selectedHouse.foundedBy as any).id
+          : selectedHouse.foundedBy as string;
+        const founderUsername = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
+          ? (selectedHouse.foundedBy as any).username || 'Creator'
+          : 'Creator';
 
-          const creatorMember: HouseMember = {
-            id: founderId,
-            username: founderUsername,
-            role: 'founder',
-            isOnline: false,
-            joinedAt: typeof selectedHouse.createdAt === 'number' ? selectedHouse.createdAt : Date.now(),
-            influence: 0,
-            loyalty: 0,
-            powers: []
-          };
+        const creatorMember: HouseMember = {
+          id: founderId,
+          username: founderUsername,
+          role: 'founder',
+          isOnline: false,
+          joinedAt: typeof selectedHouse.createdAt === 'number' ? selectedHouse.createdAt : Date.now(),
+          influence: 0,
+          loyalty: 0,
+          powers: []
+        };
 
-          setMembers(prev => ({
-            ...prev,
-            [selectedHouseId]: [creatorMember]
-          }));
-        }
+        setMembers(prev => ({
+          ...prev,
+          [selectedHouseId]: [creatorMember]
+        }));
       }
     };
 
