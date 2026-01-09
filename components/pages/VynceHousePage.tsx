@@ -111,6 +111,34 @@ export default function VynceHousePage() {
     }
   }, [selectedHouseId, selectedChannelId]);
 
+  // Load house members when house changes
+  useEffect(() => {
+    if (!selectedHouseId) return;
+
+    const loadMembers = async () => {
+      try {
+        const res = await api.get(`/houses/${selectedHouseId}/members`);
+        setMembers(prev => ({
+          ...prev,
+          [selectedHouseId]: res.data.map((m: any) => ({
+            id: m._id || m.id,
+            username: m.username,
+            role: m.role,
+            isOnline: m.isOnline || false,
+            joinedAt: m.joinedAt || Date.now(),
+            influence: m.influence || 0,
+            loyalty: m.loyalty || 0,
+            powers: m.powers || []
+          }))
+        }));
+      } catch (err) {
+        console.error("Failed to load house members", err);
+      }
+    };
+
+    loadMembers();
+  }, [selectedHouseId]);
+
   // Socket setup
   useEffect(() => {
     const userId = localStorage.getItem("userId"); // Assuming userId is stored
