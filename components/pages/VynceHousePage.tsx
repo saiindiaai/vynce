@@ -584,7 +584,7 @@ export default function VynceHousePage() {
                   </button>
                   <div className="relative">
                     <button
-                      onClick={() => setShowHouseMenu(v => !v)}
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowHouseMenu(v => !v); }}
                       className="p-2 hover:bg-slate-700/60 rounded-lg transition-all duration-150 text-slate-400 hover:text-slate-50"
                       title="House options"
                       aria-label="House options"
@@ -594,10 +594,6 @@ export default function VynceHousePage() {
 
                     {showHouseMenu && (
                       <>
-                        <div
-                          className="fixed inset-0 z-30"
-                          onClick={() => setShowHouseMenu(false)}
-                        />
                         <HouseMenu
                           selectedHouse={selectedHouse}
                           selectedHouseRole={selectedHouseRole}
