@@ -143,7 +143,7 @@ export default function VynceHousePage() {
           username: founderUsername,
           role: 'founder',
           isOnline: false,
-            joinedAt: typeof selectedHouse.createdAt === 'number' ? selectedHouse.createdAt : Date.now(),
+          joinedAt: typeof selectedHouse.createdAt === 'number' ? selectedHouse.createdAt : Date.now(),
           influence: 0,
           loyalty: 0,
           powers: []
