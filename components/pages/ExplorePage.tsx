@@ -4,9 +4,9 @@ import DropPreviewSheet from "@/components/drops/DropPreviewSheet";
 import HouseCard from "@/components/explore/HouseCard";
 import TrendingTopic from "@/components/explore/TrendingTopic";
 import { fetchCategories } from "@/lib/categories";
-import { fetchExploreData } from "@/lib/explore";
+import { fetchExploreData, searchExploreContent } from "@/lib/explore";
 import { fetchForYou } from "@/lib/forYou";
-import { Search, Share2, Shield, Star, TrendingUp } from "lucide-react";
+import { Loader, Search, Share2, Shield, Star, TrendingUp } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 const PAGE_SIZE = 4;
 
@@ -79,21 +79,47 @@ export default function ExplorePage() {
       });
   }, []);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSearch = async (searchQuery: string = query, searchFilter: string = filter) => {
+    if (!searchQuery.trim()) {
+      setResults([]);
+      setSuggestions([]);
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setResults([
-        { type: filter === "all" ? "user" : filter, name: `Result for '${query}' (${filter})` },
-      ]);
-      setSuggestions([
-        `Popular: ${query} Design`,
-        `Trending: ${query} Drops`,
-        `New: ${query} Houses`,
-      ]);
-      setShowSuggestions(true);
+    try {
+      const data = await searchExploreContent(searchQuery, searchFilter);
+      setResults(data.results || []);
+    } catch (error) {
+      console.error("Search error:", error);
+      setResults([]);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  // Debounced search as user types
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Show suggestions while typing
+    if (value.trim()) {
+      setShowSuggestions(true);
+      // Auto-search after user stops typing for 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        handleSearch(value, filter);
+      }, 300);
+    } else {
+      setResults([]);
+      setShowSuggestions(false);
+    }
   };
 
   const houses = exploreData?.houses || [];
@@ -127,49 +153,33 @@ export default function ExplorePage() {
     <div className="p-4 animate-fadeIn pb-24 sm:pb-0 space-y-10">
       {/* Search Bar (always at top) */}
       <div className="mb-6">
-        <form onSubmit={handleSearch} className="flex flex-col gap-2 animate-scaleIn">
+        <form onSubmit={(e) => { e.preventDefault(); handleSearch(query, filter); }} className="flex flex-col gap-2 animate-scaleIn">
           <div className="relative flex items-center gap-3 px-4 py-3.5 rounded-2xl clean-card border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300">
             <Search size={20} className="text-slate-400 transition-all duration-300" />
             <input
               ref={searchInputRef}
               type="text"
               value={query}
-              onChange={e => {
-                setQuery(e.target.value);
-                setShowSuggestions(true);
-                setSuggestions([
-                  `Popular: ${e.target.value} Design`,
-                  `Trending: ${e.target.value} Drops`,
-                  `New: ${e.target.value} Houses`,
-                ]);
-              }}
+              onChange={handleSearchInput}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               aria-label="Search"
               placeholder="Search users, drops, houses, capsules..."
               className="flex-1 bg-transparent outline-none text-slate-100 placeholder-slate-500 text-sm"
             />
-            {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute left-0 top-full mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg shadow-lg z-20">
-                {suggestions.map((s, i) => (
-                  <li
-                    key={i}
-                    tabIndex={0}
-                    className="px-4 py-2 text-sm text-slate-200 hover:bg-purple-700/30 cursor-pointer"
-                    onMouseDown={() => { setQuery(s); setShowSuggestions(false); }}
-                  >
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
+            {loading && <Loader size={18} className="text-slate-400 animate-spin" />}
           </div>
           <div className="flex gap-2 flex-wrap mt-2">
             {FILTERS.map(f => (
               <button
                 key={f.id}
                 type="button"
-                onClick={() => setFilter(f.id)}
+                onClick={() => {
+                  setFilter(f.id);
+                  if (query.trim()) {
+                    handleSearch(query, f.id);
+                  }
+                }}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${filter === f.id ? "bg-purple-600 text-white border-purple-600" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"}`}
               >
                 {f.label}
@@ -178,16 +188,35 @@ export default function ExplorePage() {
           </div>
         </form>
         <div className="mt-4">
-          {loading && <div className="text-slate-400">Loading...</div>}
-          {!loading && results.length === 0 && <div className="text-slate-400">No results yet. Try searching!</div>}
+          {loading && <div className="text-slate-400 flex items-center gap-2"><Loader size={16} className="animate-spin" /> Searching...</div>}
+          {!loading && results.length === 0 && query.trim() && <div className="text-slate-400">No results found for "{query}"</div>}
+          {!loading && results.length === 0 && !query.trim() && <div className="text-slate-400">Start typing to search for users, drops, and houses</div>}
           {!loading && results.length > 0 && (
-            <ul className="space-y-3">
-              {results.map((r, i) => (
-                <li key={i} className="p-4 rounded-lg bg-slate-800 border border-slate-700 text-white">
-                  <span className="font-bold capitalize">{r.type}:</span> {r.name}
-                </li>
+            <div className="space-y-4">
+              {results.map((category, idx) => (
+                <div key={idx} className="space-y-2">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest">{category.category}</h4>
+                  <div className="space-y-2">
+                    {category.items.map((item: any, itemIdx: number) => (
+                      <div
+                        key={itemIdx}
+                        className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:bg-slate-800 hover:border-purple-500/30 transition cursor-pointer flex items-center gap-3"
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-slate-100 truncate">{item.name}</div>
+                          {item.username && <div className="text-xs text-slate-400">@{item.username}</div>}
+                          {item.content && <div className="text-xs text-slate-400 line-clamp-2">{item.content}</div>}
+                          {item.author && <div className="text-xs text-slate-400">by {item.author}</div>}
+                        </div>
+                        {item.memberCount !== undefined && <span className="text-xs text-slate-400">{item.memberCount} members</span>}
+                        {item.aura !== undefined && <span className="text-xs text-purple-400">⭐ {item.aura}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>

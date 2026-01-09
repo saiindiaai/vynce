@@ -24,6 +24,7 @@
 const Post = require("../models/Post");
 const Drop = require("../models/Drop");
 const House = require("../../models/House");
+const User = require("../../models/User");
 
 // GET /api/social/explore/main
 exports.getExploreMain = async (req, res) => {
@@ -110,5 +111,94 @@ exports.getExploreMain = async (req, res) => {
     res.json({ trendingTopics, houses, recommendations, shorts, liveEvents });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch explore data" });
+  }
+};
+
+// GET /api/social/explore/search?q=<query>&filter=<all|users|drops|houses>
+exports.searchContent = async (req, res) => {
+  try {
+    const { q, filter = "all" } = req.query;
+
+    if (!q || q.trim().length < 1) {
+      return res.json({ results: [] });
+    }
+
+    const searchQuery = q.trim();
+    const results = [];
+
+    // Search Users
+    if (filter === "all" || filter === "users") {
+      const User = require("../../models/User");
+      const users = await User.find({
+        $or: [
+          { username: { $regex: searchQuery, $options: "i" } },
+          { displayName: { $regex: searchQuery, $options: "i" } }
+        ]
+      })
+        .select("username displayName _id")
+        .limit(10)
+        .lean();
+
+      results.push({
+        category: "Users",
+        type: "users",
+        items: users.map(u => ({
+          id: u._id,
+          name: u.displayName || u.username,
+          username: u.username,
+          icon: "👤"
+        }))
+      });
+    }
+
+    // Search Houses
+    if (filter === "all" || filter === "houses") {
+      const houses = await House.find({
+        isPrivate: false,
+        name: { $regex: searchQuery, $options: "i" }
+      })
+        .select("name _id members")
+        .limit(10)
+        .lean();
+
+      results.push({
+        category: "Houses",
+        type: "houses",
+        items: houses.map(h => ({
+          id: h._id,
+          name: h.name,
+          memberCount: h.members.length,
+          icon: "🏠"
+        }))
+      });
+    }
+
+    // Search Drops
+    if (filter === "all" || filter === "drops") {
+      const drops = await Drop.find({
+        content: { $regex: searchQuery, $options: "i" }
+      })
+        .select("content _id author aura")
+        .populate("author", "username displayName")
+        .limit(10)
+        .lean();
+
+      results.push({
+        category: "Drops",
+        type: "drops",
+        items: drops.map(d => ({
+          id: d._id,
+          content: d.content.length > 50 ? d.content.slice(0, 50) + "..." : d.content,
+          author: d.author?.displayName || d.author?.username || "Unknown",
+          aura: d.aura || 0,
+          icon: "📝"
+        }))
+      });
+    }
+
+    res.json({ results });
+  } catch (err) {
+    console.error("Search error:", err);
+    res.status(500).json({ message: "Search failed" });
   }
 };
