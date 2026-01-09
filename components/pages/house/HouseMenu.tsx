@@ -83,15 +83,15 @@ export default function HouseMenu({ selectedHouse, selectedHouseRole, onClose, s
                 className={`w-full flex items-center gap-4 p-4 transition-all hover:bg-gray-700/30 ${item.danger ? 'hover:bg-red-500/10' : ''}`}
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
-                <item.icon size={18} className={item.danger ? 'text-red-400' : 'text-slate-300'} />
-                <span className={`font-medium ${item.danger ? 'text-red-400' : ''}`}>{item.label}</span>
+                <item.icon size={18} className={item.danger ? 'text-red-400' : 'text-white'} />
+                <span className={`font-medium ${item.danger ? 'text-red-400' : 'text-white'}`}>{item.label}</span>
               </button>
             ))}
           </div>
 
           <button
             onClick={onClose}
-            className={`w-full p-4 mt-1 border-t ${themeClasses.cardBorder} font-semibold ${themeClasses.textSecondary} hover:bg-gray-700/30 transition-all`}
+            className={`w-full p-4 mt-1 border-t ${themeClasses.cardBorder} font-semibold text-white hover:bg-gray-700/30 transition-all`}
           >
             Cancel
           </button>
