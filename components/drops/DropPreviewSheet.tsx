@@ -1,8 +1,8 @@
 "use client";
 
 import BottomSheet from "@/components/ui/BottomSheet";
-import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
 
 interface DropPreviewSheetProps {
   open: boolean;
@@ -36,7 +36,7 @@ const DropPreviewSheet: React.FC<DropPreviewSheetProps> = ({ open, onClose, drop
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition shadow-lg"
             onClick={() => {
               setCurrentPage("drops");
-              router.push(`/social?post=${drop.id}`);
+              router.push(`/social?post=${drop.id || drop._id}`);
             }}
           >
             Go to Drop
