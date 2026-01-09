@@ -29,7 +29,7 @@ import HouseShareSheet from "./house/HouseShareSheet";
 import { MembersSidebar } from "./house/MembersSidebar";
 
 export default function VynceHousePage() {
-  const { showToast } = useAppStore();
+  const { showToast, sidebarOpen } = useAppStore();
   const searchParams = useSearchParams();
   const [houses, setHouses] = useState<House[]>([]);
   const [channelMessages, setChannelMessages] = useState<HouseMessage[]>([]);
@@ -534,7 +534,7 @@ export default function VynceHousePage() {
           {selectedHouse && selectedChannel ? (
             <>
               {/* Chat Header */}
-              <div className="fixed top-32 left-0 right-0 h-14 px-4 py-3 border-b border-slate-700/30 bg-slate-900/80 flex items-center justify-between group/header" style={{ zIndex: 25 }}>
+              <div className={`fixed top-32 left-0 right-0 h-14 px-4 py-3 border-b border-slate-700/30 bg-slate-900/80 flex items-center justify-between group/header transition-opacity duration-200 ${showHousesSidebar || showMembersDrawer || sidebarOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100'}`} style={{ zIndex: 25 }}>
                 <div className="flex items-center gap-3 min-w-0 flex-1 cursor-help" title={`Purpose: ${selectedHouse.purpose}`}>
                   <div className={`p-2 rounded-lg flex-shrink-0 ${getTypeColor(selectedHouse.type)}`}>
                     {getTypeIcon(selectedHouse.type)}
@@ -650,7 +650,7 @@ export default function VynceHousePage() {
               </div>
 
               {/* Message Input */}
-              <div className="fixed bottom-16 left-0 right-0 px-4 py-3 border-t border-slate-700/20 bg-slate-900/70" style={{ zIndex: 50 }}>
+              <div className={`fixed bottom-16 left-0 right-0 px-4 py-3 border-t border-slate-700/20 bg-slate-900/70 transition-opacity duration-200 ${showHousesSidebar || showMembersDrawer || sidebarOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100'}`} style={{ zIndex: 50 }}>
                 <div className="flex items-end gap-2">
                   <input
                     type="text"
