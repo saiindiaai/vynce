@@ -236,7 +236,11 @@ export default function ExplorePage() {
           <div className="flex gap-3 overflow-x-auto pb-2">
             {/* Drops */}
             {forYou.drops.map((drop: any) => (
-              <div key={drop._id} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
+              <div
+                key={drop._id}
+                onClick={() => setPreviewDrop(drop)}
+                className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center cursor-pointer hover:bg-slate-700/80 hover:border-purple-500/40 transition"
+              >
                 <div className="text-3xl mb-2">📝</div>
                 <div className="font-bold mb-1">{drop.title || drop.content?.slice(0, 20) || 'Drop'}</div>
                 <div className="text-xs text-slate-400">by {drop.author?.username || 'unknown'}</div>
@@ -244,15 +248,23 @@ export default function ExplorePage() {
             ))}
             {/* Houses */}
             {forYou.houses.map((house: any) => (
-              <div key={house._id} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
+              <div
+                key={house._id}
+                onClick={() => setPreviewHouse(house)}
+                className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center cursor-pointer hover:bg-slate-700/80 hover:border-purple-500/40 transition"
+              >
                 <div className="text-3xl mb-2">🏠</div>
                 <div className="font-bold mb-1">{house.name}</div>
-                <div className="text-xs text-slate-400">{house.members} members</div>
+                <div className="text-xs text-slate-400">{house.memberCount || house.members?.length || 0} members</div>
               </div>
             ))}
             {/* Creators */}
             {forYou.creators.map((drop: any) => (
-              <div key={drop._id} className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center">
+              <div
+                key={drop._id}
+                onClick={() => setPreviewDrop(drop)}
+                className="min-w-[160px] p-4 rounded-xl bg-slate-800 border border-slate-700 text-white flex flex-col items-center cursor-pointer hover:bg-slate-700/80 hover:border-purple-500/40 transition"
+              >
                 <div className="text-3xl mb-2">👤</div>
                 <div className="font-bold mb-1">{drop.title || drop.content?.slice(0, 20) || 'Drop'}</div>
                 <div className="text-xs text-slate-400">by {drop.author?.username || 'unknown'}</div>
