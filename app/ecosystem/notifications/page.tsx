@@ -14,20 +14,54 @@ export default function NotificationsPage() {
   const [activeNotificationId, setActiveNotificationId] = useState<string | null>(null);
 
   const handleNotificationClick = (notification: any, index: number) => {
-    if (notification.type === 'house_join_request') {
+    if (notification.type === 'HOUSE_JOIN_REQUEST') {
       // Toggle active state - clicking same notification again cancels
       setActiveNotificationId(activeNotificationId === `${index}` ? null : `${index}`);
     }
   };
 
-  const handleApprove = () => {
-    showToast("Approved (UI only)", "success");
-    setActiveNotificationId(null);
+  const handleApprove = async () => {
+    if (!activeNotificationId) return;
+
+    const notificationIndex = parseInt(activeNotificationId);
+    const notification = notifications[notificationIndex];
+
+    try {
+      await api.post(`/houses/${notification.metadata.houseId}/approve`, {
+        userId: notification.metadata.requesterId
+      });
+
+      showToast("Member approved successfully", "success");
+
+      // Remove the notification from the list
+      setNotifications(prev => prev.filter((_, i) => i !== notificationIndex));
+      setActiveNotificationId(null);
+    } catch (error: any) {
+      console.error("Failed to approve member:", error);
+      showToast(error.response?.data?.message || "Failed to approve member", "error");
+    }
   };
 
-  const handleReject = () => {
-    showToast("Rejected (UI only)", "error");
-    setActiveNotificationId(null);
+  const handleReject = async () => {
+    if (!activeNotificationId) return;
+
+    const notificationIndex = parseInt(activeNotificationId);
+    const notification = notifications[notificationIndex];
+
+    try {
+      await api.post(`/houses/${notification.metadata.houseId}/reject`, {
+        userId: notification.metadata.requesterId
+      });
+
+      showToast("Member rejected", "info");
+
+      // Remove the notification from the list
+      setNotifications(prev => prev.filter((_, i) => i !== notificationIndex));
+      setActiveNotificationId(null);
+    } catch (error: any) {
+      console.error("Failed to reject member:", error);
+      showToast(error.response?.data?.message || "Failed to reject member", "error");
+    }
   };
 
   const handleOutsideClick = () => {
@@ -57,7 +91,7 @@ export default function NotificationsPage() {
       <div className="space-y-4 mt-4">
         {notifications.map((n, i) => {
           const isActive = activeNotificationId === `${i}`;
-          const isJoinRequest = n.type === 'house_join_request';
+          const isJoinRequest = n.type === 'HOUSE_JOIN_REQUEST';
           const isBlurred = activeNotificationId !== null && !isActive;
 
           return (

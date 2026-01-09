@@ -10,6 +10,7 @@ router.get("/search", houseController.searchHouses);
 router.get("/:houseId", auth, houseController.getHouse);
 router.post("/:houseId/join", auth, houseController.joinHouse);
 router.post("/:houseId/approve", auth, houseController.approveMember);
+router.post("/:houseId/reject", auth, houseController.rejectMember);
 
 // Channel routes
 router.post("/:houseId/channels", auth, houseController.createChannel);

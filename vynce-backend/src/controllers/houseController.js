@@ -184,6 +184,51 @@ exports.approveMember = async (req, res) => {
   }
 };
 
+// Reject a member
+exports.rejectMember = async (req, res) => {
+  try {
+    const adminId = req.userId;
+    const houseId = req.params.houseId;
+    const { userId } = req.body; // User to reject
+
+    const house = await House.findById(houseId);
+    if (!house) {
+      return res.status(404).json({ message: "House not found" });
+    }
+
+    // Only creator can reject
+    if (String(house.foundedBy) !== String(adminId)) {
+      return res.status(403).json({ error: "Only the house creator can reject members" });
+    }
+
+    // Check if user is in pending
+    const pendingIndex = house.pendingMembers.findIndex(id => String(id) === String(userId));
+    if (pendingIndex === -1) {
+      return res.status(400).json({ message: "User not in pending members" });
+    }
+
+    // Remove from pending members
+    house.pendingMembers.splice(pendingIndex, 1);
+    await house.save();
+
+    // Notify the rejected user
+    const rejector = await User.findById(adminId);
+    await Notification.create({
+      user: userId,
+      type: "HOUSE_JOIN_REJECTED",
+      title: "House join rejected",
+      message: `${rejector.username} rejected your join request for house "${house.name}"`,
+      metadata: { houseId: house._id, rejectorId: adminId },
+      priority: "NORMAL",
+      pinned: false,
+    });
+
+    res.status(200).json({ message: "Member rejected successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Create a channel in a house
 exports.createChannel = async (req, res) => {
   try {
