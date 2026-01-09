@@ -113,31 +113,86 @@ export default function VynceHousePage() {
 
   // Load house members when house changes
   useEffect(() => {
-    if (!selectedHouseId) return;
+    if (!selectedHouseId || !selectedHouse) return;
 
     const loadMembers = async () => {
       try {
+        // Fetch approved members
         const res = await api.get(`/houses/${selectedHouseId}/members`);
+        const approvedMembers: HouseMember[] = res.data.map((m: any) => ({
+          id: m._id || m.id,
+          username: m.username,
+          role: (m.role || 'member') as HouseMember['role'],
+          isOnline: m.isOnline || false,
+          joinedAt: m.joinedAt || Date.now(),
+          influence: m.influence || 0,
+          loyalty: m.loyalty || 0,
+          powers: m.powers || []
+        }));
+
+        // Always include creator at the top
+        const founderId = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
+          ? (selectedHouse.foundedBy as any)._id || (selectedHouse.foundedBy as any).id
+          : selectedHouse.foundedBy as string;
+        const founderUsername = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
+          ? (selectedHouse.foundedBy as any).username || 'Creator'
+          : 'Creator';
+
+        const creatorMember: HouseMember = {
+          id: founderId,
+          username: founderUsername,
+          role: 'founder',
+          isOnline: false,
+            joinedAt: typeof selectedHouse.createdAt === 'number' ? selectedHouse.createdAt : Date.now(),
+          influence: 0,
+          loyalty: 0,
+          powers: []
+        };
+
+        // Combine creator + approved members, avoiding duplicates
+        const allMembers: HouseMember[] = [creatorMember];
+        approvedMembers.forEach((member: HouseMember) => {
+          if (member.id !== creatorMember.id) {
+            allMembers.push(member);
+          }
+        });
+
         setMembers(prev => ({
           ...prev,
-          [selectedHouseId]: res.data.map((m: any) => ({
-            id: m._id || m.id,
-            username: m.username,
-            role: m.role,
-            isOnline: m.isOnline || false,
-            joinedAt: m.joinedAt || Date.now(),
-            influence: m.influence || 0,
-            loyalty: m.loyalty || 0,
-            powers: m.powers || []
-          }))
+          [selectedHouseId]: allMembers
         }));
       } catch (err) {
         console.error("Failed to load house members", err);
+        // Even if API fails, still include creator
+        if (selectedHouse) {
+          const founderId = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
+            ? (selectedHouse.foundedBy as any)._id || (selectedHouse.foundedBy as any).id
+            : selectedHouse.foundedBy as string;
+          const founderUsername = typeof selectedHouse.foundedBy === 'object' && selectedHouse.foundedBy
+            ? (selectedHouse.foundedBy as any).username || 'Creator'
+            : 'Creator';
+
+          const creatorMember: HouseMember = {
+            id: founderId,
+            username: founderUsername,
+            role: 'founder',
+            isOnline: false,
+            joinedAt: typeof selectedHouse.createdAt === 'number' ? selectedHouse.createdAt : Date.now(),
+            influence: 0,
+            loyalty: 0,
+            powers: []
+          };
+
+          setMembers(prev => ({
+            ...prev,
+            [selectedHouseId]: [creatorMember]
+          }));
+        }
       }
     };
 
     loadMembers();
-  }, [selectedHouseId]);
+  }, [selectedHouseId, houses]);
 
   // Socket setup
   useEffect(() => {
