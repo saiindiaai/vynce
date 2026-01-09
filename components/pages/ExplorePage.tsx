@@ -2,6 +2,7 @@
 
 import DropPreviewSheet from "@/components/drops/DropPreviewSheet";
 import HouseCard from "@/components/explore/HouseCard";
+import HousePreviewSheet from "@/components/explore/HousePreviewSheet";
 import TrendingTopic from "@/components/explore/TrendingTopic";
 import { fetchCategories } from "@/lib/categories";
 import { fetchExploreData, searchExploreContent } from "@/lib/explore";
@@ -33,6 +34,7 @@ export default function ExplorePage() {
   const [housePage, setHousePage] = useState(1);
   const [dropPage, setDropPage] = useState(1);
   const [previewDrop, setPreviewDrop] = useState<any | null>(null);
+  const [previewHouse, setPreviewHouse] = useState<any | null>(null);
   const FILTERS = [
     { id: "all", label: "All" },
     { id: "users", label: "Users" },
@@ -310,7 +312,7 @@ export default function ExplorePage() {
         </h3>
         <div className="grid grid-cols-2 gap-3">
           {visibleHouses.map((house: any, idx: number) => (
-            <div key={house.name} className="relative group">
+            <div key={house.name} className="relative group cursor-pointer" onClick={() => setPreviewHouse(house)}>
               {idx === 0 && <span className="absolute -top-2 -right-2 bg-yellow-400 text-xs text-black px-2 py-0.5 rounded-full font-bold z-10 flex items-center gap-1"><Star size={12} />Top 1%</span>}
               {idx === visibleHouses.length - 1 && <span className="absolute -top-2 -left-2 bg-green-500 text-xs text-white px-2 py-0.5 rounded-full font-bold z-10">New</span>}
               <div
@@ -360,6 +362,9 @@ export default function ExplorePage() {
       </div>
       {/* Drop Preview Sheet */}
       <DropPreviewSheet open={!!previewDrop} onClose={() => setPreviewDrop(null)} drop={previewDrop} />
+
+      {/* House Preview Sheet */}
+      <HousePreviewSheet open={!!previewHouse} onClose={() => setPreviewHouse(null)} house={previewHouse} />
     </div>
   );
 }

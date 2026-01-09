@@ -67,12 +67,17 @@ exports.getExploreMain = async (req, res) => {
       .limit(3)
       .lean();
 
-    // Map DB houses to frontend format (icon, gradient, isJoined, rank are mocked for now)
+    // Map DB houses to frontend format with real data
     const houses = housesRaw.map((house, idx) => ({
+      _id: house._id,
       name: house.name,
+      description: house.description,
+      purpose: house.purpose,
+      type: house.type,
       icon: ["🎮", "🎵", "📷"][idx] || "🏠", // fallback icon
-      members: house.members > 1000 ? (house.members / 1000).toFixed(1) + "K" : String(house.members),
-      online: Math.floor(Math.random() * (house.members / 2)), // mock online count
+      members: house.members,
+      memberCount: house.members.length,
+      online: Math.floor(Math.random() * (house.members.length / 2)), // mock online count
       gradient: [
         "from-green-500 to-emerald-500",
         "from-orange-500 to-yellow-500",
