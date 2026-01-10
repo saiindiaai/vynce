@@ -3,7 +3,7 @@ import { BarChart3, TrendingUp, Users, Zap } from "lucide-react";
 export type ContentType = "drop" | "capsule" | "fight";
 
 export type CreatorPost = {
-  id: string;
+  _id: string;
   contentType: ContentType;
   title: string;
   description: string;
@@ -11,10 +11,24 @@ export type CreatorPost = {
   tags: string[];
   visibility?: "public" | "private" | "draft" | "scheduled";
   scheduledAt?: number | null;
-  createdAt: number;
+  createdAt: string;
+  updatedAt?: string;
   // Fight-specific
   opponent?: string;
   fightType?: "visual" | "text";
+  // Author info (populated)
+  author?: {
+    _id: string;
+    username: string;
+    displayName?: string;
+    uid: string;
+    avatar?: string;
+  };
+  // Stats
+  views?: number;
+  likes?: number;
+  shares?: number;
+  published?: boolean;
 };
 
 export const LOCAL_KEY = "vynce_creator_posts";

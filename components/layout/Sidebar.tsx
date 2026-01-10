@@ -34,11 +34,11 @@ export default function Sidebar() {
     { id: "fight" as const, label: "Fight", icon: Gavel },
     { id: "vynce_house" as const, label: "Vynce House", icon: Radio },
     { id: "explore" as const, label: "Explore", icon: Search },
+    { id: "creator_hub" as const, label: "Creator Hub", icon: Code },
     { id: "profile" as const, label: "Profile", icon: User },
   ];
 
   const moreMenuItems = [
-    { id: "creator_hub" as const, label: "Creator Hub", icon: Code },
     { id: "notifications" as const, label: "Notifications", icon: Bell },
     { id: "activity" as const, label: "Your Activity", icon: Activity },
     { id: "saved" as const, label: "Saved", icon: Bookmark },

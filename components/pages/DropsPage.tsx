@@ -66,8 +66,8 @@ const DropsPage = () => {
       const mappedDrops = data.drops.map((d, index) => ({
         id: d._id,
         _id: d._id,
-        user: d.author.displayName || d.author.username,
-        username: d.author.username,
+        user: d.author?.displayName || d.author?.username || "Unknown User",
+        username: d.author?.username || "unknown",
         verified: false,
         time: timeAgo(d.createdAt),
         avatar: "👤",

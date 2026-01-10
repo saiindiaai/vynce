@@ -3,7 +3,18 @@ const Drop = require("../models/Drop");
 /* CREATE DROP */
 exports.createDrop = async (req, res) => {
   try {
-    const { content } = req.body;
+    const {
+      content,
+      contentType = "drop",
+      title,
+      description,
+      media,
+      tags,
+      visibility = "public",
+      scheduledAt,
+      opponent,
+      fightType,
+    } = req.body;
 
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Content required" });
@@ -12,9 +23,21 @@ exports.createDrop = async (req, res) => {
     const drop = await Drop.create({
       author: req.userId,
       content,
+      contentType,
+      title,
+      description,
+      media,
+      tags: tags ? tags.map(tag => tag.trim()).filter(tag => tag) : [],
+      visibility,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      opponent,
+      fightType,
     });
 
-    res.status(201).json(drop);
+    const populatedDrop = await Drop.findById(drop._id)
+      .populate("author", "username displayName uid avatar");
+
+    res.status(201).json(populatedDrop);
   } catch (err) {
     res.status(500).json({ message: "Create drop failed" });
   }

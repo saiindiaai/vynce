@@ -1,24 +1,20 @@
 const mongoose = require("mongoose");
 
-const postSchema = new mongoose.Schema(
+const creatorPostSchema = new mongoose.Schema(
   {
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    content: {
-      type: String,
-      trim: true,
-    },
-    // Extended fields for Creator Hub
     contentType: {
       type: String,
-      enum: ["post", "drop", "capsule", "fight"],
-      default: "post",
+      enum: ["drop", "capsule", "fight"],
+      required: true,
     },
     title: {
       type: String,
+      required: true,
       trim: true,
     },
     description: {
@@ -53,10 +49,12 @@ const postSchema = new mongoose.Schema(
       type: String,
       enum: ["visual", "text"],
     },
-    // Legacy fields for backward compatibility
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    commentsCount: {
+    // Stats
+    views: {
+      type: Number,
+      default: 0,
+    },
+    likes: {
       type: Number,
       default: 0,
     },
@@ -64,13 +62,16 @@ const postSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    published: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
 // Index for efficient queries
-postSchema.index({ author: 1, createdAt: -1 });
-postSchema.index({ visibility: 1, createdAt: -1 });
-postSchema.index({ contentType: 1, createdAt: -1 });
+creatorPostSchema.index({ author: 1, createdAt: -1 });
+creatorPostSchema.index({ visibility: 1, published: 1 });
 
-module.exports = mongoose.model("Post", postSchema);
+module.exports = mongoose.model("CreatorPost", creatorPostSchema);

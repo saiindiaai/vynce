@@ -101,8 +101,8 @@ export default function HomePage() {
       const mappedPosts = data.posts.map((p, index) => ({
         id: p._id,
         _id: p._id,
-        user: p.author.displayName || p.author.username,
-        username: p.author.username,
+        user: p.author?.displayName || p.author?.username || "Unknown User",
+        username: p.author?.username || "unknown",
         verified: false,
         time: timeAgo(p.createdAt),
         avatar: "👤",

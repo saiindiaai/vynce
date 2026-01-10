@@ -5,19 +5,49 @@ const User = require("../../models/User");
 /* CREATE POST */
 exports.createPost = async (req, res) => {
   try {
-    const { content } = req.body;
+    const {
+      content,
+      contentType = "post",
+      title,
+      description,
+      media,
+      tags,
+      visibility = "public",
+      scheduledAt,
+      opponent,
+      fightType,
+    } = req.body;
 
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Content required" });
     }
 
+    console.log("Creating post with author:", req.userId, "type:", typeof req.userId);
+
     const post = await Post.create({
       author: req.userId,
       content,
+      contentType,
+      title,
+      description,
+      media,
+      tags: tags ? tags.map(tag => tag.trim()).filter(tag => tag) : [],
+      visibility,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      opponent,
+      fightType,
     });
 
-    res.status(201).json(post);
+    console.log("Post created:", post._id, "author:", post.author, "author type:", typeof post.author);
+
+    const populatedPost = await Post.findById(post._id)
+      .populate("author", "username displayName uid avatar");
+
+    console.log("Populated post author:", populatedPost.author);
+
+    res.status(201).json(populatedPost);
   } catch (err) {
+    console.error("Create post error:", err);
     res.status(500).json({ message: "Create post failed" });
   }
 };
@@ -38,6 +68,11 @@ exports.getFeed = async (req, res) => {
       .populate("author", "username displayName uid")
       .sort({ _id: -1 })
       .limit(limit + 1);
+
+    console.log("Found posts:", posts.length);
+    posts.forEach((post, i) => {
+      console.log(`Post ${i}:`, post._id, "author:", post.author);
+    });
 
     let hasMore = false;
     let nextCursor = null;

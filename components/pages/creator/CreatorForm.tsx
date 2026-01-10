@@ -117,27 +117,24 @@ export const CreatorForm: React.FC<CreatorFormProps> = ({
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    const postId = `post_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const scheduledTimestamp = scheduledAt ? new Date(scheduledAt).getTime() : null;
-    const vis = scheduledTimestamp && scheduledTimestamp > Date.now() ? "scheduled" : visibility;
+    const scheduledTimestamp = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+    const vis = scheduledTimestamp && new Date(scheduledTimestamp) > new Date() ? "scheduled" : visibility;
 
-    const post: CreatorPost = {
-      id: postId,
+    const postData = {
       contentType,
       title: title.trim(),
       description: description.trim(),
-      media: mediaPreview ? { url: mediaPreview, type: mediaType as "image" | "video" } : undefined,
+      media: mediaPreview ? { url: mediaPreview, type: mediaType as "image" | "video" } : null,
       tags: parsedTags,
       visibility: vis,
       scheduledAt: scheduledTimestamp,
-      createdAt: Date.now(),
       ...(contentType === "fight" && {
         opponent: opponent.trim(),
         fightType,
       }),
     };
 
-    onPublish(post);
+    onPublish(postData);
 
     // small UX: simulate upload/publish time
     setTimeout(() => {
@@ -173,8 +170,8 @@ export const CreatorForm: React.FC<CreatorFormProps> = ({
                 clearForm();
               }}
               className={`relative group py-3 px-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base flex items-center justify-center gap-2 overflow-hidden ${contentType === type
-                  ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/50"
-                  : "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60 border border-slate-700/50 hover:border-slate-600"
+                ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/50"
+                : "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60 border border-slate-700/50 hover:border-slate-600"
                 }`}
             >
               {type === "drop" && <FileText size={18} />}
@@ -234,8 +231,8 @@ export const CreatorForm: React.FC<CreatorFormProps> = ({
                 <button
                   onClick={() => setFightType("visual")}
                   className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${fightType === "visual"
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                      : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                    : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
                     }`}
                 >
                   🎥 Visual
@@ -243,8 +240,8 @@ export const CreatorForm: React.FC<CreatorFormProps> = ({
                 <button
                   onClick={() => setFightType("text")}
                   className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${fightType === "text"
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
-                      : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
+                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
+                    : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
                     }`}
                 >
                   💬 Debate

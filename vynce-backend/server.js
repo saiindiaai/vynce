@@ -72,6 +72,8 @@ const exploreRoutes = require("./src/social/routes/exploreRoutes");
 const forYouRoutes = require("./src/social/routes/forYouRoutes");
 const categoriesRoutes = require("./src/social/routes/categoriesRoutes");
 
+const creatorRoutes = require("./src/routes/creatorRoutes");
+
 
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/store", storeRoutes);
@@ -83,12 +85,14 @@ app.use("/api/themes", themeRoutes);
 app.use("/api/reports", reportRoutes); // ⭐ NEW
 app.use("/api/social/posts", require("./src/social/routes/postRoutes"));
 app.use("/api/social/drops", require("./src/social/routes/dropRoutes"));
+app.use("/api/social/capsules", require("./src/social/routes/capsuleRoutes"));
 app.use("/api/social/explore", exploreRoutes);
 app.use("/api/social/explore", forYouRoutes);
 app.use("/api/social/explore", categoriesRoutes);
 app.use("/api/houses", houseRoutes);
 app.use("/api/social/chat", socialChatRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/creator", creatorRoutes);
 
 
 // Socket.IO setup

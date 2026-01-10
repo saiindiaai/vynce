@@ -1,9 +1,10 @@
 "use client";
 
+import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { ContentManager } from "./creator/ContentManager";
-import { ContentType, CreatorPost, LOCAL_KEY } from "./creator/CreatorConstants";
+import { ContentType, CreatorPost } from "./creator/CreatorConstants";
 import { CreatorForm } from "./creator/CreatorForm";
 import { CreatorStats } from "./creator/CreatorStats";
 
@@ -24,36 +25,93 @@ export default function CreatorHubPage() {
   const [fightType, setFightType] = useState<"visual" | "text">("visual");
 
   const [posts, setPosts] = useState<CreatorPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
 
+  // Fetch creator posts on mount
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LOCAL_KEY);
-      if (raw) setPosts(JSON.parse(raw));
-    } catch (err) {
-      // ignore
-    }
+    fetchPosts();
   }, []);
 
-  useEffect(() => {
+  const fetchPosts = async (cursor?: string) => {
     try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(posts));
-    } catch (err) {
-      // ignore
-    }
-  }, [posts]);
+      setLoading(true);
+      const response = await api.get("/creator", {
+        params: { cursor, limit: 20 }
+      });
 
-  const handlePublish = (post: CreatorPost) => {
-    // quick local persist
-    setPosts((p) => [post, ...p]);
+      const { posts: newPosts, hasMore: more, nextCursor: cursorNext } = response.data;
+
+      if (cursor) {
+        setPosts(prev => [...prev, ...newPosts]);
+      } else {
+        setPosts(newPosts);
+      }
+
+      setHasMore(more);
+      setNextCursor(cursorNext);
+    } catch (error) {
+      console.error("Failed to fetch creator posts:", error);
+      showToast?.("Failed to load posts", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublish = async (postData: any) => {
+    try {
+      setIsPublishing(true);
+
+      const payload = {
+        content: `${postData.title.trim()}${postData.description ? '\n\n' + postData.description.trim() : ''}`,
+        contentType: postData.contentType,
+        title: postData.title,
+        description: postData.description,
+        media: postData.media,
+        tags: postData.tags,
+        visibility: postData.visibility,
+        scheduledAt: postData.scheduledAt,
+        opponent: postData.opponent,
+        fightType: postData.fightType,
+      };
+
+      // Call the appropriate endpoint based on contentType
+      let endpoint = "/social/posts";
+      if (postData.contentType === "drop" || postData.contentType === "fight") {
+        endpoint = "/social/drops";
+      } else if (postData.contentType === "capsule") {
+        endpoint = "/social/capsules";
+      }
+
+      const response = await api.post(endpoint, payload);
+      const newPost = response.data;
+
+      // Add to posts list
+      setPosts(prev => [newPost, ...prev]);
+
+      showToast?.("Content published successfully!", "success");
+    } catch (error) {
+      console.error("Failed to publish post:", error);
+      showToast?.("Failed to publish content", "error");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const handleClearForm = () => {
     // Additional cleanup if needed
   };
 
-  const removePost = (id: string) => {
-    setPosts((p) => p.filter((x) => x.id !== id));
-    showToast?.("Post removed", "info");
+  const removePost = async (id: string) => {
+    try {
+      await api.delete(`/creator/${id}`);
+      setPosts((p) => p.filter((x) => x._id !== id));
+      showToast?.("Post deleted successfully", "success");
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      showToast?.("Failed to delete post", "error");
+    }
   };
 
   const tools = [

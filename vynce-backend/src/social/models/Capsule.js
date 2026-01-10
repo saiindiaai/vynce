@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const postSchema = new mongoose.Schema(
+const capsuleSchema = new mongoose.Schema(
   {
     author: {
       type: mongoose.Schema.Types.ObjectId,
@@ -14,8 +14,8 @@ const postSchema = new mongoose.Schema(
     // Extended fields for Creator Hub
     contentType: {
       type: String,
-      enum: ["post", "drop", "capsule", "fight"],
-      default: "post",
+      enum: ["capsule"],
+      default: "capsule",
     },
     title: {
       type: String,
@@ -44,14 +44,14 @@ const postSchema = new mongoose.Schema(
     scheduledAt: {
       type: Date,
     },
-    // Fight-specific fields
-    opponent: {
+    // Capsule-specific styling
+    gradient: {
       type: String,
-      trim: true,
+      default: "from-purple-500 to-pink-500",
     },
-    fightType: {
+    emoji: {
       type: String,
-      enum: ["visual", "text"],
+      default: "📱",
     },
     // Legacy fields for backward compatibility
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -69,8 +69,7 @@ const postSchema = new mongoose.Schema(
 );
 
 // Index for efficient queries
-postSchema.index({ author: 1, createdAt: -1 });
-postSchema.index({ visibility: 1, createdAt: -1 });
-postSchema.index({ contentType: 1, createdAt: -1 });
+capsuleSchema.index({ author: 1, createdAt: -1 });
+capsuleSchema.index({ visibility: 1, createdAt: -1 });
 
-module.exports = mongoose.model("Post", postSchema);
+module.exports = mongoose.model("Capsule", capsuleSchema);
