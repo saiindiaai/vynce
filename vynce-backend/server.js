@@ -184,7 +184,13 @@ io.on("connection", (socket) => {
 
   socket.on("send-social-message", (data) => {
     const { toUserId, message } = data;
+    const fromUserId = socket.userId;
+
+    // Send to recipient
     io.to(`user-${toUserId}`).emit("new-social-message", message);
+
+    // Also send back to sender to confirm delivery and get any server-side updates
+    io.to(`user-${fromUserId}`).emit("new-social-message", message);
   });
 
   socket.on("disconnect", () => {

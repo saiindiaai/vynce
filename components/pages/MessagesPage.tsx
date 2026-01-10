@@ -74,12 +74,27 @@ function MessagesPage() {
     const userId = localStorage.getItem("userId");
     if (userId) {
       socket.emit("join-user-room", userId);
+      console.log("Joined user room:", userId);
     }
 
     socket.on("new-social-message", (message: SocialMessage) => {
+      console.log("Received new-social-message:", message);
       if (selectedConversation && message.conversationId === selectedConversation._id) {
-        setMessages(prev => [...prev, message]);
+        // Check if this message is already in our list (from optimistic update)
+        setMessages(prev => {
+          const existingIndex = prev.findIndex(msg => msg._id === message._id);
+          if (existingIndex >= 0) {
+            // Replace the temp message with the real one
+            const updated = [...prev];
+            updated[existingIndex] = message;
+            return updated;
+          } else {
+            // Add new message
+            return [...prev, message];
+          }
+        });
       }
+
       // Update conversations list
       setConversations(prev =>
         prev.map(conv =>
@@ -122,20 +137,50 @@ function MessagesPage() {
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return;
 
+    const messageContent = messageInput.trim();
+    const tempId = `temp-${Date.now()}`;
+
     try {
+      // Optimistically add message to local state
+      const tempMessage: SocialMessage = {
+        _id: tempId, // Temporary ID
+        conversationId: selectedConversation._id,
+        senderId: localStorage.getItem("userId") || "",
+        senderName: "You", // Will be updated when real message comes back
+        content: messageContent,
+        timestamp: new Date().toISOString(),
+        reactions: [],
+        replyTo: replyTo?._id || null,
+      };
+
+      setMessages(prev => [...prev, tempMessage]);
+      setMessageInput("");
+      setReplyTo(null);
+
+      // Send to server
       const res = await api.post(`/social/chat/conversations/${selectedConversation._id}/messages`, {
-        content: messageInput.trim(),
+        content: messageContent,
       });
 
-      // Emit to socket
+      // Replace temp message with real message from server
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === tempId ? res.data : msg
+        )
+      );
+
+      // Emit to socket for other participants
       socket.emit("send-social-message", {
         toUserId: selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id,
         message: res.data,
       });
+      console.log("Emitted send-social-message to:", selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id);
 
-      setMessageInput("");
     } catch (error) {
       console.error("Failed to send message:", error);
+      // Remove the optimistic message on error
+      setMessages(prev => prev.filter(msg => msg._id !== tempId));
+      setMessageInput(messageContent); // Restore the message input
     }
   };
 
