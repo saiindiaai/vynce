@@ -51,7 +51,7 @@ export default function HouseMenu({
   // Determine creator status: prefer `selectedHouseRole` when provided,
   // otherwise fall back to comparing the current user to `foundedBy`.
   const roleFromProp = selectedHouseRole === "creator" || selectedHouseRole === "founder";
-  const userId = currentUser?.id || currentUser?._id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
+  const userId = currentUser?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
   let foundedById: string | null = null;
   if (selectedHouse.foundedBy) {
     if (typeof selectedHouse.foundedBy === 'string') foundedById = selectedHouse.foundedBy;

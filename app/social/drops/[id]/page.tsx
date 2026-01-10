@@ -12,8 +12,8 @@ async function fetchDropById(id: string) {
 }
 
 
-export default async function DropPage(props: { params: { id: string } }) {
-  const { params } = await props;
+export default async function DropPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const id = params.id;
   if (!id) return notFound();
   const drop = await fetchDropById(id);
