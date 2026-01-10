@@ -673,28 +673,14 @@ export default function VynceHousePage() {
                       />
                     )}
                   </div>
-                  <div className="relative">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowHouseMenu(v => !v); }}
-                      className="p-2 hover:bg-slate-700/60 rounded-lg transition-all duration-150 text-slate-400 hover:text-slate-50"
-                      title="House options"
-                      aria-label="House options"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
-
-                    {showHouseMenu && (
-                      <>
-                        <HouseMenu
-                          selectedHouse={selectedHouse}
-                          selectedHouseRole={selectedHouseRole}
-                          onClose={() => setShowHouseMenu(false)}
-                          shareHouse={shareHouse}
-                          showToast={showToast}
-                        />
-                      </>
-                    )}
-                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowHouseMenu(v => !v); }}
+                    className="p-2 hover:bg-slate-700/60 rounded-lg transition-all duration-150 text-slate-400 hover:text-slate-50"
+                    title="House options"
+                    aria-label="House options"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
                 </div>
               </div>
 
@@ -834,6 +820,15 @@ export default function VynceHousePage() {
         show={showShareHouseSheet}
         onClose={() => setShowShareHouseSheet(false)}
         selectedHouse={selectedHouse}
+        shareHouse={shareHouse}
+        showToast={showToast}
+      />
+
+      <HouseMenu
+        isOpen={showHouseMenu}
+        selectedHouse={selectedHouse}
+        selectedHouseRole={selectedHouseRole}
+        onClose={() => setShowHouseMenu(false)}
         shareHouse={shareHouse}
         showToast={showToast}
       />

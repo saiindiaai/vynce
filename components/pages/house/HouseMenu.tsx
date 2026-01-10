@@ -3,67 +3,216 @@
 import { getAllThemes } from "@/config/themes";
 import { ToastType, useAppStore } from "@/lib/store";
 import { House } from "@/types";
-import { Copy, Edit, LucideIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import {
+  Copy,
+  Edit,
+  Flag,
+  Info,
+  LogOut,
+  LucideIcon,
+  Settings,
+  Trash2,
+  Users,
+  Volume2,
+} from "lucide-react";
 
-type Props = {
+interface HouseMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
   selectedHouse: House | undefined | null;
   selectedHouseRole: string | null;
-  onClose: () => void;
   shareHouse: (opt: string) => void;
   showToast?: (message: string, type: ToastType, duration?: number, actionLabel?: string, action?: () => void) => void;
+}
+
+type MenuItem = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  color: string;
+  action: () => void;
 };
 
-export default function HouseMenu({ selectedHouse, selectedHouseRole, onClose, shareHouse, showToast }: Props) {
-  if (!selectedHouse) return null;
+export default function HouseMenu({
+  isOpen,
+  onClose,
+  selectedHouse,
+  selectedHouseRole,
+  shareHouse,
+  showToast,
+}: HouseMenuProps) {
   const { currentTheme } = useAppStore();
-  const themeClasses = getAllThemes()[currentTheme];
-  const menuRef = useRef<HTMLDivElement>(null);
+  const allThemes = getAllThemes();
+  const themeClasses = allThemes[currentTheme];
 
-  type MenuItem = {
-    id: string;
-    icon: LucideIcon;
-    label: string;
-    action: () => void;
-  };
+  if (!isOpen || !selectedHouse) return null;
+
+  const isCreator = selectedHouseRole === "creator" || selectedHouseRole === "founder";
 
   const memberItems: MenuItem[] = [
-    { id: 'info', icon: Edit, label: 'View House Info', action: () => { onClose(); showToast?.('View House Info coming soon', 'info'); } },
-    { id: 'copy', icon: Copy, label: 'Copy House Link', action: () => { onClose(); shareHouse('copy'); } },
+    {
+      id: "info",
+      label: "View House Info",
+      icon: Info,
+      color: themeClasses.textPrimary,
+      action: () => {
+        onClose();
+        showToast?.("View House Info coming soon", "info");
+      },
+    },
+    {
+      id: "mute",
+      label: "Mute Notifications",
+      icon: Volume2,
+      color: themeClasses.textPrimary,
+      action: () => {
+        onClose();
+        showToast?.("House notifications muted", "success");
+      },
+    },
+    {
+      id: "report",
+      label: "Report House",
+      icon: Flag,
+      color: "text-red-500",
+      action: () => {
+        onClose();
+        showToast?.("Report submitted. Thanks for keeping Vynce safe!", "info");
+      },
+    },
+    {
+      id: "leave",
+      label: "Leave House",
+      icon: LogOut,
+      color: "text-red-500",
+      action: () => {
+        const confirmed = window.confirm(
+          "Are you sure you want to leave this house? This action cannot be undone."
+        );
+        if (confirmed) {
+          onClose();
+          showToast?.(
+            "You left the house",
+            "info",
+            3000,
+            "Undo",
+            () => showToast?.("Undo not yet implemented", "info")
+          );
+        }
+      },
+    },
   ];
 
-  const menuItems = memberItems; // For now, only showing member items as requested
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+  const creatorItems: MenuItem[] = [
+    {
+      id: "edit",
+      label: "Edit House",
+      icon: Edit,
+      color: themeClasses.textPrimary,
+      action: () => {
         onClose();
-      }
-    };
+        showToast?.("Edit House coming soon", "info");
+      },
+    },
+    {
+      id: "manage",
+      label: "Manage Members",
+      icon: Users,
+      color: themeClasses.textPrimary,
+      action: () => {
+        onClose();
+        showToast?.("Manage Members coming soon", "info");
+      },
+    },
+    {
+      id: "settings",
+      label: "House Settings",
+      icon: Settings,
+      color: themeClasses.textPrimary,
+      action: () => {
+        onClose();
+        showToast?.("House Settings coming soon", "info");
+      },
+    },
+    {
+      id: "mute",
+      label: "Mute Notifications",
+      icon: Volume2,
+      color: themeClasses.textPrimary,
+      action: () => {
+        onClose();
+        showToast?.("House notifications muted", "success");
+      },
+    },
+    {
+      id: "copy",
+      label: "Copy House Link",
+      icon: Copy,
+      color: themeClasses.textPrimary,
+      action: () => {
+        onClose();
+        shareHouse("copy");
+      },
+    },
+    {
+      id: "delete",
+      label: "Delete House",
+      icon: Trash2,
+      color: "text-red-500",
+      action: () => {
+        const confirmed = window.confirm(
+          "This will permanently delete the house. This cannot be undone. Are you sure?"
+        );
+        if (confirmed) {
+          onClose();
+          showToast?.("Delete House coming soon", "info");
+        }
+      },
+    },
+  ];
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  const menuItems = isCreator ? creatorItems : memberItems;
 
   return (
-    <div
-      ref={menuRef}
-      className="absolute right-0 top-full mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50"
-    >
-      <div className="py-1">
-        {menuItems.map((item) => (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn"
+        onClick={onClose}
+      />
+
+      {/* Menu */}
+      <div className="fixed inset-x-0 bottom-0 z-50 animate-slideIn max-w-2xl mx-auto p-4">
+        <div
+          className={`rounded-3xl ${themeClasses.cardBg} border ${themeClasses.cardBorder} overflow-hidden shadow-2xl`}
+        >
+          <div className="divide-y divide-gray-700/50">
+            {menuItems.map((item, idx) => (
+              <button
+                key={item.id}
+                onClick={item.action}
+                className={`w-full flex items-center gap-4 p-4 transition-all hover:bg-gray-700/30 animate-slideIn ${item.id === "report" || item.id === "delete" || item.id === "leave"
+                  ? "hover:bg-red-500/10"
+                  : ""
+                  }`}
+                style={{ animationDelay: `${idx * 30}ms` }}
+              >
+                <item.icon size={22} className={item.color} />
+                <span className={`font-medium ${item.color}`}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Cancel Button */}
           <button
-            key={item.id}
-            onClick={item.action}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+            onClick={onClose}
+            className={`w-full p-4 mt-1 border-t ${themeClasses.cardBorder} font-semibold ${themeClasses.textSecondary} hover:bg-gray-700/30 transition-all`}
           >
-            <item.icon size={16} className="text-slate-400" />
-            <span className="font-medium">{item.label}</span>
+            Cancel
           </button>
-        ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
