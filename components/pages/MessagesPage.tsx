@@ -35,6 +35,10 @@ function MessagesPage() {
   const [editInput, setEditInput] = useState("");
   const [searchInMessages, setSearchInMessages] = useState("");
   const [unreadMessageId, setUnreadMessageId] = useState<string | null>(null);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [newChatSearch, setNewChatSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load conversations
@@ -186,6 +190,53 @@ function MessagesPage() {
     ? messages.filter((m) => m.content.toLowerCase().includes(searchInMessages.toLowerCase()))
     : messages;
 
+  // Search for users to start new chat
+  const handleSearchUsers = async (query: string) => {
+    setNewChatSearch(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchingUsers(true);
+    try {
+      const res = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
+      // Filter out current user and those already in conversations
+      const currentUserId = localStorage.getItem("userId");
+      const existingConversationIds = conversations.flatMap(conv =>
+        conv.participants.map(p => p._id)
+      );
+
+      setSearchResults(
+        res.data.filter((user: any) =>
+          user._id !== currentUserId && !existingConversationIds.includes(user._id)
+        )
+      );
+    } catch (error) {
+      console.error("Failed to search users:", error);
+      setSearchResults([]);
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  // Start new chat with selected user
+  const handleStartChat = async (userId: string) => {
+    try {
+      const res = await api.post("/social/chat/conversations", {
+        participantId: userId,
+      });
+
+      setConversations(prev => [res.data, ...prev]);
+      setSelectedConversation(res.data);
+      setShowNewChatModal(false);
+      setNewChatSearch("");
+      setSearchResults([]);
+    } catch (error) {
+      console.error("Failed to create conversation:", error);
+    }
+  };
+
   return (
     <div className="w-full h-full flex flex-col md:flex-row bg-slate-900 overflow-hidden animate-fadeIn">
       {/* Conversations Sidebar - Mobile (full), Tablet + Desktop (sidebar) */}
@@ -194,7 +245,16 @@ function MessagesPage() {
       >
         {/* Header */}
         <div className="p-5 border-b border-slate-700/50">
-          <h2 className="text-3xl font-black text-slate-50 mb-4">Chats</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-3xl font-black text-slate-50">Chats</h2>
+            <button
+              onClick={() => setShowNewChatModal(true)}
+              className="p-2 rounded-full hover:bg-white/10 transition-all text-white/70 hover:text-white text-2xl font-bold"
+              aria-label="Start new chat"
+            >
+              +
+            </button>
+          </div>
           <div className="relative">
             <Search size={16} className="absolute left-4 top-3.5 text-slate-400" />
             <input
@@ -465,6 +525,83 @@ function MessagesPage() {
         </div>
       )
       }
+
+      {/* New Chat Modal */}
+      {showNewChatModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-fadeIn">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-700/50 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-slate-50">Start New Chat</h3>
+              <button
+                onClick={() => {
+                  setShowNewChatModal(false);
+                  setNewChatSearch("");
+                  setSearchResults([]);
+                }}
+                className="text-slate-400 hover:text-slate-50 transition-all text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="p-4 border-b border-slate-700/50">
+              <div className="relative">
+                <Search size={18} className="absolute left-3 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search username..."
+                  value={newChatSearch}
+                  onChange={(e) => handleSearchUsers(e.target.value)}
+                  autoFocus
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-700 border border-slate-600 text-slate-50 placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-all text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Results List */}
+            <div className="flex-1 overflow-y-auto">
+              {searchingUsers ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" />
+                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0.15s" }} />
+                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0.3s" }} />
+                  </div>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="divide-y divide-slate-700/50">
+                  {searchResults.map((user) => (
+                    <button
+                      key={user._id}
+                      onClick={() => handleStartChat(user._id)}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-700/50 transition-all duration-200"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-base font-bold flex-shrink-0">
+                        {user.username?.charAt(0)?.toUpperCase() || "?"}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-semibold text-slate-50 text-sm">{user.username}</p>
+                        <p className="text-xs text-slate-400">{user.displayName || "No display name"}</p>
+                      </div>
+                      <div className="text-purple-400 text-xl">→</div>
+                    </button>
+                  ))}
+                </div>
+              ) : newChatSearch.trim() ? (
+                <div className="flex items-center justify-center py-8 text-slate-400">
+                  <p className="text-sm">No users found</p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-8 text-slate-400">
+                  <p className="text-sm">Search for a username to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

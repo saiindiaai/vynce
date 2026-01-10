@@ -28,7 +28,9 @@ exports.createConversation = async (req, res) => {
     // Check if conversation already exists
     const existingConversation = await Conversation.findOne({
       participants: { $all: [userId, participantId] },
-    });
+    })
+      .populate("participants", "username displayName _id")
+      .populate("lastMessage");
 
     if (existingConversation) {
       return res.json(existingConversation);
@@ -39,6 +41,10 @@ exports.createConversation = async (req, res) => {
     });
 
     await conversation.save();
+
+    // Populate the participants before returning
+    await conversation.populate("participants", "username displayName _id");
+
     res.status(201).json(conversation);
   } catch (error) {
     res.status(500).json({ message: error.message });
