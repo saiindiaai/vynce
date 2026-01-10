@@ -1,6 +1,7 @@
 "use client";
 
 import { getAllThemes } from "@/config/themes";
+import { api } from "@/lib/api";
 import { ToastType, useAppStore } from "@/lib/store";
 import { House } from "@/types";
 import { Crown, LogOut, User, X } from "lucide-react";
@@ -42,10 +43,34 @@ export default function HouseMembersDropdown({
     const confirmed = window.confirm(
       "Are you sure you want to leave this house? This action cannot be undone."
     );
-    if (confirmed) {
-      onClose();
-      showToast?.("Leave House coming soon", "info");
-    }
+    if (!confirmed) return;
+    (async () => {
+      try {
+        await api.post(`/houses/${selectedHouse._id}/leave`);
+        onClose();
+        showToast?.("You left the house", "info");
+        setTimeout(() => window.location.reload(), 400);
+      } catch (err) {
+        console.error(err);
+        showToast?.("Failed to leave house", "error");
+      }
+    })();
+  };
+
+  const handleRemoveMember = (memberId: string) => {
+    const confirmed = window.confirm("Remove this member from the house?");
+    if (!confirmed) return;
+    (async () => {
+      try {
+        await api.post(`/houses/${selectedHouse._id}/members/${memberId}/remove`);
+        onClose();
+        showToast?.("Member removed", "info");
+        setTimeout(() => window.location.reload(), 400);
+      } catch (err) {
+        console.error(err);
+        showToast?.("Failed to remove member", "error");
+      }
+    })();
   };
 
   const handleViewProfile = (member: HouseMember) => {

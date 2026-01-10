@@ -1,6 +1,7 @@
 "use client";
 
 import { getAllThemes } from "@/config/themes";
+import { api } from "@/lib/api";
 import { ToastType, useAppStore } from "@/lib/store";
 import { House } from "@/types";
 import {
@@ -41,13 +42,36 @@ export default function HouseMenu({
   shareHouse,
   showToast,
 }: HouseMenuProps) {
-  const { currentTheme } = useAppStore();
+  const { currentTheme, currentUser } = useAppStore();
   const allThemes = getAllThemes();
   const themeClasses = allThemes[currentTheme];
 
   if (!isOpen || !selectedHouse) return null;
 
-  const isCreator = selectedHouseRole === "creator" || selectedHouseRole === "founder";
+  // Determine creator status: prefer `selectedHouseRole` when provided,
+  // otherwise fall back to comparing the current user to `foundedBy`.
+  const roleFromProp = selectedHouseRole === "creator" || selectedHouseRole === "founder";
+  const userId = currentUser?.id || currentUser?._id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
+  let foundedById: string | null = null;
+  if (selectedHouse.foundedBy) {
+    if (typeof selectedHouse.foundedBy === 'string') foundedById = selectedHouse.foundedBy;
+    else if ((selectedHouse.foundedBy as any)._id) foundedById = (selectedHouse.foundedBy as any)._id;
+    else foundedById = String((selectedHouse.foundedBy as any));
+  }
+  const roleFromComparison = !!userId && !!foundedById && String(userId) === String(foundedById);
+  const isCreator = roleFromProp || roleFromComparison;
+
+  // DEBUG: log for troubleshooting
+  if (isOpen) {
+    console.log("[HouseMenu Debug] selectedHouseRole:", selectedHouseRole);
+    console.log("[HouseMenu Debug] currentUser:", currentUser);
+    console.log("[HouseMenu Debug] userId (localStorage):", typeof window !== 'undefined' ? localStorage.getItem('userId') : 'N/A');
+    console.log("[HouseMenu Debug] selectedHouse.foundedBy:", selectedHouse.foundedBy);
+    console.log("[HouseMenu Debug] foundedById:", foundedById);
+    console.log("[HouseMenu Debug] roleFromProp:", roleFromProp);
+    console.log("[HouseMenu Debug] roleFromComparison:", roleFromComparison);
+    console.log("[HouseMenu Debug] isCreator:", isCreator);
+  }
 
   const memberItems: MenuItem[] = [
     {
@@ -65,9 +89,15 @@ export default function HouseMenu({
       label: "Mute Notifications",
       icon: Volume2,
       color: themeClasses.textPrimary,
-      action: () => {
-        onClose();
-        showToast?.("House notifications muted", "success");
+      action: async () => {
+        try {
+          const res = await api.post(`/houses/${selectedHouse._id}/mute`);
+          onClose();
+          showToast?.(res.data.muted ? "House muted" : "House unmuted", "info");
+        } catch (err) {
+          console.error(err);
+          showToast?.("Failed to toggle mute", "error");
+        }
       },
     },
     {
@@ -75,9 +105,15 @@ export default function HouseMenu({
       label: "Report House",
       icon: Flag,
       color: "text-red-500",
-      action: () => {
-        onClose();
-        showToast?.("Report submitted. Thanks for keeping Vynce safe!", "info");
+      action: async () => {
+        try {
+          await api.post(`/houses/${selectedHouse._id}/report`, { reason: 'ui_report' });
+          onClose();
+          showToast?.("Report submitted. Thanks for keeping Vynce safe!", "info");
+        } catch (err) {
+          console.error(err);
+          showToast?.("Failed to submit report", "error");
+        }
       },
     },
     {
@@ -85,19 +121,20 @@ export default function HouseMenu({
       label: "Leave House",
       icon: LogOut,
       color: "text-red-500",
-      action: () => {
+      action: async () => {
         const confirmed = window.confirm(
           "Are you sure you want to leave this house? This action cannot be undone."
         );
-        if (confirmed) {
+        if (!confirmed) return;
+        try {
+          await api.post(`/houses/${selectedHouse._id}/leave`);
           onClose();
-          showToast?.(
-            "You left the house",
-            "info",
-            3000,
-            "Undo",
-            () => showToast?.("Undo not yet implemented", "info")
-          );
+          showToast?.("You left the house", "info");
+          // Optionally refresh or navigate away
+          setTimeout(() => window.location.reload(), 400);
+        } catch (err) {
+          console.error(err);
+          showToast?.("Failed to leave house", "error");
         }
       },
     },
@@ -159,13 +196,19 @@ export default function HouseMenu({
       label: "Delete House",
       icon: Trash2,
       color: "text-red-500",
-      action: () => {
+      action: async () => {
         const confirmed = window.confirm(
           "This will permanently delete the house. This cannot be undone. Are you sure?"
         );
-        if (confirmed) {
+        if (!confirmed) return;
+        try {
+          await api.delete(`/houses/${selectedHouse._id}`);
           onClose();
-          showToast?.("Delete House coming soon", "info");
+          showToast?.("House deleted", "info");
+          setTimeout(() => window.location.reload(), 400);
+        } catch (err) {
+          console.error(err);
+          showToast?.("Failed to delete house", "error");
         }
       },
     },

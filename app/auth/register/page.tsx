@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
 import { api } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -17,6 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -42,6 +42,14 @@ export default function RegisterPage() {
 
       if (typeof window !== "undefined") {
         localStorage.setItem("token", res.data.token);
+
+        // Fetch current user to get their ID for role detection
+        try {
+          const meRes = await api.get("/auth/me");
+          localStorage.setItem("userId", meRes.data.user.id);
+        } catch (err) {
+          console.warn("Failed to fetch user info:", err);
+        }
       }
 
       router.push("/auth/displayname");

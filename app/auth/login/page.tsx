@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { api } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -16,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,6 +36,14 @@ export default function LoginPage() {
 
       localStorage.setItem("token", res.data.token);
 
+      // Fetch current user to get their ID for role detection
+      try {
+        const meRes = await api.get("/auth/me");
+        localStorage.setItem("userId", meRes.data.user.id);
+      } catch (err) {
+        console.warn("Failed to fetch user info:", err);
+      }
+
       router.push("/ecosystem");
     } catch (err) {
       setError("Invalid username or password");
@@ -49,6 +57,14 @@ export default function LoginPage() {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("guest_mode", "true");
+
+      // Fetch current user to get their ID for role detection
+      try {
+        const meRes = await api.get("/auth/me");
+        localStorage.setItem("userId", meRes.data.user.id);
+      } catch (err) {
+        console.warn("Failed to fetch user info:", err);
+      }
 
       router.push("/ecosystem");
     } catch (err) {

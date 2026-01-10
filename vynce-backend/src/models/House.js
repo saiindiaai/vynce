@@ -60,6 +60,11 @@ const houseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Channel",
   }],
+  mutedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: [],
+  }],
   allyHouses: [{
     type: String,
   }],

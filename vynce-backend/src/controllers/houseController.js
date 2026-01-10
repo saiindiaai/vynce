@@ -3,6 +3,7 @@ const Channel = require("../models/Channel");
 const HouseMessage = require("../models/HouseMessage");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const Report = require("../models/Report");
 
 // Create a new house
 exports.createHouse = async (req, res) => {
@@ -66,18 +67,20 @@ exports.searchHouses = async (req, res) => {
       isPrivate: false,
       name: { $regex: q, $options: 'i' }
     })
-      .populate("foundedBy", "username")
+      .populate("foundedBy", "username _id")
       .limit(20)
-      .select('name level members influence type description');
+      .lean();
 
-    // Add member count
+    // Add member count and ensure foundedBy is present
     const housesWithCount = houses.map(house => ({
-      ...house.toObject(),
-      memberCount: house.members.length
+      ...house,
+      memberCount: Array.isArray(house.members) ? house.members.length : 0,
+      foundedBy: house.foundedBy || { _id: null, username: 'Unknown' }
     }));
 
     res.json(housesWithCount);
   } catch (error) {
+    console.error("Search houses error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -409,6 +412,153 @@ exports.getMessages = async (req, res) => {
       channelId: req.params.channelId,
     }).sort({ timestamp: 1 });
     res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Leave a house
+exports.leaveHouse = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+    const house = await House.findById(houseId);
+    if (!house) return res.status(404).json({ message: "House not found" });
+
+    const memberIndex = house.members.findIndex(id => String(id) === String(userId));
+    if (memberIndex === -1) return res.status(400).json({ message: "Not a member" });
+
+    house.members.splice(memberIndex, 1);
+    await house.save();
+
+    // Notify founder
+    await Notification.create({
+      user: house.foundedBy,
+      type: "HOUSE_MEMBER_LEFT",
+      title: "Member left",
+      message: `A member left your house ${house.name}`,
+      metadata: { houseId: house._id, userId },
+      priority: "NORMAL",
+    });
+
+    res.json({ message: "Left house" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Toggle mute for current user
+exports.toggleMute = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+    const house = await House.findById(houseId);
+    if (!house) return res.status(404).json({ message: "House not found" });
+
+    const idx = house.mutedBy.findIndex(id => String(id) === String(userId));
+    let muted;
+    if (idx === -1) {
+      house.mutedBy.push(userId);
+      muted = true;
+    } else {
+      house.mutedBy.splice(idx, 1);
+      muted = false;
+    }
+    await house.save();
+    res.json({ muted });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Report a house
+exports.reportHouse = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+    const { reason } = req.body;
+    const house = await House.findById(houseId);
+    if (!house) return res.status(404).json({ message: "House not found" });
+
+    const report = await Report.create({ houseId, reportedBy: userId, reason });
+
+    // Notify admins or moderation queue (simplified)
+    await Notification.create({
+      user: house.foundedBy,
+      type: "HOUSE_REPORTED",
+      title: "House reported",
+      message: `Your house \"${house.name}\" was reported`,
+      metadata: { houseId, reportId: report._id },
+      priority: "HIGH",
+    });
+
+    res.json({ message: "Report submitted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Edit house (creator only)
+exports.editHouse = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+    const updates = req.body;
+
+    const house = await House.findById(houseId);
+    if (!house) return res.status(404).json({ message: "House not found" });
+    if (String(house.foundedBy) !== String(userId)) return res.status(403).json({ message: "Only creator can edit" });
+
+    Object.assign(house, updates);
+    await house.save();
+    res.json(house);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete house (creator only)
+exports.deleteHouse = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const houseId = req.params.houseId;
+    const house = await House.findById(houseId);
+    if (!house) return res.status(404).json({ message: "House not found" });
+    if (String(house.foundedBy) !== String(userId)) return res.status(403).json({ message: "Only creator can delete" });
+
+    await House.findByIdAndDelete(houseId);
+    // Note: channels/messages cleanup omitted for brevity
+    res.json({ message: "House deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Remove a member (creator only)
+exports.removeMember = async (req, res) => {
+  try {
+    const adminId = req.userId;
+    const houseId = req.params.houseId;
+    const memberId = req.params.memberId;
+    const house = await House.findById(houseId);
+    if (!house) return res.status(404).json({ message: "House not found" });
+    if (String(house.foundedBy) !== String(adminId)) return res.status(403).json({ message: "Only creator can remove members" });
+
+    const idx = house.members.findIndex(id => String(id) === String(memberId));
+    if (idx === -1) return res.status(400).json({ message: "User not a member" });
+    house.members.splice(idx, 1);
+    await house.save();
+
+    await Notification.create({
+      user: memberId,
+      type: "HOUSE_MEMBER_REMOVED",
+      title: "Removed from house",
+      message: `You were removed from house \"${house.name}\"`,
+      metadata: { houseId, removerId: adminId },
+      priority: "HIGH",
+    });
+
+    res.json({ message: "Member removed" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
