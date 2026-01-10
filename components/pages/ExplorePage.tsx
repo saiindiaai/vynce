@@ -4,6 +4,7 @@ import DropPreviewSheet from "@/components/drops/DropPreviewSheet";
 import HouseCard from "@/components/explore/HouseCard";
 import HousePreviewSheet from "@/components/explore/HousePreviewSheet";
 import TrendingTopic from "@/components/explore/TrendingTopic";
+import UserPreviewSheet from "@/components/profile/UserPreviewSheet";
 import { fetchCategories } from "@/lib/categories";
 import { fetchExploreData, searchExploreContent } from "@/lib/explore";
 import { fetchForYou } from "@/lib/forYou";
@@ -35,6 +36,7 @@ export default function ExplorePage() {
   const [dropPage, setDropPage] = useState(1);
   const [previewDrop, setPreviewDrop] = useState<any | null>(null);
   const [previewHouse, setPreviewHouse] = useState<any | null>(null);
+  const [previewUser, setPreviewUser] = useState<any | null>(null);
   const FILTERS = [
     { id: "all", label: "All" },
     { id: "users", label: "Users" },
@@ -207,6 +209,8 @@ export default function ExplorePage() {
                             setPreviewHouse(item);
                           } else if (category.category.toLowerCase() === 'drops') {
                             setPreviewDrop(item);
+                          } else if (category.category.toLowerCase() === 'users') {
+                            setPreviewUser(item);
                           }
                         }}
                         className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:bg-slate-800 hover:border-purple-500/30 transition cursor-pointer flex items-center gap-3"
@@ -218,9 +222,11 @@ export default function ExplorePage() {
                           {item.content && <div className="text-xs text-slate-400 line-clamp-2">{item.content}</div>}
                           {item.author && <div className="text-xs text-slate-400">by {typeof item.author === 'string' ? item.author : (item.author?.username || item.author?.displayName || 'unknown')}</div>}
                           {item.user && !item.author && <div className="text-xs text-slate-400">by {item.user}</div>}
+                          {item.bio && !item.content && <div className="text-xs text-slate-400 line-clamp-1">{item.bio}</div>}
                         </div>
                         {item.memberCount !== undefined && <span className="text-xs text-slate-400">{item.memberCount} members</span>}
                         {item.aura !== undefined && <span className="text-xs text-purple-400">⭐ {item.aura}</span>}
+                        {item.level !== undefined && <span className="text-xs text-purple-400">Lv {item.level}</span>}
                       </div>
                     ))}
                   </div>
@@ -385,6 +391,9 @@ export default function ExplorePage() {
 
       {/* House Preview Sheet */}
       <HousePreviewSheet open={!!previewHouse} onClose={() => setPreviewHouse(null)} house={previewHouse} />
+
+      {/* User Preview Sheet */}
+      <UserPreviewSheet open={!!previewUser} onClose={() => setPreviewUser(null)} user={previewUser} />
     </div>
   );
 }

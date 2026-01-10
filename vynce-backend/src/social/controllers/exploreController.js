@@ -140,7 +140,7 @@ exports.searchContent = async (req, res) => {
           { displayName: { $regex: searchQuery, $options: "i" } }
         ]
       })
-        .select("username displayName _id")
+        .select("username displayName _id bio level avatar")
         .limit(10)
         .lean();
 
@@ -149,8 +149,12 @@ exports.searchContent = async (req, res) => {
         type: "users",
         items: users.map(u => ({
           id: u._id,
+          _id: u._id,
           name: u.displayName || u.username,
           username: u.username,
+          bio: u.bio || "",
+          level: u.level || 1,
+          avatar: u.avatar,
           icon: "👤"
         }))
       });
