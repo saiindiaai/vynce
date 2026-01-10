@@ -107,13 +107,41 @@ const DropsPage = () => {
   // Scroll to drop if ?post=ID is present
   useEffect(() => {
     const postId = searchParams.get("post");
-    if (postId && dropRefs.current[postId]) {
-      dropRefs.current[postId]?.scrollIntoView({ behavior: "smooth", block: "center" });
-      // Optionally, highlight the drop
-      dropRefs.current[postId]?.classList.add("ring-4", "ring-purple-500");
-      setTimeout(() => {
-        dropRefs.current[postId]?.classList.remove("ring-4", "ring-purple-500");
-      }, 1600);
+    if (postId) {
+      // Check if drop is already loaded
+      if (dropRefs.current[postId]) {
+        dropRefs.current[postId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Highlight the drop
+        dropRefs.current[postId]?.classList.add("ring-4", "ring-purple-500");
+        setTimeout(() => {
+          dropRefs.current[postId]?.classList.remove("ring-4", "ring-purple-500");
+        }, 1600);
+      } else {
+        // If drop not found in current list, load more drops until we find it
+        const checkAndLoadMore = async () => {
+          let attempts = 0;
+          const maxAttempts = 10; // Prevent infinite loop
+
+          while (!dropRefs.current[postId] && hasMore && attempts < maxAttempts) {
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait a bit for state update
+            await loadDrops();
+          }
+
+          // After loading attempts, try to scroll if found
+          if (dropRefs.current[postId]) {
+            setTimeout(() => {
+              dropRefs.current[postId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+              dropRefs.current[postId]?.classList.add("ring-4", "ring-purple-500");
+              setTimeout(() => {
+                dropRefs.current[postId]?.classList.remove("ring-4", "ring-purple-500");
+              }, 1600);
+            }, 300);
+          }
+        };
+
+        checkAndLoadMore();
+      }
     }
   }, [drops, searchParams]);
 

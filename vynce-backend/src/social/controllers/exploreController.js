@@ -183,8 +183,7 @@ exports.searchContent = async (req, res) => {
       const drops = await Drop.find({
         content: { $regex: searchQuery, $options: "i" }
       })
-        .select("content _id author aura")
-        .populate("author", "username displayName")
+        .populate("author", "username displayName _id")
         .limit(10)
         .lean();
 
@@ -193,8 +192,16 @@ exports.searchContent = async (req, res) => {
         type: "drops",
         items: drops.map(d => ({
           id: d._id,
-          content: d.content.length > 50 ? d.content.slice(0, 50) + "..." : d.content,
-          author: d.author?.displayName || d.author?.username || "Unknown",
+          _id: d._id,
+          title: d.title || (d.content.length > 50 ? d.content.slice(0, 50) + "..." : d.content),
+          content: d.content,
+          thumb: d.thumb,
+          user: d.author?.username,
+          author: {
+            username: d.author?.username,
+            displayName: d.author?.displayName,
+            _id: d.author?._id
+          },
           aura: d.aura || 0,
           icon: "📝"
         }))

@@ -202,6 +202,13 @@ export default function ExplorePage() {
                     {category.items.map((item: any, itemIdx: number) => (
                       <div
                         key={itemIdx}
+                        onClick={() => {
+                          if (category.category.toLowerCase() === 'houses') {
+                            setPreviewHouse(item);
+                          } else if (category.category.toLowerCase() === 'drops') {
+                            setPreviewDrop(item);
+                          }
+                        }}
                         className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:bg-slate-800 hover:border-purple-500/30 transition cursor-pointer flex items-center gap-3"
                       >
                         <span className="text-lg">{item.icon}</span>
@@ -209,7 +216,8 @@ export default function ExplorePage() {
                           <div className="font-medium text-slate-100 truncate">{item.name}</div>
                           {item.username && <div className="text-xs text-slate-400">@{item.username}</div>}
                           {item.content && <div className="text-xs text-slate-400 line-clamp-2">{item.content}</div>}
-                          {item.author && <div className="text-xs text-slate-400">by {item.author}</div>}
+                          {item.author && <div className="text-xs text-slate-400">by {typeof item.author === 'string' ? item.author : (item.author?.username || item.author?.displayName || 'unknown')}</div>}
+                          {item.user && !item.author && <div className="text-xs text-slate-400">by {item.user}</div>}
                         </div>
                         {item.memberCount !== undefined && <span className="text-xs text-slate-400">{item.memberCount} members</span>}
                         {item.aura !== undefined && <span className="text-xs text-purple-400">⭐ {item.aura}</span>}
