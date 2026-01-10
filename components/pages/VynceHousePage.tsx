@@ -653,26 +653,14 @@ export default function VynceHousePage() {
                   >
                     <Share2 size={16} />
                   </button>
-                  <div className="relative">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowMembersDropdown(v => !v); }}
-                      className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
-                      title="Members (open list)"
-                      aria-label="Open members list"
-                    >
-                      <Users size={16} />
-                    </button>
-
-                    {showMembersDropdown && (
-                      <HouseMembersDropdown
-                        selectedHouse={selectedHouse}
-                        houseMembers={houseMembers}
-                        selectedHouseRole={selectedHouseRole}
-                        onClose={() => setShowMembersDropdown(false)}
-                        showToast={showToast}
-                      />
-                    )}
-                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowMembersDropdown(v => !v); }}
+                    className="p-2 hover:bg-slate-800/60 rounded-lg transition-all text-slate-400 hover:text-slate-50"
+                    title="Members (open list)"
+                    aria-label="Open members list"
+                  >
+                    <Users size={16} />
+                  </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowHouseMenu(v => !v); }}
                     className="p-2 hover:bg-slate-700/60 rounded-lg transition-all duration-150 text-slate-400 hover:text-slate-50"
@@ -830,6 +818,15 @@ export default function VynceHousePage() {
         selectedHouseRole={selectedHouseRole}
         onClose={() => setShowHouseMenu(false)}
         shareHouse={shareHouse}
+        showToast={showToast}
+      />
+
+      <HouseMembersDropdown
+        isOpen={showMembersDropdown}
+        selectedHouse={selectedHouse}
+        houseMembers={houseMembers}
+        selectedHouseRole={selectedHouseRole}
+        onClose={() => setShowMembersDropdown(false)}
         showToast={showToast}
       />
     </div >
