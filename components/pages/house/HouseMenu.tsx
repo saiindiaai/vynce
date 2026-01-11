@@ -26,6 +26,7 @@ interface HouseMenuProps {
   showToast?: (message: string, type: ToastType, duration?: number, actionLabel?: string, action?: () => void) => void;
   onEditHouse?: (house: House) => void;
   onManageMembers?: (house: House) => void;
+  onViewHouseInfo?: (house: House) => void;
 }
 
 type MenuItem = {
@@ -45,6 +46,7 @@ export default function HouseMenu({
   showToast,
   onEditHouse,
   onManageMembers,
+  onViewHouseInfo,
 }: HouseMenuProps) {
   const { currentTheme, currentUser } = useAppStore();
   const allThemes = getAllThemes();
@@ -85,7 +87,9 @@ export default function HouseMenu({
       color: themeClasses.textPrimary,
       action: () => {
         onClose();
-        showToast?.("View House Info coming soon", "info");
+        if (selectedHouse && onViewHouseInfo) {
+          onViewHouseInfo(selectedHouse);
+        }
       },
     },
     {

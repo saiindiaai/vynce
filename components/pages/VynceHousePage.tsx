@@ -24,6 +24,7 @@ import { CreateHouseModal } from "./house/CreateHouseModal";
 import { EditHouseModal } from "./house/EditHouseModal";
 import GlobalHouseSearch from "./house/GlobalHouseSearch";
 import { HouseMember } from "./house/HouseConstants";
+import { HouseInfoModal } from "./house/HouseInfoModal";
 import HouseList from "./house/HouseList";
 import HouseMembersDropdown from "./house/HouseMembersDropdown";
 import HouseMenu from "./house/HouseMenu";
@@ -44,6 +45,7 @@ export default function VynceHousePage() {
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [showEditHouseModal, setShowEditHouseModal] = useState(false);
   const [showManageMembersModal, setShowManageMembersModal] = useState(false);
+  const [showHouseInfoModal, setShowHouseInfoModal] = useState(false);
   const [editingHouse, setEditingHouse] = useState<House | null>(null);
   const [newHouseName, setNewHouseName] = useState("");
   const [newHouseDescription, setNewHouseDescription] = useState("");
@@ -395,6 +397,11 @@ export default function VynceHousePage() {
       console.error("Failed to remove member:", error);
       showToast?.("Failed to remove member", "error");
     }
+  };
+
+  const openHouseInfoModal = (house: House) => {
+    setEditingHouse(house);
+    setShowHouseInfoModal(true);
   };
 
   const createChannel = async () => {
@@ -875,6 +882,13 @@ export default function VynceHousePage() {
         onRemoveMember={removeMember}
       />
 
+      {/* House Info Modal */}
+      <HouseInfoModal
+        isOpen={showHouseInfoModal}
+        onClose={() => setShowHouseInfoModal(false)}
+        house={editingHouse}
+      />
+
       {/* Create Channel Modal */}
       <CreateChannelModal
         isOpen={showCreateChannelModal}
@@ -917,6 +931,7 @@ export default function VynceHousePage() {
         showToast={showToast}
         onEditHouse={openEditHouseModal}
         onManageMembers={openManageMembersModal}
+        onViewHouseInfo={openHouseInfoModal}
       />
 
       <HouseMembersDropdown
