@@ -13,37 +13,37 @@ exports.followUser = async (req, res) => {
       return res.status(400).json({ message: "Target user ID required" });
     }
 
-    if (userId === targetUserId) {
-      return res.status(400).json({ message: "Cannot follow yourself" });
-    }
-
     const user = await User.findById(userId);
-    const targetUser = await User.findById(targetUserId);
+    const targetUser = await User.findOne({ uid: targetUserId });
 
     if (!user || !targetUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user._id.equals(targetUser._id)) {
+      return res.status(400).json({ message: "Cannot follow yourself" });
+    }
+
     // Check if already following
-    if (user.following.includes(targetUserId)) {
+    if (user.following.includes(targetUser._id)) {
       return res.status(400).json({ message: "Already following this user" });
     }
 
     // Add to following list
-    user.following.push(targetUserId);
+    user.following.push(targetUser._id);
     await user.save();
 
     // Add to target's followers list
-    targetUser.followers.push(userId);
+    targetUser.followers.push(user._id);
     await targetUser.save();
 
     // Notify the target user
     await Notification.create({
-      user: targetUserId,
+      user: targetUser._id,
       type: "NEW_FOLLOWER",
       title: "New follower",
       message: `${user.username} started following you`,
-      metadata: { followerId: userId },
+      metadata: { followerId: user._id },
       priority: "NORMAL",
       pinned: false,
     });
@@ -72,23 +72,23 @@ exports.unfollowUser = async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    const targetUser = await User.findById(targetUserId);
+    const targetUser = await User.findOne({ uid: targetUserId });
 
     if (!user || !targetUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Check if following
-    if (!user.following.includes(targetUserId)) {
+    if (!user.following.includes(targetUser._id)) {
       return res.status(400).json({ message: "Not following this user" });
     }
 
     // Remove from following list
-    user.following = user.following.filter(id => id.toString() !== targetUserId);
+    user.following = user.following.filter(id => !id.equals(targetUser._id));
     await user.save();
 
     // Remove from target's followers list
-    targetUser.followers = targetUser.followers.filter(id => id.toString() !== userId);
+    targetUser.followers = targetUser.followers.filter(id => !id.equals(user._id));
     await targetUser.save();
 
     res.json({

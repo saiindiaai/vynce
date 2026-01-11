@@ -8,6 +8,7 @@ const {
   getUserDrops,
   toggleDropLike,
   toggleDropDislike,
+  toggleBookmark,
   deleteDrop,
   shareDrop,
 } = require("../controllers/dropController");
@@ -24,6 +25,7 @@ router.get("/feed", protect, getDropFeed);
 router.get("/user", protect, getUserDrops);
 router.post("/:id/like", protect, toggleDropLike);
 router.post("/:id/dislike", protect, toggleDropDislike);
+router.post("/:id/bookmark", protect, toggleBookmark);
 router.post("/:id/share", protect, shareDrop);
 router.delete("/:id", protect, deleteDrop);
 

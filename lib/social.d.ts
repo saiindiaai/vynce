@@ -21,4 +21,8 @@ export declare function toggleDislike(postId: string | number): Promise<{ postId
 
 export declare function sharePost(postId: string | number): Promise<{ postId: string; shares: number }>;
 
-export declare function deletePost(postId: string | number): Promise<any>;
+export declare function toggleBookmark(postId: string | number): Promise<{ postId: string; bookmarked: boolean; savedCount: number }>;
+
+export declare function followUser(targetUserId: string): Promise<{ message: string; followingCount: number; followersCount: number }>;
+
+export declare function reportPost(postId: string | number, reason?: string): Promise<{ message: string; reportId: string }>;

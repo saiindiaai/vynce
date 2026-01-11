@@ -8,6 +8,7 @@ const {
   getUserPosts,
   toggleLike,
   toggleDislike,
+  toggleBookmark,
   deletePost,
   sharePost,
 } = require("../controllers/postController");
@@ -24,6 +25,7 @@ router.get("/feed", protect, getFeed);
 router.get("/user", protect, getUserPosts);
 router.post("/:id/like", protect, toggleLike);
 router.post("/:id/dislike", protect, toggleDislike);
+router.post("/:id/bookmark", protect, toggleBookmark);
 router.post("/:id/share", protect, sharePost);
 router.delete("/:id", protect, deletePost);
 

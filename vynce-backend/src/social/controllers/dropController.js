@@ -1,4 +1,5 @@
 const Drop = require("../models/Drop");
+const User = require("../../models/User");
 
 /* CREATE DROP */
 exports.createDrop = async (req, res) => {
@@ -250,6 +251,53 @@ exports.shareDrop = async (req, res) => {
   } catch (err) {
     console.error("shareDrop error:", err);
     res.status(500).json({ message: "Failed to share drop" });
+  }
+};
+
+/* ================================
+   TOGGLE BOOKMARK / SAVE DROP
+================================ */
+exports.toggleBookmark = async (req, res) => {
+  try {
+    const { id: dropId } = req.params;
+    const userId = req.userId;
+
+    const drop = await Drop.findById(dropId);
+    if (!drop) {
+      return res.status(404).json({ message: "Drop not found" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const bookmarkIndex = user.savedPosts.findIndex((pid) =>
+      pid.equals(dropId)
+    );
+
+    let bookmarked;
+
+    if (bookmarkIndex > -1) {
+      // Remove bookmark
+      user.savedPosts.splice(bookmarkIndex, 1);
+      bookmarked = false;
+    } else {
+      // Add bookmark
+      user.savedPosts.push(dropId);
+      bookmarked = true;
+    }
+
+    await user.save();
+
+    res.json({
+      dropId,
+      bookmarked,
+      savedCount: user.savedPosts.length,
+    });
+  } catch (err) {
+    console.error("toggleBookmark error:", err);
+    res.status(500).json({ message: "Failed to toggle bookmark" });
   }
 };
 

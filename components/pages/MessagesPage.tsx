@@ -182,6 +182,7 @@ function MessagesPage() {
       // Send to server
       const res = await api.post(`/social/chat/conversations/${selectedConversation._id}/messages`, {
         content: messageContent,
+        replyTo: replyTo?._id,
       });
 
       // Replace temp message with real message from server
@@ -319,7 +320,7 @@ function MessagesPage() {
   const handleLongPressStart = (message: SocialMessage) => {
     longPressTimeoutRef.current = setTimeout(() => {
       setSelectedMessageForActions(message);
-    }, 1000);
+    }, 500);
   };
 
   const handleLongPressEnd = () => {

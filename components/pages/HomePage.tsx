@@ -103,6 +103,7 @@ export default function HomePage() {
         _id: p._id,
         user: p.author?.displayName || p.author?.username || "Unknown User",
         username: p.author?.username || "unknown",
+        author: p.author, // Preserve the full author object
         verified: false,
         time: timeAgo(p.createdAt),
         avatar: "👤",
@@ -403,7 +404,7 @@ export default function HomePage() {
               router.replace(`?${params.toString()}`, { scroll: false });
             }
           }}
-          postId={Number(activeMenu)}
+          post={posts.find(p => p._id === activeMenu)}
           isOwnPost={false}
           variant="home"
         />

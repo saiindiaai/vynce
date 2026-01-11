@@ -244,6 +244,54 @@ exports.toggleDislike = async (req, res) => {
 
 
 /* ================================
+   TOGGLE BOOKMARK / SAVE POST
+================================ */
+exports.toggleBookmark = async (req, res) => {
+  try {
+    const { id: postId } = req.params;
+    const userId = req.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const bookmarkIndex = user.savedPosts.findIndex((pid) =>
+      pid.equals(postId)
+    );
+
+    let bookmarked;
+
+    if (bookmarkIndex > -1) {
+      // Remove bookmark
+      user.savedPosts.splice(bookmarkIndex, 1);
+      bookmarked = false;
+    } else {
+      // Add bookmark
+      user.savedPosts.push(postId);
+      bookmarked = true;
+    }
+
+    await user.save();
+
+    res.json({
+      postId,
+      bookmarked,
+      savedCount: user.savedPosts.length,
+    });
+  } catch (err) {
+    console.error("toggleBookmark error:", err);
+    res.status(500).json({ message: "Failed to toggle bookmark" });
+  }
+};
+
+
+/* ================================
    DELETE POST (author only)
 ================================ */
 exports.deletePost = async (req, res) => {

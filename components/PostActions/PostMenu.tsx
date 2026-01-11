@@ -1,20 +1,21 @@
 "use client";
 
 import { getAllThemes } from "@/config/themes";
-import { deleteDrop } from "@/lib/drops";
-import { deletePost } from "@/lib/social";
+import { deleteDrop, toggleBookmark as toggleDropBookmark } from "@/lib/drops";
+import { deletePost, toggleLike, toggleDislike, toggleBookmark, followUser, reportPost } from "@/lib/social";
+import { toggleDropLike, toggleDropDislike } from "@/lib/drops";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, EyeOff, Flag, Link2, Star, UserPlus, XCircle } from "lucide-react";
 
 interface PostMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  postId: number;
+  post: any; // Full post object to access author info
   isOwnPost?: boolean;
   variant?: "home" | "drops" | "fight";
 }
 
-export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, variant = "home" }: PostMenuProps) {
+export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, variant = "home" }: PostMenuProps) {
   const { currentTheme } = useAppStore();
   const allThemes = getAllThemes();
   const themeClasses = allThemes[currentTheme];
@@ -31,9 +32,9 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         action: async () => {
           try {
             if (variant === "drops") {
-              await deleteDrop(postId);
+              await deleteDrop(post._id);
             } else {
-              await deletePost(postId);
+              await deletePost(post._id);
             }
             // TODO: Remove post from UI or refresh feed
             console.log("Post deleted");
@@ -56,7 +57,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         icon: Link2,
         color: themeClasses.textPrimary,
         action: () => {
-          navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
+          navigator.clipboard.writeText(`${window.location.origin}?post=${post._id}`);
           onClose();
         },
       },
@@ -67,8 +68,17 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         label: "This matches my Aura",
         icon: Star,
         color: themeClasses.textPrimary,
-        action: () => {
-          console.log("Interested");
+        action: async () => {
+          try {
+            if (variant === "drops") {
+              await toggleDropLike(post._id);
+            } else {
+              await toggleLike(post._id);
+            }
+            console.log("Liked post");
+          } catch (error) {
+            console.error("Failed to like post:", error);
+          }
           onClose();
         },
       },
@@ -77,8 +87,17 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         label: "This doesn't match my Aura",
         icon: EyeOff,
         color: themeClasses.textPrimary,
-        action: () => {
-          console.log("Not interested");
+        action: async () => {
+          try {
+            if (variant === "drops") {
+              await toggleDropDislike(post._id);
+            } else {
+              await toggleDislike(post._id);
+            }
+            console.log("Disliked post");
+          } catch (error) {
+            console.error("Failed to dislike post:", error);
+          }
           onClose();
         },
       },
@@ -87,8 +106,13 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         label: "Add to In Gang",
         icon: UserPlus,
         color: themeClasses.textPrimary,
-        action: () => {
-          console.log("Follow");
+        action: async () => {
+          try {
+            await followUser(post.author.uid || post.author._id);
+            console.log("Followed user");
+          } catch (error) {
+            console.error("Failed to follow user:", error);
+          }
           onClose();
         },
       },
@@ -97,8 +121,17 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         label: "Save",
         icon: Bookmark,
         color: themeClasses.textPrimary,
-        action: () => {
-          console.log("Save");
+        action: async () => {
+          try {
+            if (variant === "drops") {
+              await toggleDropBookmark(post._id);
+            } else {
+              await toggleBookmark(post._id);
+            }
+            console.log("Saved post");
+          } catch (error) {
+            console.error("Failed to save post:", error);
+          }
           onClose();
         },
       },
@@ -108,7 +141,7 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         icon: Link2,
         color: themeClasses.textPrimary,
         action: () => {
-          navigator.clipboard.writeText(`${window.location.origin}?post=${postId}`);
+          navigator.clipboard.writeText(`${window.location.origin}?post=${post._id}`);
           onClose();
         },
       },
@@ -117,8 +150,13 @@ export default function PostMenu({ isOpen, onClose, postId, isOwnPost = false, v
         label: "Order Violation",
         icon: Flag,
         color: "text-red-500",
-        action: () => {
-          console.log("Report");
+        action: async () => {
+          try {
+            await reportPost(post._id, "Order Violation");
+            console.log("Reported post");
+          } catch (error) {
+            console.error("Failed to report post:", error);
+          }
           onClose();
         },
       },

@@ -68,6 +68,7 @@ const DropsPage = () => {
         _id: d._id,
         user: d.author?.displayName || d.author?.username || "Unknown User",
         username: d.author?.username || "unknown",
+        author: d.author, // Preserve the full author object
         verified: false,
         time: timeAgo(d.createdAt),
         avatar: "👤",
@@ -165,7 +166,7 @@ const DropsPage = () => {
 
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [activeShare, setActiveShare] = useState<number | null>(null);
-  const [activeMenu, setActiveMenu] = useState<number | null>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   const updateDropComments = (dropId: string | number, newCount: number) => {
     setDrops((prev) => prev.map((d) => (d.id === dropId ? { ...d, comments: newCount } : d)));
@@ -460,8 +461,9 @@ const DropsPage = () => {
         <PostMenu
           isOpen={true}
           onClose={() => setActiveMenu(null)}
-          postId={activeMenu}
+          post={drops.find(d => d.id === activeMenu)}
           isOwnPost={false}
+          variant="drops"
         />
       )}
     </div>

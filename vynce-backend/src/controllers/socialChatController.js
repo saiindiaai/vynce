@@ -54,7 +54,7 @@ exports.createConversation = async (req, res) => {
 // Send a message in a conversation
 exports.sendMessage = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, replyTo } = req.body;
     const userId = req.userId;
     const { conversationId } = req.params;
 
@@ -65,6 +65,7 @@ exports.sendMessage = async (req, res) => {
       senderId: userId,
       senderName: user.username,
       content,
+      replyTo: replyTo || null,
     });
 
     await message.save();
@@ -86,7 +87,9 @@ exports.getMessages = async (req, res) => {
   try {
     const messages = await SocialMessage.find({
       conversationId: req.params.conversationId,
-    }).sort({ timestamp: 1 });
+    })
+    .populate('replyTo', 'content senderName')
+    .sort({ timestamp: 1 });
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: error.message });

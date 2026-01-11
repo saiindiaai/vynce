@@ -22,3 +22,5 @@ export declare function toggleDropDislike(dropId: string | number): Promise<{ dr
 export declare function shareDrop(dropId: string | number): Promise<{ dropId: string; shares: number }>;
 
 export declare function deleteDrop(dropId: string | number): Promise<any>;
+
+export declare function toggleBookmark(dropId: string | number): Promise<{ dropId: string; bookmarked: boolean; savedCount: number }>;
