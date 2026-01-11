@@ -97,7 +97,6 @@ app.use("/api/creator", creatorRoutes);
 
 // Socket.IO setup
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id, "UserId:", socket.userId);
 
   // House Chat
   socket.on("join-house-channel", async (data) => {
@@ -114,23 +113,12 @@ io.on("connection", (socket) => {
       const isCreator = String(house.foundedBy) === String(userId);
       const isApprovedMember = house.members.some(id => String(id) === String(userId));
 
-      console.log("HOUSE CREATOR:", house.foundedBy);
-      console.log("REQUEST USER:", userId);
-      console.log("IS CREATOR:", isCreator);
-      console.log("IS APPROVED MEMBER:", isApprovedMember);
-      console.log("PENDING MEMBERS:", house.pendingMembers);
-
       if (!isCreator && !isApprovedMember) {
-        console.warn("Blocked socket join for non-member", {
-          userId: userId,
-          houseId: houseId
-        });
         socket.emit("error", { message: "You are not allowed to access this chat" });
         return;
       }
 
       socket.join(`house-${houseId}-channel-${channelId}`);
-      console.log(`User ${userId} joined house ${houseId} channel ${channelId}`);
     } catch (error) {
       socket.emit("error", { message: "Server error" });
     }
@@ -155,17 +143,7 @@ io.on("connection", (socket) => {
       const isCreator = String(house.foundedBy) === String(userId);
       const isApprovedMember = house.members.some(id => String(id) === String(userId));
 
-      console.log("HOUSE CREATOR:", house.foundedBy);
-      console.log("REQUEST USER:", userId);
-      console.log("IS CREATOR:", isCreator);
-      console.log("IS APPROVED MEMBER:", isApprovedMember);
-      console.log("PENDING MEMBERS:", house.pendingMembers);
-
       if (!isCreator && !isApprovedMember) {
-        console.warn("Blocked socket send for non-member", {
-          userId: userId,
-          houseId: houseId
-        });
         socket.emit("error", { message: "You are not allowed to access this chat" });
         return;
       }
@@ -177,9 +155,9 @@ io.on("connection", (socket) => {
   });
 
   // Social Chat
-  socket.on("join-user-room", (userId) => {
+  socket.on("join-user-room", () => {
+    const userId = socket.userId;
     socket.join(`user-${userId}`);
-    console.log(`User ${userId} joined their room`);
   });
 
   socket.on("send-social-message", (data) => {
@@ -194,7 +172,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
   });
 });
 

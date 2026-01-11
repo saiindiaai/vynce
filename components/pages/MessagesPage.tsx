@@ -52,6 +52,7 @@ function MessagesPage() {
     const loadConversations = async () => {
       try {
         const res = await api.get("/social/chat/conversations");
+        console.log("Loaded conversations:", res.data);
         setConversations(res.data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -77,14 +78,17 @@ function MessagesPage() {
 
   // Socket setup - always active
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-      socket.emit("join-user-room", userId);
-      console.log("Joined user room:", userId);
+
+    const handleConnect = () => {
+      socket.emit("join-user-room");
+    };
+
+    socket.on("connect", handleConnect);
+    if (socket.connected) {
+      handleConnect();
     }
 
     socket.on("new-social-message", (message: SocialMessage) => {
-      console.log("Received new-social-message:", message);
 
       // Always update conversations list with latest message
       setConversations(prev =>
@@ -97,7 +101,6 @@ function MessagesPage() {
 
       // If this conversation is currently selected, add the message to the messages list
       if (selectedConversationRef.current && message.conversationId === selectedConversationRef.current._id) {
-        // Check if this message is already in our list (from optimistic update)
         setMessages(prev => {
           const existingIndex = prev.findIndex(msg => msg._id === message._id);
           if (existingIndex >= 0) {
@@ -180,11 +183,16 @@ function MessagesPage() {
       );
 
       // Emit to socket for other participants
-      socket.emit("send-social-message", {
-        toUserId: selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id,
-        message: res.data,
-      });
-      console.log("Emitted send-social-message to:", selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id);
+      const recipientId = selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id;
+
+      if (recipientId) {
+        if (socket.connected) {
+          socket.emit("send-social-message", {
+            toUserId: recipientId,
+            message: res.data,
+          });
+        }
+      }
 
     } catch (error) {
       console.error("Failed to send message:", error);
