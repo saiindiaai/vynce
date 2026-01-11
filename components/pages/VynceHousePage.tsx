@@ -21,16 +21,18 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CreateChannelModal } from "./house/CreateChannelModal";
 import { CreateHouseModal } from "./house/CreateHouseModal";
+import { EditHouseModal } from "./house/EditHouseModal";
 import GlobalHouseSearch from "./house/GlobalHouseSearch";
 import { HouseMember } from "./house/HouseConstants";
 import HouseList from "./house/HouseList";
 import HouseMembersDropdown from "./house/HouseMembersDropdown";
 import HouseMenu from "./house/HouseMenu";
 import HouseShareSheet from "./house/HouseShareSheet";
+import { ManageMembersModal } from "./house/ManageMembersModal";
 import { MembersSidebar } from "./house/MembersSidebar";
 
 export default function VynceHousePage() {
-  const { showToast, sidebarOpen } = useAppStore();
+  const { showToast, sidebarOpen, currentUser } = useAppStore();
   const searchParams = useSearchParams();
   const [houses, setHouses] = useState<House[]>([]);
   const [channelMessages, setChannelMessages] = useState<HouseMessage[]>([]);
@@ -40,6 +42,9 @@ export default function VynceHousePage() {
   const [messageInput, setMessageInput] = useState("");
   const [showCreateHouseModal, setShowCreateHouseModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [showEditHouseModal, setShowEditHouseModal] = useState(false);
+  const [showManageMembersModal, setShowManageMembersModal] = useState(false);
+  const [editingHouse, setEditingHouse] = useState<House | null>(null);
   const [newHouseName, setNewHouseName] = useState("");
   const [newHouseDescription, setNewHouseDescription] = useState("");
   const [newHouseType, setNewHouseType] = useState<House["type"]>("group_chat");
@@ -326,6 +331,69 @@ export default function VynceHousePage() {
     } catch (error) {
       console.error("Failed to create house:", error);
       showToast?.("Failed to create house", "error");
+    }
+  };
+
+  const openEditHouseModal = (house: House) => {
+    setEditingHouse(house);
+    setNewHouseName(house.name);
+    setNewHouseDescription(house.description || "");
+    setNewHousePurpose(house.purpose || "");
+    setNewHouseType(house.type);
+    setNewHousePrivate(house.isPrivate || false);
+    setShowEditHouseModal(true);
+  };
+
+  const editHouse = async () => {
+    if (!editingHouse || !newHouseName.trim() || !newHousePurpose.trim()) {
+      showToast?.("Please enter house name and purpose", "warning");
+      return;
+    }
+
+    try {
+      const res = await api.put(`/houses/${editingHouse._id}`, {
+        name: newHouseName.trim(),
+        description: newHouseDescription.trim(),
+        purpose: newHousePurpose.trim(),
+        type: newHouseType,
+        isPrivate: newHousePrivate,
+      });
+
+      // Update houses state
+      setHouses((prev) =>
+        prev.map((h) => (h._id === editingHouse._id ? res.data : h))
+      );
+      showToast?.(`House "${newHouseName}" updated successfully!`, "success");
+      setShowEditHouseModal(false);
+      setEditingHouse(null);
+    } catch (error) {
+      console.error("Failed to edit house:", error);
+      showToast?.("Failed to edit house", "error");
+    }
+  };
+
+  const openManageMembersModal = (house: House) => {
+    setEditingHouse(house);
+    setShowManageMembersModal(true);
+  };
+
+  const removeMember = async (memberId: string) => {
+    if (!editingHouse) return;
+
+    try {
+      await api.post(`/houses/${editingHouse._id}/members/${memberId}/remove`);
+      // Update houses state
+      setHouses((prev) =>
+        prev.map((h) =>
+          h._id === editingHouse._id
+            ? { ...h, members: h.members.filter((m) => m !== memberId) }
+            : h
+        )
+      );
+      showToast?.("Member removed successfully", "success");
+    } catch (error) {
+      console.error("Failed to remove member:", error);
+      showToast?.("Failed to remove member", "error");
     }
   };
 
@@ -779,6 +847,34 @@ export default function VynceHousePage() {
         getTypeIcon={getTypeIcon}
       />
 
+      {/* Edit House Modal */}
+      <EditHouseModal
+        isOpen={showEditHouseModal}
+        onClose={() => setShowEditHouseModal(false)}
+        houseName={newHouseName}
+        setHouseName={setNewHouseName}
+        housePurpose={newHousePurpose}
+        setHousePurpose={setNewHousePurpose}
+        houseDescription={newHouseDescription}
+        setHouseDescription={setNewHouseDescription}
+        houseType={newHouseType}
+        setHouseType={setNewHouseType}
+        housePrivate={newHousePrivate}
+        setHousePrivate={setNewHousePrivate}
+        onEditHouse={editHouse}
+        getTypeIcon={getTypeIcon}
+      />
+
+      {/* Manage Members Modal */}
+      <ManageMembersModal
+        isOpen={showManageMembersModal}
+        onClose={() => setShowManageMembersModal(false)}
+        house={editingHouse}
+        members={editingHouse ? editingHouse.members : []}
+        currentUserId={currentUser?.id ? String(currentUser.id) : null}
+        onRemoveMember={removeMember}
+      />
+
       {/* Create Channel Modal */}
       <CreateChannelModal
         isOpen={showCreateChannelModal}
@@ -819,6 +915,8 @@ export default function VynceHousePage() {
         onClose={() => setShowHouseMenu(false)}
         shareHouse={shareHouse}
         showToast={showToast}
+        onEditHouse={openEditHouseModal}
+        onManageMembers={openManageMembersModal}
       />
 
       <HouseMembersDropdown

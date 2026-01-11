@@ -149,8 +149,10 @@ function MessagesPage() {
         senderName: "You", // Will be updated when real message comes back
         content: messageContent,
         timestamp: new Date().toISOString(),
+        read: true,
+        delivered: true,
         reactions: [],
-        replyTo: replyTo?._id || null,
+        replyTo: replyTo || undefined,
       };
 
       setMessages(prev => [...prev, tempMessage]);

@@ -24,6 +24,8 @@ interface HouseMenuProps {
   selectedHouseRole: string | null;
   shareHouse: (opt: string) => void;
   showToast?: (message: string, type: ToastType, duration?: number, actionLabel?: string, action?: () => void) => void;
+  onEditHouse?: (house: House) => void;
+  onManageMembers?: (house: House) => void;
 }
 
 type MenuItem = {
@@ -41,6 +43,8 @@ export default function HouseMenu({
   selectedHouseRole,
   shareHouse,
   showToast,
+  onEditHouse,
+  onManageMembers,
 }: HouseMenuProps) {
   const { currentTheme, currentUser } = useAppStore();
   const allThemes = getAllThemes();
@@ -148,7 +152,9 @@ export default function HouseMenu({
       color: themeClasses.textPrimary,
       action: () => {
         onClose();
-        showToast?.("Edit House coming soon", "info");
+        if (selectedHouse && onEditHouse) {
+          onEditHouse(selectedHouse);
+        }
       },
     },
     {
@@ -158,7 +164,9 @@ export default function HouseMenu({
       color: themeClasses.textPrimary,
       action: () => {
         onClose();
-        showToast?.("Manage Members coming soon", "info");
+        if (selectedHouse && onManageMembers) {
+          onManageMembers(selectedHouse);
+        }
       },
     },
     {
@@ -168,7 +176,10 @@ export default function HouseMenu({
       color: themeClasses.textPrimary,
       action: () => {
         onClose();
-        showToast?.("House Settings coming soon", "info");
+        // For now, house settings can use the same as edit house
+        if (selectedHouse && onEditHouse) {
+          onEditHouse(selectedHouse);
+        }
       },
     },
     {
@@ -176,9 +187,15 @@ export default function HouseMenu({
       label: "Mute Notifications",
       icon: Volume2,
       color: themeClasses.textPrimary,
-      action: () => {
-        onClose();
-        showToast?.("House notifications muted", "success");
+      action: async () => {
+        try {
+          const res = await api.post(`/houses/${selectedHouse._id}/mute`);
+          onClose();
+          showToast?.(res.data.muted ? "House muted" : "House unmuted", "info");
+        } catch (err) {
+          console.error(err);
+          showToast?.("Failed to toggle mute", "error");
+        }
       },
     },
     {
