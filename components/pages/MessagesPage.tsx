@@ -494,7 +494,7 @@ function MessagesPage() {
           </div>
 
           {/* Messages Area */}
-          <div className={`flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col bg-slate-900 transition-all duration-300 ${selectedMessageForActions ? "blur-sm" : ""}`}>
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col bg-slate-900">
             {filteredMessages.map((message) => (
               <div
                 key={message._id}
@@ -503,8 +503,8 @@ function MessagesPage() {
               >
                 <div
                   className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${selectedMessageForActions?._id === message._id
-                      ? "ring-2 ring-purple-400 ring-opacity-75 scale-105"
-                      : ""
+                    ? "ring-2 ring-purple-400 ring-opacity-75 scale-105"
+                    : ""
                     } ${message.senderId === localStorage.getItem("userId")
                       ? "bg-purple-600 border-purple-500 text-white shadow-lg"
                       : "bg-slate-800 border-slate-700 text-slate-50"
