@@ -9,7 +9,7 @@ exports.getConversations = async (req, res) => {
     const conversations = await Conversation.find({
       participants: userId,
     })
-      .populate("participants", "username")
+      .populate("participants", "username _id")
       .populate("lastMessage")
       .sort({ lastMessageTime: -1 });
 

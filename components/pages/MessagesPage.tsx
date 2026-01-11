@@ -39,7 +39,13 @@ function MessagesPage() {
   const [newChatSearch, setNewChatSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+  const selectedConversationRef = useRef<Conversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update ref when selectedConversation changes
+  useEffect(() => {
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
 
   // Load conversations
   useEffect(() => {
@@ -69,7 +75,7 @@ function MessagesPage() {
     }
   }, [selectedConversation]);
 
-  // Socket setup
+  // Socket setup - always active
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
@@ -79,7 +85,18 @@ function MessagesPage() {
 
     socket.on("new-social-message", (message: SocialMessage) => {
       console.log("Received new-social-message:", message);
-      if (selectedConversation && message.conversationId === selectedConversation._id) {
+
+      // Always update conversations list with latest message
+      setConversations(prev =>
+        prev.map(conv =>
+          conv._id === message.conversationId
+            ? { ...conv, lastMessage: message, lastMessageTime: message.timestamp }
+            : conv
+        )
+      );
+
+      // If this conversation is currently selected, add the message to the messages list
+      if (selectedConversationRef.current && message.conversationId === selectedConversationRef.current._id) {
         // Check if this message is already in our list (from optimistic update)
         setMessages(prev => {
           const existingIndex = prev.findIndex(msg => msg._id === message._id);
@@ -94,21 +111,12 @@ function MessagesPage() {
           }
         });
       }
-
-      // Update conversations list
-      setConversations(prev =>
-        prev.map(conv =>
-          conv._id === message.conversationId
-            ? { ...conv, lastMessage: message, lastMessageTime: message.timestamp }
-            : conv
-        )
-      );
     });
 
     return () => {
       socket.off("new-social-message");
     };
-  }, [selectedConversation]);
+  }, []); // Remove selectedConversation dependency
 
   // Track mobile breakpoint on client to avoid using `window` during render
   useEffect(() => {
