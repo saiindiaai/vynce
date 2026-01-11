@@ -502,13 +502,12 @@ function MessagesPage() {
                 className={`flex ${message.senderId === localStorage.getItem("userId") ? "justify-end" : "justify-start"} animate-slideInUp relative`}
               >
                 <div
-                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${
-                    selectedMessageForActions?._id === message._id 
-                      ? "ring-2 ring-purple-400 ring-opacity-75 scale-105" 
+                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${selectedMessageForActions?._id === message._id
+                      ? "ring-2 ring-purple-400 ring-opacity-75 scale-105"
                       : ""
-                  } ${message.senderId === localStorage.getItem("userId")
-                    ? "bg-purple-600 border-purple-500 text-white shadow-lg"
-                    : "bg-slate-800 border-slate-700 text-slate-50"
+                    } ${message.senderId === localStorage.getItem("userId")
+                      ? "bg-purple-600 border-purple-500 text-white shadow-lg"
+                      : "bg-slate-800 border-slate-700 text-slate-50"
                     }`}
                 >
                   {message.replyTo && (
@@ -531,7 +530,7 @@ function MessagesPage() {
                       <button onClick={() => { setEditingMessageId(null); setEditInput(""); }} className="text-slate-400 text-xs">Cancel</button>
                     </div>
                   ) : (
-                    <p 
+                    <p
                       className="text-sm leading-relaxed cursor-pointer select-none"
                       onMouseDown={() => handleLongPressStart(message)}
                       onMouseUp={handleLongPressEnd}
@@ -570,12 +569,12 @@ function MessagesPage() {
 
             {/* Message Actions Overlay */}
             {selectedMessageForActions && (
-              <div 
+              <div
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fadeIn"
                 onClick={() => setSelectedMessageForActions(null)}
               >
                 <div className="flex items-center justify-center min-h-full p-4">
-                  <div 
+                  <div
                     className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
                     onClick={(e) => e.stopPropagation()}
                   >
