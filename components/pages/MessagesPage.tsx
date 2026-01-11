@@ -39,13 +39,18 @@ function MessagesPage() {
   const [newChatSearch, setNewChatSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+  const [selectedMessageForActions, setSelectedMessageForActions] = useState<SocialMessage | null>(null);
   const selectedConversationRef = useRef<Conversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update ref when selectedConversation changes
+  // Clear long press timeout when overlay closes
   useEffect(() => {
-    selectedConversationRef.current = selectedConversation;
-  }, [selectedConversation]);
+    if (!selectedMessageForActions && longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  }, [selectedMessageForActions]);
 
   // Load conversations
   useEffect(() => {
@@ -310,6 +315,20 @@ function MessagesPage() {
     ? messages.filter((m) => m.content.toLowerCase().includes(searchInMessages.toLowerCase()))
     : messages;
 
+  // Long press handlers for message actions
+  const handleLongPressStart = (message: SocialMessage) => {
+    longPressTimeoutRef.current = setTimeout(() => {
+      setSelectedMessageForActions(message);
+    }, 1000);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  };
+
   // Search for users to start new chat
   const handleSearchUsers = async (query: string) => {
     setNewChatSearch(query);
@@ -475,7 +494,7 @@ function MessagesPage() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col bg-slate-900">
+          <div className={`flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col bg-slate-900 transition-all duration-300 ${selectedMessageForActions ? "blur-sm" : ""}`}>
             {filteredMessages.map((message) => (
               <div
                 key={message._id}
@@ -483,7 +502,11 @@ function MessagesPage() {
                 className={`flex ${message.senderId === localStorage.getItem("userId") ? "justify-end" : "justify-start"} animate-slideInUp relative`}
               >
                 <div
-                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${message.senderId === localStorage.getItem("userId")
+                  className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${
+                    selectedMessageForActions?._id === message._id 
+                      ? "ring-2 ring-purple-400 ring-opacity-75 scale-105" 
+                      : ""
+                  } ${message.senderId === localStorage.getItem("userId")
                     ? "bg-purple-600 border-purple-500 text-white shadow-lg"
                     : "bg-slate-800 border-slate-700 text-slate-50"
                     }`}
@@ -508,7 +531,16 @@ function MessagesPage() {
                       <button onClick={() => { setEditingMessageId(null); setEditInput(""); }} className="text-slate-400 text-xs">Cancel</button>
                     </div>
                   ) : (
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <p 
+                      className="text-sm leading-relaxed cursor-pointer select-none"
+                      onMouseDown={() => handleLongPressStart(message)}
+                      onMouseUp={handleLongPressEnd}
+                      onTouchStart={() => handleLongPressStart(message)}
+                      onTouchEnd={handleLongPressEnd}
+                      onClick={() => setSelectedMessageForActions(message)} // For testing
+                    >
+                      {message.content}
+                    </p>
                   )}
                   <div className="flex items-center gap-1 mt-1.5">
                     <span className={`text-xs font-medium ${message.senderId === localStorage.getItem("userId") ? "text-purple-200" : "text-slate-400"}`}>
@@ -532,67 +564,103 @@ function MessagesPage() {
                       </span>
                     ))}
                   </div>
-                  {/* Message actions - below the message */}
-                  <div className="flex items-center gap-2 mt-2 pt-1 border-t border-opacity-20 border-current">
-                    <button
-                      onClick={() => setReplyTo(message)}
-                      className="flex items-center gap-1 text-xs hover:text-purple-400 transition-colors opacity-70 hover:opacity-100"
-                    >
-                      <CornerUpLeft size={12} />
-                      Reply
-                    </button>
-                    <button
-                      onClick={() => setReactionPickerFor(message._id)}
-                      className="flex items-center gap-1 text-xs hover:text-purple-400 transition-colors opacity-70 hover:opacity-100"
-                    >
-                      <Smile size={12} />
-                      React
-                    </button>
-                    {reactionPickerFor === message._id && (
-                      <div className="absolute z-50 bottom-full mb-2 left-0">
+                </div>
+              </div>
+            ))}
+
+            {/* Message Actions Overlay */}
+            {selectedMessageForActions && (
+              <div 
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fadeIn"
+                onClick={() => setSelectedMessageForActions(null)}
+              >
+                <div className="flex items-center justify-center min-h-full p-4">
+                  <div 
+                    className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {reactionPickerFor === selectedMessageForActions._id ? (
+                      <div>
+                        <h3 className="text-white font-semibold mb-4 text-center">Choose Reaction</h3>
                         <Picker
                           data={data}
                           onEmojiSelect={(emoji: any) => {
-                            handleReact(message, emoji.native);
+                            handleReact(selectedMessageForActions, emoji.native);
                             setReactionPickerFor(null);
+                            setSelectedMessageForActions(null);
                           }}
                           theme="dark"
-                          emojiSize={20}
+                          emojiSize={24}
                           maxFrequentRows={1}
                         />
+                        <button
+                          onClick={() => setReactionPickerFor(null)}
+                          className="w-full mt-4 p-2 rounded-xl bg-slate-700 hover:bg-slate-600 transition-colors text-white text-sm"
+                        >
+                          Cancel
+                        </button>
                       </div>
-                    )}
-                    {/* Edit/Delete for own messages */}
-                    {message.senderId === localStorage.getItem("userId") && (
+                    ) : (
                       <>
-                        <button
-                          onClick={() => { setEditingMessageId(message._id); setEditInput(message.content); }}
-                          className="flex items-center gap-1 text-xs hover:text-blue-400 transition-colors opacity-70 hover:opacity-100"
-                        >
-                          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" />
-                          </svg>
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteMessage(message._id)}
-                          className="flex items-center gap-1 text-xs hover:text-red-400 transition-colors opacity-70 hover:opacity-100"
-                        >
-                          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                            <line x1="10" y1="11" x2="10" y2="17" />
-                            <line x1="14" y1="11" x2="14" y2="17" />
-                          </svg>
-                          Delete
-                        </button>
+                        <h3 className="text-white font-semibold mb-4 text-center">Message Actions</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            onClick={() => {
+                              setReplyTo(selectedMessageForActions);
+                              setSelectedMessageForActions(null);
+                            }}
+                            className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700 hover:bg-slate-600 transition-colors text-white"
+                          >
+                            <CornerUpLeft size={20} />
+                            <span className="text-sm">Reply</span>
+                          </button>
+                          <button
+                            onClick={() => setReactionPickerFor(selectedMessageForActions._id)}
+                            className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700 hover:bg-slate-600 transition-colors text-white"
+                          >
+                            <Smile size={20} />
+                            <span className="text-sm">React</span>
+                          </button>
+                          {selectedMessageForActions.senderId === localStorage.getItem("userId") && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setEditingMessageId(selectedMessageForActions._id);
+                                  setEditInput(selectedMessageForActions.content);
+                                  setSelectedMessageForActions(null);
+                                }}
+                                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700 hover:bg-slate-600 transition-colors text-white"
+                              >
+                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <path d="M12 20h9" />
+                                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" />
+                                </svg>
+                                <span className="text-sm">Edit</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleDeleteMessage(selectedMessageForActions._id);
+                                  setSelectedMessageForActions(null);
+                                }}
+                                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-red-700 hover:bg-red-600 transition-colors text-white"
+                              >
+                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <polyline points="3 6 5 6 21 6" />
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                                  <line x1="10" y1="11" x2="10" y2="17" />
+                                  <line x1="14" y1="11" x2="14" y2="17" />
+                                </svg>
+                                <span className="text-sm">Delete</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </>
                     )}
                   </div>
                 </div>
               </div>
-            ))}
+            )}
 
             {/* Typing Indicator */}
             {isTyping && (
