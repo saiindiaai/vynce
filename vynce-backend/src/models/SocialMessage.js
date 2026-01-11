@@ -31,6 +31,35 @@ const socialMessageSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  reactions: [{
+    type: {
+      type: String,
+      required: true,
+    },
+    by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    byName: {
+      type: String,
+      required: true,
+    }
+  }],
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SocialMessage",
+  },
+  edited: {
+    type: Boolean,
+    default: false,
+  },
+  editedAt: {
+    type: Date,
+  },
+  imageUrl: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("SocialMessage", socialMessageSchema);

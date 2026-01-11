@@ -10,5 +10,8 @@ router.post("/conversations", auth, socialChatController.createConversation);
 // Message routes
 router.post("/conversations/:conversationId/messages", auth, socialChatController.sendMessage);
 router.get("/conversations/:conversationId/messages", auth, socialChatController.getMessages);
+router.put("/messages/:messageId", auth, socialChatController.editMessage);
+router.delete("/messages/:messageId", auth, socialChatController.deleteMessage);
+router.post("/messages/:messageId/react", auth, socialChatController.reactToMessage);
 
 module.exports = router;

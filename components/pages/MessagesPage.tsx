@@ -104,10 +104,13 @@ function MessagesPage() {
         setMessages(prev => {
           const existingIndex = prev.findIndex(msg => msg._id === message._id);
           if (existingIndex >= 0) {
-            // Replace existing message
+            // Replace existing message (for edits, reactions, etc.)
             const updated = [...prev];
             updated[existingIndex] = message;
             return updated;
+          } else if (message.deleted) {
+            // Remove deleted message
+            return prev.filter(msg => msg._id !== message._id);
           } else {
             // Add new message
             return [...prev, message];
@@ -221,30 +224,85 @@ function MessagesPage() {
     return otherParticipant?.username.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  function handleReact(message: SocialMessage, emoji: string) {
-    setMessages((msgs) =>
-      msgs.map((m) =>
-        m._id === message._id
-          ? { ...m, reactions: [...(m.reactions || []), { type: emoji, by: "You" }] }
-          : m
-      )
-    );
+  async function handleReact(message: SocialMessage, emoji: string) {
+    try {
+      await api.post(`/social/chat/messages/${message._id}/react`, {
+        emoji: emoji,
+      });
+
+      // Update local state optimistically
+      setMessages((msgs) =>
+        msgs.map((m) =>
+          m._id === message._id
+            ? { ...m, reactions: [...(m.reactions || []), { type: emoji, by: localStorage.getItem("userId") || "", byName: "You" }] }
+            : m
+        )
+      );
+
+      // Emit socket event for real-time updates
+      const recipientId = selectedConversation?.participants.find(p => p._id !== localStorage.getItem("userId"))?._id;
+      if (recipientId && socket.connected) {
+        socket.emit("send-message", {
+          toUserId: recipientId,
+          message: { ...message, reactions: [...(message.reactions || []), { type: emoji, by: localStorage.getItem("userId") || "", byName: "You" }] },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to react to message:", error);
+    }
   }
 
   // Edit message
-  function handleEditMessage(messageId: string, newContent: string) {
-    setMessages((msgs) =>
-      msgs.map((m) =>
-        m._id === messageId ? { ...m, content: newContent } : m
-      )
-    );
-    setEditingMessageId(null);
-    setEditInput("");
+  async function handleEditMessage(messageId: string, newContent: string) {
+    try {
+      const res = await api.put(`/social/chat/messages/${messageId}`, {
+        content: newContent,
+      });
+
+      // Update local state
+      setMessages((msgs) =>
+        msgs.map((m) =>
+          m._id === messageId ? res.data : m
+        )
+      );
+
+      setEditingMessageId(null);
+      setEditInput("");
+
+      // Emit socket event for real-time updates
+      const recipientId = selectedConversation?.participants.find(p => p._id !== localStorage.getItem("userId"))?._id;
+      if (recipientId && socket.connected) {
+        socket.emit("send-message", {
+          toUserId: recipientId,
+          message: res.data,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to edit message:", error);
+      setEditingMessageId(null);
+      setEditInput("");
+    }
   }
 
   // Delete message
-  function handleDeleteMessage(messageId: string) {
-    setMessages((msgs) => msgs.filter((m) => m._id !== messageId));
+  async function handleDeleteMessage(messageId: string) {
+    try {
+      await api.delete(`/social/chat/messages/${messageId}`);
+
+      // Update local state
+      setMessages((msgs) => msgs.filter((m) => m._id !== messageId));
+
+      // Emit socket event for real-time updates
+      const recipientId = selectedConversation?.participants.find(p => p._id !== localStorage.getItem("userId"))?._id;
+      if (recipientId && socket.connected) {
+        socket.emit("send-message", {
+          toUserId: recipientId,
+          message: { _id: messageId, deleted: true },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+    }
   }
 
   // Filtered messages for search
@@ -422,7 +480,7 @@ function MessagesPage() {
               <div
                 key={message._id}
                 id={`msg-${message._id}`}
-                className={`flex ${message.senderId === localStorage.getItem("userId") ? "justify-end" : "justify-start"} animate-slideInUp group relative`}
+                className={`flex ${message.senderId === localStorage.getItem("userId") ? "justify-end" : "justify-start"} animate-slideInUp relative`}
               >
                 <div
                   className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl border transition-all relative ${message.senderId === localStorage.getItem("userId")
@@ -456,6 +514,9 @@ function MessagesPage() {
                     <span className={`text-xs font-medium ${message.senderId === localStorage.getItem("userId") ? "text-purple-200" : "text-slate-400"}`}>
                       {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
+                    {message.edited && (
+                      <span className="text-xs text-slate-500 italic">edited</span>
+                    )}
                   </div>
                   {/* Reactions with tooltip for who reacted */}
                   <div className="flex gap-1 mt-1">
@@ -466,17 +527,29 @@ function MessagesPage() {
                       >
                         {r.type}
                         <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 rounded bg-slate-800 text-white text-[10px] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
-                          {r.by}
+                          {r.byName || "Unknown"}
                         </span>
                       </span>
                     ))}
                   </div>
-                  {/* Message actions */}
-                  <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition flex gap-1">
-                    <button onClick={() => setReplyTo(message)} title="Reply" className="p-1 text-xs hover:text-purple-400"><CornerUpLeft size={14} /></button>
-                    <button onClick={() => setReactionPickerFor(message._id)} title="React" className="p-1 text-xs hover:text-purple-400"><Smile size={14} /></button>
+                  {/* Message actions - below the message */}
+                  <div className="flex items-center gap-2 mt-2 pt-1 border-t border-opacity-20 border-current">
+                    <button
+                      onClick={() => setReplyTo(message)}
+                      className="flex items-center gap-1 text-xs hover:text-purple-400 transition-colors opacity-70 hover:opacity-100"
+                    >
+                      <CornerUpLeft size={12} />
+                      Reply
+                    </button>
+                    <button
+                      onClick={() => setReactionPickerFor(message._id)}
+                      className="flex items-center gap-1 text-xs hover:text-purple-400 transition-colors opacity-70 hover:opacity-100"
+                    >
+                      <Smile size={12} />
+                      React
+                    </button>
                     {reactionPickerFor === message._id && (
-                      <div className="absolute z-50 top-8 right-0">
+                      <div className="absolute z-50 bottom-full mb-2 left-0">
                         <Picker
                           data={data}
                           onEmojiSelect={(emoji: any) => {
@@ -492,8 +565,28 @@ function MessagesPage() {
                     {/* Edit/Delete for own messages */}
                     {message.senderId === localStorage.getItem("userId") && (
                       <>
-                        <button onClick={() => { setEditingMessageId(message._id); setEditInput(message.content); }} title="Edit" className="p-1 text-xs hover:text-blue-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" /></svg></button>
-                        <button onClick={() => handleDeleteMessage(message._id)} title="Delete" className="p-1 text-xs hover:text-red-400"><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg></button>
+                        <button
+                          onClick={() => { setEditingMessageId(message._id); setEditInput(message.content); }}
+                          className="flex items-center gap-1 text-xs hover:text-blue-400 transition-colors opacity-70 hover:opacity-100"
+                        >
+                          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" />
+                          </svg>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMessage(message._id)}
+                          className="flex items-center gap-1 text-xs hover:text-red-400 transition-colors opacity-70 hover:opacity-100"
+                        >
+                          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                          Delete
+                        </button>
                       </>
                     )}
                   </div>

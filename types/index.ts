@@ -128,9 +128,12 @@ export interface SocialMessage {
   timestamp: string;
   read: boolean;
   delivered: boolean;
-  reactions?: { type: string; by: string }[];
+  reactions?: { type: string; by: string; byName: string }[];
   replyTo?: SocialMessage;
   imageUrl?: string;
+  edited?: boolean;
+  editedAt?: string;
+  deleted?: boolean;
 }
 
 export interface User {

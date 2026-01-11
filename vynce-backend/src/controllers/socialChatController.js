@@ -92,3 +92,94 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Edit a message
+exports.editMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const userId = req.userId;
+    const { messageId } = req.params;
+
+    const message = await SocialMessage.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (message.senderId.toString() !== userId) {
+      return res.status(403).json({ message: "You can only edit your own messages" });
+    }
+
+    message.content = content;
+    message.edited = true;
+    message.editedAt = new Date();
+    await message.save();
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete a message
+exports.deleteMessage = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { messageId } = req.params;
+
+    const message = await SocialMessage.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (message.senderId.toString() !== userId) {
+      return res.status(403).json({ message: "You can only delete your own messages" });
+    }
+
+    await SocialMessage.findByIdAndDelete(messageId);
+
+    res.json({ message: "Message deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// React to a message
+exports.reactToMessage = async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    const userId = req.userId;
+    const { messageId } = req.params;
+
+    const user = await User.findById(userId);
+
+    const message = await SocialMessage.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Check if user already reacted with this emoji
+    const existingReaction = message.reactions?.find(r => r.by.toString() === userId && r.type === emoji);
+
+    if (existingReaction) {
+      // Remove the reaction
+      message.reactions = message.reactions.filter(r => !(r.by.toString() === userId && r.type === emoji));
+    } else {
+      // Add the reaction
+      if (!message.reactions) message.reactions = [];
+      message.reactions.push({
+        type: emoji,
+        by: userId,
+        byName: user.username
+      });
+    }
+
+    await message.save();
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
