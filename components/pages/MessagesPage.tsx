@@ -76,9 +76,9 @@ function MessagesPage() {
     }
   }, [selectedConversation]);
 
-  // Socket setup - always active
+  // Socket setup - connect once and listen for messages
   useEffect(() => {
-
+    // Connect socket and join personal room
     const handleConnect = () => {
       socket.emit("join-user-room");
     };
@@ -88,9 +88,9 @@ function MessagesPage() {
       handleConnect();
     }
 
-    socket.on("new-social-message", (message: SocialMessage) => {
-
-      // Always update conversations list with latest message
+    // Listen for new messages
+    socket.on("new-message", (message: SocialMessage) => {
+      // Update conversations list with latest message
       setConversations(prev =>
         prev.map(conv =>
           conv._id === message.conversationId
@@ -104,7 +104,7 @@ function MessagesPage() {
         setMessages(prev => {
           const existingIndex = prev.findIndex(msg => msg._id === message._id);
           if (existingIndex >= 0) {
-            // Replace the temp message with the real one
+            // Replace existing message
             const updated = [...prev];
             updated[existingIndex] = message;
             return updated;
@@ -117,9 +117,10 @@ function MessagesPage() {
     });
 
     return () => {
-      socket.off("new-social-message");
+      socket.off("connect", handleConnect);
+      socket.off("new-message");
     };
-  }, []); // Remove selectedConversation dependency
+  }, []);
 
   // Track mobile breakpoint on client to avoid using `window` during render
   useEffect(() => {
@@ -182,16 +183,14 @@ function MessagesPage() {
         )
       );
 
-      // Emit to socket for other participants
+      // Emit to socket for real-time updates
       const recipientId = selectedConversation.participants.find(p => p._id !== localStorage.getItem("userId"))?._id;
 
-      if (recipientId) {
-        if (socket.connected) {
-          socket.emit("send-social-message", {
-            toUserId: recipientId,
-            message: res.data,
-          });
-        }
+      if (recipientId && socket.connected) {
+        socket.emit("send-message", {
+          toUserId: recipientId,
+          message: res.data,
+        });
       }
 
     } catch (error) {
