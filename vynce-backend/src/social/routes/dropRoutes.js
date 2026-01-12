@@ -17,6 +17,8 @@ const {
   createDropComment,
   getDropCommentsByDrop,
   deleteDropComment,
+  likeDropComment,
+  dislikeDropComment,
 } = require("../controllers/dropCommentController");
 
 /* DROPS */
@@ -32,6 +34,8 @@ router.delete("/:id", protect, deleteDrop);
 /* DROP COMMENTS */
 router.post("/:dropId/comments", protect, createDropComment);
 router.get("/:dropId/comments", protect, getDropCommentsByDrop);
+router.post("/comments/:id/like", protect, likeDropComment);
+router.post("/comments/:id/dislike", protect, dislikeDropComment);
 router.delete("/comments/:id", protect, deleteDropComment);
 
 module.exports = router;

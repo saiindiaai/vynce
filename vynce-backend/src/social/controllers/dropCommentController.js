@@ -5,7 +5,7 @@ const Drop = require("../models/Drop");
 exports.createDropComment = async (req, res) => {
   try {
     const { dropId } = req.params;
-    const { content } = req.body;
+    const { content, parentCommentId } = req.body;
     const userId = req.userId;
 
     if (!content || !content.trim()) {
@@ -17,14 +17,31 @@ exports.createDropComment = async (req, res) => {
       return res.status(404).json({ message: "Drop not found" });
     }
 
+    let parentComment = null;
+    if (parentCommentId) {
+      parentComment = await DropComment.findById(parentCommentId);
+      if (!parentComment) {
+        return res.status(404).json({ message: "Parent comment not found" });
+      }
+    }
+
     const comment = await DropComment.create({
       drop: dropId,
       author: userId,
       content,
+      parentComment: parentCommentId || null,
     });
 
-    drop.commentsCount += 1;
-    await drop.save();
+    // Update parent comment replies count if this is a reply
+    if (parentCommentId) {
+      await DropComment.findByIdAndUpdate(parentCommentId, {
+        $inc: { repliesCount: 1 },
+      });
+    } else {
+      // Only increment drop comments count for top-level comments
+      drop.commentsCount += 1;
+      await drop.save();
+    }
 
     res.status(201).json(comment);
   } catch (err) {
@@ -37,14 +54,48 @@ exports.createDropComment = async (req, res) => {
 exports.getDropCommentsByDrop = async (req, res) => {
   try {
     const { dropId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
 
-    const comments = await DropComment.find({ drop: dropId })
+    const drop = await Drop.findById(dropId);
+    if (!drop) {
+      return res.status(404).json({ message: "Drop not found" });
+    }
+
+    // Get top-level comments with pagination
+    const topLevelComments = await DropComment.find({
+      drop: dropId,
+      parentComment: null,
+    })
       .populate("author", "username displayName uid")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-    res.json(comments);
+    // Get replies for each top-level comment
+    const commentsWithReplies = await Promise.all(
+      topLevelComments.map(async (comment) => {
+        const replies = await DropComment.find({
+          parentComment: comment._id,
+        })
+          .populate("author", "username displayName uid")
+          .sort({ createdAt: 1 });
+
+        return {
+          ...comment.toObject(),
+          replies,
+        };
+      })
+    );
+
+    res.json({
+      comments: commentsWithReplies,
+      totalComments: drop.commentsCount,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(drop.commentsCount / limit),
+    });
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch comments" });
+    console.error(err);
+    res.status(500).json({ message: "Failed to get comments" });
   }
 };
 
@@ -63,14 +114,104 @@ exports.deleteDropComment = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    await DropComment.deleteOne({ _id: id });
+    // Handle replies count update for parent comment
+    if (comment.parentComment) {
+      await DropComment.findByIdAndUpdate(comment.parentComment, {
+        $inc: { repliesCount: -1 },
+      });
+    } else {
+      // Only decrement drop comments count for top-level comments
+      await Drop.findByIdAndUpdate(comment.drop, {
+        $inc: { commentsCount: -1 },
+      });
+    }
 
-    await Drop.findByIdAndUpdate(comment.drop, {
-      $inc: { commentsCount: -1 },
-    });
+    await DropComment.deleteOne({ _id: id });
 
     res.json({ message: "Comment deleted" });
   } catch (err) {
     res.status(500).json({ message: "Failed to delete comment" });
+  }
+};
+
+/* LIKE DROP COMMENT */
+exports.likeDropComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    const comment = await DropComment.findById(id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Check if user already liked
+    const alreadyLiked = comment.likes.includes(userId);
+    const alreadyDisliked = comment.dislikes.includes(userId);
+
+    if (alreadyLiked) {
+      // Remove like
+      comment.likes.pull(userId);
+    } else {
+      // Add like
+      comment.likes.push(userId);
+      // Remove dislike if exists
+      if (alreadyDisliked) {
+        comment.dislikes.pull(userId);
+      }
+    }
+
+    await comment.save();
+
+    res.json({
+      likes: comment.likes.length,
+      dislikes: comment.dislikes.length,
+      userLiked: comment.likes.includes(userId),
+      userDisliked: comment.dislikes.includes(userId),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to like comment" });
+  }
+};
+
+/* DISLIKE DROP COMMENT */
+exports.dislikeDropComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    const comment = await DropComment.findById(id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Check if user already disliked
+    const alreadyDisliked = comment.dislikes.includes(userId);
+    const alreadyLiked = comment.likes.includes(userId);
+
+    if (alreadyDisliked) {
+      // Remove dislike
+      comment.dislikes.pull(userId);
+    } else {
+      // Add dislike
+      comment.dislikes.push(userId);
+      // Remove like if exists
+      if (alreadyLiked) {
+        comment.likes.pull(userId);
+      }
+    }
+
+    await comment.save();
+
+    res.json({
+      likes: comment.likes.length,
+      dislikes: comment.dislikes.length,
+      userLiked: comment.likes.includes(userId),
+      userDisliked: comment.dislikes.includes(userId),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to dislike comment" });
   }
 };

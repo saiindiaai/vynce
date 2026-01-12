@@ -3,7 +3,7 @@
 import { createDropComment, fetchDropCommentsByDrop } from "@/lib/drops";
 import { createComment, fetchCommentsByPost } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
-import { Send, ThumbsUp, X } from "lucide-react";
+import { Heart, HeartOff, Send, ThumbsUp, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 interface CommentsSheetProps {
@@ -21,7 +21,83 @@ type Comment = {
   avatar?: string;
   text: string;
   time: string;
+  likes?: number;
+  dislikes?: number;
+  userLiked?: boolean;
+  userDisliked?: boolean;
+  replies?: Comment[];
+  parentComment?: string;
 };
+
+interface CommentItemProps {
+  comment: Comment;
+  onReply: (commentId: string) => void;
+  onLike: (commentId: string) => void;
+  onDislike: (commentId: string) => void;
+  variant: "home" | "drops" | "capsules" | "fight";
+}
+
+function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentItemProps) {
+  return (
+    <li className={`space-y-2 ${comment.id.startsWith("temp-") ? "opacity-80" : ""}`}>
+      <div className="flex gap-3">
+        <div
+          className="w-10 h-10 rounded-full bg-slate-700 flex-shrink-0"
+          aria-hidden
+        />
+        <div className="flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-sm font-semibold text-slate-50">{comment.author}</div>
+            <div className={`text-[11px] text-slate-400`}>{comment.time}</div>
+          </div>
+          <div className={`mt-1 text-sm text-slate-100 break-words`}>{comment.text}</div>
+
+          {/* Like/Dislike buttons */}
+          <div className="flex items-center gap-4 mt-2">
+            <button
+              onClick={() => onLike(comment.id)}
+              className={`flex items-center gap-1 text-xs transition-colors ${comment.userLiked ? "text-green-400" : "text-slate-400 hover:text-green-400"
+                }`}
+            >
+              <Heart size={14} fill={comment.userLiked ? "currentColor" : "none"} />
+              <span>{comment.likes || 0}</span>
+            </button>
+            <button
+              onClick={() => onDislike(comment.id)}
+              className={`flex items-center gap-1 text-xs transition-colors ${comment.userDisliked ? "text-red-400" : "text-slate-400 hover:text-red-400"
+                }`}
+            >
+              <HeartOff size={14} />
+              <span>{comment.dislikes || 0}</span>
+            </button>
+            <button
+              onClick={() => onReply(comment.id)}
+              className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
+            >
+              Reply
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Replies */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="ml-8 space-y-2 border-l border-slate-700 pl-4">
+          {comment.replies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              onReply={onReply}
+              onLike={onLike}
+              onDislike={onDislike}
+              variant={variant}
+            />
+          ))}
+        </div>
+      )}
+    </li>
+  );
+}
 
 export default function CommentsSheet({
   isOpen,
@@ -35,6 +111,7 @@ export default function CommentsSheet({
   const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // fight/vote state
@@ -58,16 +135,29 @@ export default function CommentsSheet({
 
   const loadComments = async () => {
     try {
-      const data = variant === "drops" 
+      const data = variant === "drops"
         ? await fetchDropCommentsByDrop(postId)
         : await fetchCommentsByPost(postId);
-      const mappedComments = data.map((c: any) => ({
-        id: c._id || c.id,
-        author: c.author?.displayName || c.author?.username || 'Unknown',
-        avatar: c.author?.avatar || '👤',
-        text: c.content,
-        time: timeAgo(c.createdAt),
-      }));
+
+      // Handle both flat and hierarchical comment structures
+      const processComments = (comments: any[]): Comment[] => {
+        return comments.map((c: any) => ({
+          id: c._id || c.id,
+          author: c.author?.displayName || c.author?.username || 'Unknown',
+          avatar: c.author?.avatar || '👤',
+          text: c.content,
+          time: timeAgo(c.createdAt),
+          likes: c.likes?.length || 0,
+          dislikes: c.dislikes?.length || 0,
+          userLiked: c.likes?.includes(currentUser?.id),
+          userDisliked: c.dislikes?.includes(currentUser?.id),
+          replies: c.replies ? processComments(c.replies) : [],
+          parentComment: c.parentComment,
+        }));
+      };
+
+      const commentsArray: any[] = Array.isArray(data) ? data : (data as any).comments || [];
+      const mappedComments = processComments(commentsArray);
       setComments(mappedComments);
       updateCommentsCount?.(postId, mappedComments.length);
     } catch (err) {
@@ -91,10 +181,11 @@ export default function CommentsSheet({
     setSubmitting(true);
     try {
       if (variant === "drops") {
-        await createDropComment(postId, trimmed);
+        await createDropComment(postId, trimmed, replyingTo || undefined);
       } else {
-        await createComment(postId, trimmed);
+        await createComment(postId, trimmed, replyingTo || undefined);
       }
+
       // Optimistic update
       const newComment: Comment = {
         id: `temp-${Date.now()}`,
@@ -102,9 +193,29 @@ export default function CommentsSheet({
         avatar: currentUser?.avatar || "👤",
         text: trimmed,
         time: "now",
+        likes: 0,
+        dislikes: 0,
+        userLiked: false,
+        userDisliked: false,
+        parentComment: replyingTo || undefined,
       };
-      setComments((prev) => [...prev, newComment]);
+
+      if (replyingTo) {
+        // Add as reply to parent comment
+        setComments((prev) =>
+          prev.map(comment =>
+            comment.id === replyingTo
+              ? { ...comment, replies: [...(comment.replies || []), newComment] }
+              : comment
+          )
+        );
+      } else {
+        // Add as top-level comment
+        setComments((prev) => [...prev, newComment]);
+      }
+
       setInput("");
+      setReplyingTo(null);
       updateCommentsCount?.(postId, comments.length + 1);
     } catch (e) {
       console.error("Failed to send comment", e);
@@ -142,6 +253,65 @@ export default function CommentsSheet({
     });
     setMyVote(teamId);
     // TODO: send vote to API
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    if (!currentUser) {
+      alert("Please sign in to like comments");
+      return;
+    }
+    try {
+      const response = variant === "drops"
+        ? await fetch(`/api/drops/comments/${commentId}/like`, { method: 'POST' })
+        : await fetch(`/api/posts/comments/${commentId}/like`, { method: 'POST' });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(prev => updateCommentLikes(prev, commentId, data));
+      }
+    } catch (err) {
+      console.error("Failed to like comment:", err);
+    }
+  };
+
+  const handleDislikeComment = async (commentId: string) => {
+    if (!currentUser) {
+      alert("Please sign in to dislike comments");
+      return;
+    }
+    try {
+      const response = variant === "drops"
+        ? await fetch(`/api/drops/comments/${commentId}/dislike`, { method: 'POST' })
+        : await fetch(`/api/posts/comments/${commentId}/dislike`, { method: 'POST' });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(prev => updateCommentLikes(prev, commentId, data));
+      }
+    } catch (err) {
+      console.error("Failed to dislike comment:", err);
+    }
+  };
+
+  const updateCommentLikes = (comments: Comment[], commentId: string, data: any): Comment[] => {
+    return comments.map(comment => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          likes: data.likes,
+          dislikes: data.dislikes,
+          userLiked: data.userLiked,
+          userDisliked: data.userDisliked,
+        };
+      }
+      if (comment.replies) {
+        return {
+          ...comment,
+          replies: updateCommentLikes(comment.replies, commentId, data),
+        };
+      }
+      return comment;
+    });
   };
 
   return (
@@ -236,22 +406,14 @@ export default function CommentsSheet({
               ) : (
                 <ul role="list" className="space-y-3">
                   {comments.map((c) => (
-                    <li
+                    <CommentItem
                       key={c.id}
-                      className={`flex gap-3 ${c.id.startsWith("temp-") ? "opacity-80" : ""}`}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full bg-slate-700 flex-shrink-0"
-                        aria-hidden
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="text-sm font-semibold text-slate-50">{c.author}</div>
-                          <div className={`text-[11px] text-slate-400`}>{c.time}</div>
-                        </div>
-                        <div className={`mt-1 text-sm text-slate-100 break-words`}>{c.text}</div>
-                      </div>
-                    </li>
+                      comment={c}
+                      onReply={(commentId) => setReplyingTo(commentId)}
+                      onLike={handleLikeComment}
+                      onDislike={handleDislikeComment}
+                      variant={variant}
+                    />
                   ))}
                   {comments.length === 0 && (
                     <li className={`text-center text-sm text-slate-400 py-6`}>
@@ -265,6 +427,19 @@ export default function CommentsSheet({
             {/* Footer / Input for non-fight */}
             {!isFight && (
               <div className={`p-3 border-t border-slate-700`}>
+                {replyingTo && (
+                  <div className="flex items-center justify-between mb-2 px-3 py-2 bg-slate-800/50 rounded-lg">
+                    <span className="text-xs text-slate-400">
+                      Replying to comment
+                    </span>
+                    <button
+                      onClick={() => setReplyingTo(null)}
+                      className="text-xs text-slate-400 hover:text-slate-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
                 <div
                   className={`flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-800 border border-slate-700`}
                 >
@@ -278,7 +453,7 @@ export default function CommentsSheet({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKey}
-                    placeholder="Write a reply..."
+                    placeholder={replyingTo ? "Write a reply..." : "Write a comment..."}
                     className={`flex-1 bg-transparent outline-none text-sm text-slate-50 placeholder-slate-500`}
                     aria-label="Write a comment"
                   />

@@ -9,6 +9,7 @@ type Notification = {
   type: string;
   title: string;
   message: string;
+  metadata?: any;
   priority: string;
   pinned: boolean;
   isRead: boolean;

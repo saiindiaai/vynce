@@ -11,7 +11,7 @@ export interface DropFetchOptions {
 
 export declare function fetchDropFeed(options?: DropFetchOptions): Promise<DropFeedResponse>;
 
-export declare function createDropComment(dropId: string | number, content: string): Promise<any>;
+export declare function createDropComment(dropId: string | number, content: string, parentCommentId?: string): Promise<any>;
 
 export declare function fetchDropCommentsByDrop(dropId: string | number): Promise<any[]>;
 

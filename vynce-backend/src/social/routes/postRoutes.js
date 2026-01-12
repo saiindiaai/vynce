@@ -17,6 +17,8 @@ const {
   createComment,
   getCommentsByPost,
   deleteComment,
+  likeComment,
+  dislikeComment,
 } = require("../controllers/commentController");
 
 /* POSTS */
@@ -33,5 +35,7 @@ router.delete("/:id", protect, deletePost);
 router.post("/:postId/comments", protect, createComment);
 router.get("/:postId/comments", protect, getCommentsByPost);
 router.delete("/comments/:id", protect, deleteComment);
+router.post("/comments/:id/like", protect, likeComment);
+router.post("/comments/:id/dislike", protect, dislikeComment);
 
 module.exports = router;
