@@ -11,6 +11,7 @@ export default function AccountInfoPage() {
   const [user, setUser] = useState<any>(null);
   const [displayName, setDisplayName] = useState("");
   const [message, setMessage] = useState("");
+  const [isPrivateAccount, setIsPrivateAccount] = useState(false);
 
   // Load user data
   useEffect(() => {
@@ -82,6 +83,34 @@ export default function AccountInfoPage() {
           <p className={`text-base font-semibold ${theme.textPrimary}`}>
             {user?.accountType ?? "standard"}
           </p>
+        </div>
+
+        {/* ACCOUNT PRIVACY */}
+        <div className="card-matte rounded-2xl p-4 border border-white/10">
+          <div className="flex items-center justify-between mb-2">
+            <p className={`text-xs font-semibold ${theme.textSecondary}`}>Account Privacy</p>
+            <span className={`text-xs px-2 py-1 rounded-full ${isPrivateAccount ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'}`}>
+              {isPrivateAccount ? 'Private Account' : 'Personal Account'}
+            </span>
+          </div>
+          <p className={`text-sm mb-3 ${theme.textSecondary}`}>Control who can follow you</p>
+
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className={`text-sm font-medium ${theme.textPrimary}`}>Private Account</p>
+              <p className={`text-xs ${theme.textSecondary}`}>When enabled, only people you approve can follow you</p>
+            </div>
+            <button
+              onClick={() => setIsPrivateAccount(!isPrivateAccount)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isPrivateAccount ? 'bg-red-600' : 'bg-gray-600'
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPrivateAccount ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>
