@@ -29,6 +29,32 @@ exports.followUser = async (req, res) => {
       return res.status(400).json({ message: "Already following this user" });
     }
 
+    // Check if target user has private account
+    if (targetUser.privacy?.visibility === 'private') {
+      // Check if follow request already pending
+      if (targetUser.pendingFollowRequests.includes(user._id)) {
+        return res.status(400).json({ message: "Follow request already pending" });
+      }
+
+      // Add to pending follow requests
+      targetUser.pendingFollowRequests.push(user._id);
+      await targetUser.save();
+
+      // Notify the target user of follow request
+      await Notification.create({
+        user: targetUser._id,
+        type: "FOLLOW_REQUEST",
+        title: "Follow request",
+        message: `${user.username} wants to follow you`,
+        metadata: { requesterId: user._id },
+        priority: "NORMAL",
+        pinned: false,
+      });
+
+      return res.json({ message: "Follow request sent" });
+    }
+
+    // For public accounts, follow directly
     // Add to following list
     user.following.push(targetUser._id);
     await user.save();
@@ -98,6 +124,99 @@ exports.unfollowUser = async (req, res) => {
     });
   } catch (err) {
     console.error("unfollowUser error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* ================================
+   APPROVE FOLLOW REQUEST
+   ================================ */
+exports.approveFollowRequest = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { requesterId } = req.body;
+
+    const user = await User.findById(userId);
+    const requester = await User.findById(requesterId);
+
+    if (!user || !requester) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if request exists
+    const requestIndex = user.pendingFollowRequests.findIndex(id => id.equals(requester._id));
+    if (requestIndex === -1) {
+      return res.status(400).json({ message: "Follow request not found" });
+    }
+
+    // Remove from pending requests
+    user.pendingFollowRequests.splice(requestIndex, 1);
+
+    // Add to followers
+    user.followers.push(requester._id);
+    await user.save();
+
+    // Add to requester's following
+    requester.following.push(user._id);
+    await requester.save();
+
+    // Notify the requester
+    await Notification.create({
+      user: requester._id,
+      type: "FOLLOW_APPROVED",
+      title: "Follow request approved",
+      message: `${user.username} approved your follow request`,
+      metadata: { approverId: user._id },
+      priority: "NORMAL",
+      pinned: false,
+    });
+
+    res.json({ message: "Follow request approved" });
+  } catch (err) {
+    console.error("approveFollowRequest error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* ================================
+   REJECT FOLLOW REQUEST
+   ================================ */
+exports.rejectFollowRequest = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { requesterId } = req.body;
+
+    const user = await User.findById(userId);
+    const requester = await User.findById(requesterId);
+
+    if (!user || !requester) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if request exists
+    const requestIndex = user.pendingFollowRequests.findIndex(id => id.equals(requester._id));
+    if (requestIndex === -1) {
+      return res.status(400).json({ message: "Follow request not found" });
+    }
+
+    // Remove from pending requests
+    user.pendingFollowRequests.splice(requestIndex, 1);
+    await user.save();
+
+    // Notify the requester
+    await Notification.create({
+      user: requester._id,
+      type: "FOLLOW_REJECTED",
+      title: "Follow request declined",
+      message: `${user.username} declined your follow request`,
+      metadata: { rejectorId: user._id },
+      priority: "NORMAL",
+      pinned: false,
+    });
+
+    res.json({ message: "Follow request rejected" });
+  } catch (err) {
+    console.error("rejectFollowRequest error:", err);
     res.status(500).json({ message: err.message });
   }
 };

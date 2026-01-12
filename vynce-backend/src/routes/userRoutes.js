@@ -23,9 +23,14 @@ const {
   getCelestium,
   addCelestiumTransaction,
   updateProfileShowcase,
+} = require("../controllers/userController");
+
+const {
   followUser,
   unfollowUser,
-} = require("../controllers/userController");
+  approveFollowRequest,
+  rejectFollowRequest,
+} = require("../controllers/socialController");
 
 const { getNotifications } = require("../controllers/notificationController");
 
@@ -41,6 +46,8 @@ router.get("/aura", protect, getUserAura);
 // FOLLOW SYSTEM
 router.post("/follow", protect, followUser);
 router.post("/unfollow", protect, unfollowUser);
+router.post("/follow/approve", protect, approveFollowRequest);
+router.post("/follow/reject", protect, rejectFollowRequest);
 
 // logoutUser
 router.post("/logout", protect, logoutUser);

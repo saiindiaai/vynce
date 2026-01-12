@@ -50,6 +50,10 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
         return <MessageCircle size={16} />;
       case "NEW_FOLLOWER":
         return <UserPlus size={16} />;
+      case "FOLLOW_REQUEST":
+      case "FOLLOW_APPROVED":
+      case "FOLLOW_REJECTED":
+        return <UserPlus size={16} />;
       case "HOUSE_JOIN_REQUEST":
       case "HOUSE_JOIN_APPROVED":
         return <Bell size={16} />;
@@ -66,6 +70,10 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
         return "text-cyan-400 bg-slate-800";
       case "NEW_FOLLOWER":
         return "text-blue-400 bg-slate-800";
+      case "FOLLOW_REQUEST":
+      case "FOLLOW_APPROVED":
+      case "FOLLOW_REJECTED":
+        return "text-green-400 bg-slate-800";
       case "HOUSE_JOIN_REQUEST":
       case "HOUSE_JOIN_APPROVED":
         return "text-red-400 bg-slate-800";
@@ -91,17 +99,63 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
   const handleNotificationClick = (notif: Notification) => {
     if (notif.type === "HOUSE_JOIN_REQUEST") {
       setActiveRequestId(notif._id);
+    } else if (notif.type === "FOLLOW_REQUEST") {
+      setActiveRequestId(notif._id);
     }
   };
 
-  const handleApprove = () => {
-    console.log("Approved request");
-    setActiveRequestId(null);
+  const handleApprove = async () => {
+    if (!activeRequestId) return;
+
+    try {
+      const activeNotif = notifications.find(n => n._id === activeRequestId);
+      if (!activeNotif) return;
+
+      if (activeNotif.type === "HOUSE_JOIN_REQUEST") {
+        // Handle house join approval
+        await api.post(`/houses/${activeNotif.metadata.houseId}/approve`, {
+          userId: activeNotif.metadata.requesterId
+        });
+      } else if (activeNotif.type === "FOLLOW_REQUEST") {
+        // Handle follow request approval
+        await api.post("/users/follow/approve", {
+          requesterId: activeNotif.metadata.requesterId
+        });
+      }
+
+      // Remove the notification from the list
+      setNotifications(prev => prev.filter(n => n._id !== activeRequestId));
+      setActiveRequestId(null);
+    } catch (error) {
+      console.error("Failed to approve request:", error);
+    }
   };
 
-  const handleReject = () => {
-    console.log("Rejected request");
-    setActiveRequestId(null);
+  const handleReject = async () => {
+    if (!activeRequestId) return;
+
+    try {
+      const activeNotif = notifications.find(n => n._id === activeRequestId);
+      if (!activeNotif) return;
+
+      if (activeNotif.type === "HOUSE_JOIN_REQUEST") {
+        // Handle house join rejection
+        await api.post(`/houses/${activeNotif.metadata.houseId}/reject`, {
+          userId: activeNotif.metadata.requesterId
+        });
+      } else if (activeNotif.type === "FOLLOW_REQUEST") {
+        // Handle follow request rejection
+        await api.post("/users/follow/reject", {
+          requesterId: activeNotif.metadata.requesterId
+        });
+      }
+
+      // Remove the notification from the list
+      setNotifications(prev => prev.filter(n => n._id !== activeRequestId));
+      setActiveRequestId(null);
+    } catch (error) {
+      console.error("Failed to reject request:", error);
+    }
   };
 
   if (loading) {
@@ -130,10 +184,10 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
           </div>
         ) : (
           notifications.map((notif, idx) => {
-            const isRequest = notif.type === "HOUSE_JOIN_REQUEST";
+            const isRequest = notif.type === "HOUSE_JOIN_REQUEST" || notif.type === "FOLLOW_REQUEST";
             const isActive = activeRequestId === notif._id;
 
-            // Custom title and message for NEW_FOLLOWER
+            // Custom title and message for different notification types
             let customTitle = notif.title;
             let customMessage = notif.message;
             if (notif.type === "NEW_FOLLOWER") {
@@ -143,6 +197,15 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
                 customTitle = "New Gang Member Alert";
                 customMessage = `${username} has joined your gang.`;
               }
+            } else if (notif.type === "FOLLOW_REQUEST") {
+              customTitle = "Follow Request";
+              // Keep the original message
+            } else if (notif.type === "FOLLOW_APPROVED") {
+              customTitle = "Follow Request Approved";
+              // Keep the original message
+            } else if (notif.type === "FOLLOW_REJECTED") {
+              customTitle = "Follow Request Declined";
+              // Keep the original message
             }
 
             return (
@@ -168,11 +231,13 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
                   <div className="flex-1 min-w-0 pt-0.5">
                     <p className="text-sm text-slate-50">
                       <span className="font-semibold">
-                        {isRequest ? "Gang Join Request" : customTitle}
+                        {notif.type === "HOUSE_JOIN_REQUEST" ? "Gang Join Request" :
+                          notif.type === "FOLLOW_REQUEST" ? "Follow Request" :
+                            customTitle}
                       </span>
                       <span className="text-slate-500 mx-1">·</span>
                       <span className="text-slate-400">
-                        {isRequest ? notif.message.replace("requested to join your house", "requested to join your gang") : customMessage}
+                        {notif.type === "HOUSE_JOIN_REQUEST" ? notif.message.replace("requested to join your house", "requested to join your gang") : customMessage}
                       </span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">{formatTime(notif.createdAt)}</p>

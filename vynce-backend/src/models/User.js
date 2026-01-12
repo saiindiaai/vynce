@@ -136,6 +136,11 @@ const userSchema = new mongoose.Schema(
       ref: "User",
     }],
 
+    pendingFollowRequests: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }],
+
     savedPosts: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
