@@ -125,14 +125,28 @@ export default function PostMenu({ isOpen, onClose, post, postId, isOwnPost = fa
         icon: UserPlus,
         color: themeClasses.textPrimary,
         action: async () => {
-          const authorUid = post?.author?.uid ?? post?.author?._id;
-          if (!authorUid) {
-            console.error("No author info available to follow");
+          // Handle different author formats
+          let authorId;
+          if (typeof post?.author === 'string') {
+            authorId = post.author;
+          } else if (post?.author?.uid) {
+            authorId = post.author.uid;
+          } else if (post?.author?._id) {
+            authorId = post.author._id;
+          } else {
+            console.error("No author info available to follow", post?.author);
             onClose();
             return;
           }
+
+          if (!authorId) {
+            console.error("No author ID available to follow");
+            onClose();
+            return;
+          }
+
           try {
-            await followUser(authorUid);
+            await followUser(authorId);
             console.log("Followed user");
           } catch (error) {
             console.error("Failed to follow user:", error);

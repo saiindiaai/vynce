@@ -14,7 +14,16 @@ exports.followUser = async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    const targetUser = await User.findOne({ uid: targetUserId });
+
+    // Try to find target user by uid first, then by _id if uid fails
+    let targetUser;
+    if (targetUserId.match(/^[0-9a-fA-F]{24}$/)) {
+      // Looks like MongoDB ObjectId
+      targetUser = await User.findById(targetUserId);
+    } else {
+      // Assume it's a uid
+      targetUser = await User.findOne({ uid: targetUserId });
+    }
 
     if (!user || !targetUser) {
       return res.status(404).json({ message: "User not found" });
@@ -98,7 +107,16 @@ exports.unfollowUser = async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    const targetUser = await User.findOne({ uid: targetUserId });
+
+    // Try to find target user by uid first, then by _id if uid fails
+    let targetUser;
+    if (targetUserId.match(/^[0-9a-fA-F]{24}$/)) {
+      // Looks like MongoDB ObjectId
+      targetUser = await User.findById(targetUserId);
+    } else {
+      // Assume it's a uid
+      targetUser = await User.findOne({ uid: targetUserId });
+    }
 
     if (!user || !targetUser) {
       return res.status(404).json({ message: "User not found" });
