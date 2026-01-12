@@ -409,7 +409,7 @@ const DropsPage = () => {
 
                 {/* Save */}
                 <button
-                  onClick={() => toggleSave(drop.id.toString())}
+                  onClick={() => toggleSave(drop.id.toString(), "drops")}
                   className={`flex-1 flex items-center justify-center py-2.5 px-2 rounded-lg transition-all duration-200 font-semibold text-xs min-h-[40px] ${isSaved
                     ? "text-yellow-300 bg-yellow-600/30 border border-yellow-500/50 shadow-lg shadow-yellow-500/10"
                     : "text-slate-300 bg-slate-700/40 border border-slate-600/30 hover:text-yellow-300 hover:bg-yellow-600/20 hover:border-yellow-500/40"

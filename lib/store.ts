@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { toggleDislike as apiToggleDislike, toggleLike as apiToggleLike } from "./social";
+import { toggleDislike as apiToggleDislike, toggleLike as apiToggleLike, toggleBookmark } from "./social";
+import { toggleBookmark as toggleDropBookmark } from "./drops";
 
 export type PageType =
   | "home"
@@ -198,13 +199,23 @@ export const useAppStore = create<AppState>((set) => ({
       return null;
     }
   },
-  toggleSave: (postId: string) =>
-    set((state) => ({
-      savedPosts: {
-        ...state.savedPosts,
-        [postId]: !state.savedPosts[postId],
-      },
-    })),
+  toggleSave: async (postId: string, variant: "home" | "drops" = "home") => {
+    try {
+      if (variant === "drops") {
+        await toggleDropBookmark(postId);
+      } else {
+        await toggleBookmark(postId);
+      }
+      set((state) => ({
+        savedPosts: {
+          ...state.savedPosts,
+          [postId]: !state.savedPosts[postId],
+        },
+      }));
+    } catch (error) {
+      console.error("Failed to toggle save:", error);
+    }
+  },
 
   // User
   currentUser: {

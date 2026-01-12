@@ -340,7 +340,7 @@ export default function HomePage() {
 
                 {/* Save */}
                 <button
-                  onClick={() => toggleSave(post.id)}
+                  onClick={() => toggleSave(post.id, "home")}
                   className={`flex-1 flex items-center justify-center py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isSaved
                     ? "bg-yellow-600/30 border border-yellow-500/50 text-yellow-300 shadow-lg shadow-yellow-500/20"
                     : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-yellow-600/20 hover:border-yellow-500/40 hover:text-yellow-300"
