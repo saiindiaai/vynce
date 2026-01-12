@@ -15,7 +15,7 @@ type Notification = {
   createdAt: string;
 };
 
-export default function NotificationsPage() {
+export default function NotificationsPage({ filterTypes }: { filterTypes?: string[] }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
@@ -24,7 +24,11 @@ export default function NotificationsPage() {
     const fetchNotifications = async () => {
       try {
         const res = await api.get("/notifications");
-        setNotifications(res.data);
+        let notifications = res.data;
+        if (filterTypes) {
+          notifications = notifications.filter((n: Notification) => filterTypes.includes(n.type));
+        }
+        setNotifications(notifications);
         // Mark all as read when viewing
         if (res.data.some((n: Notification) => !n.isRead)) {
           await api.put("/notifications/read-all");
@@ -36,7 +40,7 @@ export default function NotificationsPage() {
       }
     };
     fetchNotifications();
-  }, []);
+  }, [filterTypes]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

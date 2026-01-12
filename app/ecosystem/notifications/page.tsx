@@ -76,7 +76,15 @@ export default function NotificationsPage() {
       try {
         const res = await api.get("/users/notifications");
         console.log("Notifications received:", res.data);
-        setNotifications(res.data || []);
+        // Filter out all social notifications
+        const filteredNotifications = (res.data || []).filter((n: any) =>
+          n.type !== 'POST_LIKED' &&
+          n.type !== 'HOUSE_JOIN_REQUEST' &&
+          n.type !== 'HOUSE_JOIN_APPROVED' &&
+          n.type !== 'NEW_FOLLOWER' &&
+          n.type !== 'COMMENT_ON_POST'
+        );
+        setNotifications(filteredNotifications);
       } catch (e) {
         console.log("Failed loading notifications");
       } finally {

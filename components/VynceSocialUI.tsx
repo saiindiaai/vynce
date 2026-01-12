@@ -106,7 +106,7 @@ export default function VynceSocialUI() {
               {currentPage === "messages" && <MessagesPage />}
               {currentPage === "fight" && <FightPage />}
               {currentPage === "explore" && <ExplorePage />}
-              {currentPage === "notifications" && <NotificationsPage />}
+              {currentPage === "notifications" && <NotificationsPage filterTypes={['POST_LIKED', 'HOUSE_JOIN_REQUEST', 'HOUSE_JOIN_APPROVED', 'NEW_FOLLOWER', 'COMMENT_ON_POST']} />}
               {currentPage === "profile" && <ProfilePage />}
               {currentPage === "creator_hub" && <CreatorHubPage />}
               {currentPage === "activity" && <YourActivityPage />}
