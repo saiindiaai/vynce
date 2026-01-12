@@ -98,6 +98,18 @@ export default function NotificationsPage() {
           const isJoinRequest = n.type === 'HOUSE_JOIN_REQUEST';
           const isBlurred = activeNotificationId !== null && !isActive;
 
+          // Custom title and message for NEW_FOLLOWER
+          let customTitle = n.title;
+          let customMessage = n.message;
+          if (n.type === "NEW_FOLLOWER") {
+            const usernameMatch = n.message.match(/^(.+?) started following you$/);
+            if (usernameMatch) {
+              const username = usernameMatch[1];
+              customTitle = "New Gang Member Alert";
+              customMessage = `${username} has joined your gang.`;
+            }
+          }
+
           return (
             <div
               key={i}
@@ -112,8 +124,8 @@ export default function NotificationsPage() {
               <Bell className="w-6 h-6 text-blue-400 flex-shrink-0" />
 
               <div className="flex-1">
-                <p className={`${theme.textPrimary} font-semibold`}>{n.title}</p>
-                <p className={`${theme.textSecondary} text-xs`}>{n.message}</p>
+                <p className={`${theme.textPrimary} font-semibold`}>{customTitle}</p>
+                <p className={`${theme.textSecondary} text-xs`}>{customMessage}</p>
               </div>
 
               {/* Approve/Reject buttons for active house join request */}
