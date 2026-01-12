@@ -15,6 +15,10 @@ export declare function createDropComment(dropId: string | number, content: stri
 
 export declare function fetchDropCommentsByDrop(dropId: string | number): Promise<any[]>;
 
+export declare function likeDropComment(commentId: string): Promise<any>;
+
+export declare function dislikeDropComment(commentId: string): Promise<any>;
+
 export declare function toggleDropLike(dropId: string | number): Promise<{ dropId: string; liked: boolean; aura: number }>;
 
 export declare function toggleDropDislike(dropId: string | number): Promise<{ dropId: string; disliked: boolean; aura: number }>;

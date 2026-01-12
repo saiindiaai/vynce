@@ -1,7 +1,7 @@
 "use client";
 
-import { createDropComment, fetchDropCommentsByDrop } from "@/lib/drops";
-import { createComment, fetchCommentsByPost } from "@/lib/social";
+import { createDropComment, dislikeDropComment, fetchDropCommentsByDrop, likeDropComment } from "@/lib/drops";
+import { createComment, dislikeComment, fetchCommentsByPost, likeComment } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
 import { Heart, HeartOff, Send, ThumbsUp, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -56,7 +56,12 @@ function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentIt
           <div className="flex items-center gap-4 mt-2">
             <button
               onClick={() => onLike(comment.id)}
-              className={`flex items-center gap-1 text-xs transition-colors ${comment.userLiked ? "text-green-400" : "text-slate-400 hover:text-green-400"
+              disabled={comment.id.startsWith("temp-")}
+              className={`flex items-center gap-1 text-xs transition-colors ${comment.id.startsWith("temp-")
+                  ? "opacity-50 cursor-not-allowed"
+                  : comment.userLiked
+                    ? "text-green-400"
+                    : "text-slate-400 hover:text-green-400"
                 }`}
             >
               <Heart size={14} fill={comment.userLiked ? "currentColor" : "none"} />
@@ -64,7 +69,12 @@ function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentIt
             </button>
             <button
               onClick={() => onDislike(comment.id)}
-              className={`flex items-center gap-1 text-xs transition-colors ${comment.userDisliked ? "text-red-400" : "text-slate-400 hover:text-red-400"
+              disabled={comment.id.startsWith("temp-")}
+              className={`flex items-center gap-1 text-xs transition-colors ${comment.id.startsWith("temp-")
+                  ? "opacity-50 cursor-not-allowed"
+                  : comment.userDisliked
+                    ? "text-red-400"
+                    : "text-slate-400 hover:text-red-400"
                 }`}
             >
               <HeartOff size={14} />
@@ -72,7 +82,11 @@ function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentIt
             </button>
             <button
               onClick={() => onReply(comment.id)}
-              className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
+              disabled={comment.id.startsWith("temp-")}
+              className={`text-xs transition-colors ${comment.id.startsWith("temp-")
+                  ? "opacity-50 cursor-not-allowed text-slate-500"
+                  : "text-slate-400 hover:text-slate-300"
+                }`}
             >
               Reply
             </button>
@@ -178,6 +192,14 @@ export default function CommentsSheet({
   const handleSubmit = async () => {
     const trimmed = input.trim();
     if (!trimmed || submitting) return;
+
+    // Prevent replying to temporary comments
+    if (replyingTo && replyingTo.startsWith("temp-")) {
+      alert("Cannot reply to unsaved comments");
+      setReplyingTo(null);
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (variant === "drops") {
@@ -260,15 +282,15 @@ export default function CommentsSheet({
       alert("Please sign in to like comments");
       return;
     }
+    if (commentId.startsWith("temp-")) {
+      return; // Don't allow liking temporary comments
+    }
     try {
-      const response = variant === "drops"
-        ? await fetch(`/api/drops/comments/${commentId}/like`, { method: 'POST' })
-        : await fetch(`/api/posts/comments/${commentId}/like`, { method: 'POST' });
+      const data = variant === "drops"
+        ? await likeDropComment(commentId)
+        : await likeComment(commentId);
 
-      if (response.ok) {
-        const data = await response.json();
-        setComments(prev => updateCommentLikes(prev, commentId, data));
-      }
+      setComments(prev => updateCommentLikes(prev, commentId, data));
     } catch (err) {
       console.error("Failed to like comment:", err);
     }
@@ -279,15 +301,15 @@ export default function CommentsSheet({
       alert("Please sign in to dislike comments");
       return;
     }
+    if (commentId.startsWith("temp-")) {
+      return; // Don't allow disliking temporary comments
+    }
     try {
-      const response = variant === "drops"
-        ? await fetch(`/api/drops/comments/${commentId}/dislike`, { method: 'POST' })
-        : await fetch(`/api/posts/comments/${commentId}/dislike`, { method: 'POST' });
+      const data = variant === "drops"
+        ? await dislikeDropComment(commentId)
+        : await dislikeComment(commentId);
 
-      if (response.ok) {
-        const data = await response.json();
-        setComments(prev => updateCommentLikes(prev, commentId, data));
-      }
+      setComments(prev => updateCommentLikes(prev, commentId, data));
     } catch (err) {
       console.error("Failed to dislike comment:", err);
     }
@@ -409,7 +431,13 @@ export default function CommentsSheet({
                     <CommentItem
                       key={c.id}
                       comment={c}
-                      onReply={(commentId) => setReplyingTo(commentId)}
+                      onReply={(commentId) => {
+                        if (commentId.startsWith("temp-")) {
+                          alert("Cannot reply to unsaved comments");
+                          return;
+                        }
+                        setReplyingTo(commentId);
+                      }}
                       onLike={handleLikeComment}
                       onDislike={handleDislikeComment}
                       variant={variant}
