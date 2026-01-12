@@ -31,7 +31,7 @@ interface CreatorFormProps {
   setOpponent: (opponent: string) => void;
   fightType: "visual" | "text";
   setFightType: (fightType: "visual" | "text") => void;
-  onPublish: (post: CreatorPost) => void;
+  onPublish: (post: Partial<CreatorPost>) => void;
   onClearForm: () => void;
   showToast?: (message: string, type: "success" | "error" | "warning" | "info") => void;
 }
@@ -117,8 +117,8 @@ export const CreatorForm: React.FC<CreatorFormProps> = ({
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    const scheduledTimestamp = scheduledAt ? new Date(scheduledAt).toISOString() : null;
-    const vis = scheduledTimestamp && new Date(scheduledTimestamp) > new Date() ? "scheduled" : visibility;
+    const scheduledTimestamp = scheduledAt ? Date.parse(scheduledAt) : null;
+    const vis: CreatorPost["visibility"] = scheduledTimestamp && scheduledTimestamp > Date.now() ? "scheduled" : (visibility as CreatorPost["visibility"]);
 
     const postData = {
       contentType,

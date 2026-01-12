@@ -26,3 +26,5 @@ export declare function toggleBookmark(postId: string | number): Promise<{ postI
 export declare function followUser(targetUserId: string): Promise<{ message: string; followingCount: number; followersCount: number }>;
 
 export declare function reportPost(postId: string | number, reason?: string): Promise<{ message: string; reportId: string }>;
+
+export declare function deletePost(postId: string | number): Promise<any>;

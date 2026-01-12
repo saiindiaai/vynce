@@ -1,21 +1,21 @@
 "use client";
 
 import { getAllThemes } from "@/config/themes";
-import { deleteDrop, toggleBookmark as toggleDropBookmark } from "@/lib/drops";
-import { deletePost, toggleLike, toggleDislike, toggleBookmark, followUser, reportPost } from "@/lib/social";
-import { toggleDropLike, toggleDropDislike } from "@/lib/drops";
+import { deleteDrop, toggleBookmark as toggleDropBookmark, toggleDropDislike, toggleDropLike } from "@/lib/drops";
+import { deletePost, followUser, reportPost, toggleBookmark, toggleDislike, toggleLike } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, EyeOff, Flag, Link2, Star, UserPlus, XCircle } from "lucide-react";
 
 interface PostMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  post: any; // Full post object to access author info
+  post?: any; // Full post object to access author info
+  postId?: string | number; // fallback when only id is provided
   isOwnPost?: boolean;
   variant?: "home" | "drops" | "fight";
 }
 
-export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, variant = "home" }: PostMenuProps) {
+export default function PostMenu({ isOpen, onClose, post, postId, isOwnPost = false, variant = "home" }: PostMenuProps) {
   const { currentTheme } = useAppStore();
   const allThemes = getAllThemes();
   const themeClasses = allThemes[currentTheme];
@@ -30,13 +30,18 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: XCircle,
         color: "text-red-500",
         action: async () => {
+          const id = post?._id ?? postId;
+          if (!id) {
+            console.error("No post id available for delete action");
+            onClose();
+            return;
+          }
           try {
             if (variant === "drops") {
-              await deleteDrop(post._id);
+              await deleteDrop(id);
             } else {
-              await deletePost(post._id);
+              await deletePost(id);
             }
-            // TODO: Remove post from UI or refresh feed
             console.log("Post deleted");
           } catch (error) {
             console.error("Failed to delete post:", error);
@@ -57,7 +62,8 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: Link2,
         color: themeClasses.textPrimary,
         action: () => {
-          navigator.clipboard.writeText(`${window.location.origin}?post=${post._id}`);
+          const id = post?._id ?? postId;
+          if (id) navigator.clipboard.writeText(`${window.location.origin}?post=${id}`);
           onClose();
         },
       },
@@ -69,11 +75,17 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: Star,
         color: themeClasses.textPrimary,
         action: async () => {
+          const id = post?._id ?? postId;
+          if (!id) {
+            console.error("No post id available to like");
+            onClose();
+            return;
+          }
           try {
             if (variant === "drops") {
-              await toggleDropLike(post._id);
+              await toggleDropLike(id);
             } else {
-              await toggleLike(post._id);
+              await toggleLike(id);
             }
             console.log("Liked post");
           } catch (error) {
@@ -88,11 +100,17 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: EyeOff,
         color: themeClasses.textPrimary,
         action: async () => {
+          const id = post?._id ?? postId;
+          if (!id) {
+            console.error("No post id available to dislike");
+            onClose();
+            return;
+          }
           try {
             if (variant === "drops") {
-              await toggleDropDislike(post._id);
+              await toggleDropDislike(id);
             } else {
-              await toggleDislike(post._id);
+              await toggleDislike(id);
             }
             console.log("Disliked post");
           } catch (error) {
@@ -107,8 +125,14 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: UserPlus,
         color: themeClasses.textPrimary,
         action: async () => {
+          const authorUid = post?.author?.uid ?? post?.author?._id;
+          if (!authorUid) {
+            console.error("No author info available to follow");
+            onClose();
+            return;
+          }
           try {
-            await followUser(post.author.uid || post.author._id);
+            await followUser(authorUid);
             console.log("Followed user");
           } catch (error) {
             console.error("Failed to follow user:", error);
@@ -122,11 +146,17 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: Bookmark,
         color: themeClasses.textPrimary,
         action: async () => {
+          const id = post?._id ?? postId;
+          if (!id) {
+            console.error("No post id available to save");
+            onClose();
+            return;
+          }
           try {
             if (variant === "drops") {
-              await toggleDropBookmark(post._id);
+              await toggleDropBookmark(id);
             } else {
-              await toggleBookmark(post._id);
+              await toggleBookmark(id);
             }
             console.log("Saved post");
           } catch (error) {
@@ -141,7 +171,8 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: Link2,
         color: themeClasses.textPrimary,
         action: () => {
-          navigator.clipboard.writeText(`${window.location.origin}?post=${post._id}`);
+          const id = post?._id ?? postId;
+          if (id) navigator.clipboard.writeText(`${window.location.origin}?post=${id}`);
           onClose();
         },
       },
@@ -151,8 +182,14 @@ export default function PostMenu({ isOpen, onClose, post, isOwnPost = false, var
         icon: Flag,
         color: "text-red-500",
         action: async () => {
+          const id = post?._id ?? postId;
+          if (!id) {
+            console.error("No post id available to report");
+            onClose();
+            return;
+          }
           try {
-            await reportPost(post._id, "Order Violation");
+            await reportPost(id, "Order Violation");
             console.log("Reported post");
           } catch (error) {
             console.error("Failed to report post:", error);

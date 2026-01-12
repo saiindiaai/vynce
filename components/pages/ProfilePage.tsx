@@ -30,16 +30,17 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const [userRes, statsRes, auraRes, dropsRes, momentsRes] = await Promise.all([
+        const [userRes, statsRes, creatorStatsRes, dropsRes, momentsRes] = await Promise.all([
           api.get("/users/me"),
           api.get("/users/stats"),
-          api.get("/users/aura"),
+          api.get("/creator/stats"),
           api.get("/social/drops/user"),
           api.get("/social/posts/user"),
         ]);
         setUser(userRes.data.user);
         setStats(statsRes.data);
-        setAura(auraRes.data);
+        // Use creator stats totalLikes as total aura earned so profile matches creator hub
+        setAura(prev => ({ ...prev, totalAura: creatorStatsRes.data?.totalLikes || 0 }));
         setDrops(dropsRes.data);
         setMoments(momentsRes.data);
         // boards placeholder
@@ -101,7 +102,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Edit Profile Button */}
-        <button 
+        <button
           onClick={() => router.push('/ecosystem/profile/account')}
           className="w-full py-3 rounded-lg font-semibold text-slate-50 mb-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md"
         >
@@ -114,11 +115,10 @@ export default function ProfilePage() {
             <button
               key={section.id}
               onClick={() => setActiveTab(section.id)}
-              className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 animate-slideIn ${
-                activeTab === section.id
+              className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 animate-slideIn ${activeTab === section.id
                   ? "bg-slate-800 text-slate-50"
                   : "bg-slate-800/50 text-slate-300 hover:bg-slate-800/70"
-              }`}
+                }`}
               style={{ animationDelay: `${idx * 50}ms` }}
             >
               <span className="flex items-center gap-2">
@@ -196,20 +196,7 @@ export default function ProfilePage() {
               </div>
               <h3 className="text-3xl font-bold text-slate-50 mb-2">{aura.totalAura.toLocaleString()}</h3>
               <p className="text-slate-400 mb-6">Total Aura Earned</p>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">This Week</span>
-                  <span className="font-bold text-slate-50">{aura.thisWeek >= 0 ? '+' : ''}{aura.thisWeek}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">This Month</span>
-                  <span className="font-bold text-slate-50">{aura.thisMonth >= 0 ? '+' : ''}{aura.thisMonth}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">All Time Rank</span>
-                  <span className="font-bold text-purple-400">#{aura.allTimeRank}</span>
-                </div>
-              </div>
+              {/* Only show total aura here — details removed per request */}
             </div>
           )}
         </div>
