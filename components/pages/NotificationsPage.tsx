@@ -177,7 +177,7 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
       )}
 
       {/* Notifications List */}
-      <div className={`max-w-2xl mx-auto w-full space-y-1 px-3 sm:px-4 pt-1 sm:pt-2 transition-all duration-300 ${activeRequestId ? 'filter blur-sm' : ''}`}>
+      <div className={`max-w-2xl mx-auto w-full space-y-1 px-3 sm:px-4 pt-1 sm:pt-2 transition-all duration-300`}>
         {notifications.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-slate-400">No notifications yet</div>
@@ -212,7 +212,7 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
               <div
                 key={notif._id}
                 className={`clean-card px-4 py-3 cursor-pointer animate-slideIn transition-all duration-300 ${!notif.isRead ? "bg-slate-800/60" : ""
-                  } ${isActive ? 'relative z-20 scale-105 shadow-2xl' : ''} ${activeRequestId && !isActive ? 'pointer-events-none' : ''}`}
+                  } ${isActive ? 'relative z-20 scale-105 shadow-2xl' : ''} ${activeRequestId && !isActive ? 'pointer-events-none filter blur-sm' : ''}`}
                 style={{ animationDelay: `${idx * 100}ms` }}
                 onClick={() => handleNotificationClick(notif)}
               >
