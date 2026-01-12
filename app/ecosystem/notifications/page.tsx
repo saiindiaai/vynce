@@ -17,7 +17,7 @@ export default function NotificationsPage() {
     console.log("Notification clicked:", notification);
     console.log("Notification type:", notification.type);
     console.log("Is HOUSE_JOIN_REQUEST:", notification.type === 'HOUSE_JOIN_REQUEST');
-    if (notification.type === 'HOUSE_JOIN_REQUEST') {
+    if (notification.type === 'HOUSE_JOIN_REQUEST' || notification.type === 'FOLLOW_REQUEST') {
       // Toggle active state - clicking same notification again cancels
       setActiveNotificationId(activeNotificationId === `${index}` ? null : `${index}`);
     }
@@ -82,7 +82,10 @@ export default function NotificationsPage() {
           n.type !== 'HOUSE_JOIN_REQUEST' &&
           n.type !== 'HOUSE_JOIN_APPROVED' &&
           n.type !== 'NEW_FOLLOWER' &&
-          n.type !== 'COMMENT_ON_POST'
+          n.type !== 'COMMENT_ON_POST' &&
+          n.type !== 'FOLLOW_REQUEST' &&
+          n.type !== 'FOLLOW_APPROVED' &&
+          n.type !== 'FOLLOW_REJECTED'
         );
         setNotifications(filteredNotifications);
       } catch (e) {
