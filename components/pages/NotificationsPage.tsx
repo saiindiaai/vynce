@@ -198,13 +198,13 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
                 customMessage = `${username} has joined your gang.`;
               }
             } else if (notif.type === "FOLLOW_REQUEST") {
-              customTitle = "Follow Request";
+              customTitle = "Gang Join Request";
               // Keep the original message
             } else if (notif.type === "FOLLOW_APPROVED") {
-              customTitle = "Follow Request Approved";
+              customTitle = "Gang Join Approved";
               // Keep the original message
             } else if (notif.type === "FOLLOW_REJECTED") {
-              customTitle = "Follow Request Declined";
+              customTitle = "Gang Join Declined";
               // Keep the original message
             }
 
@@ -232,12 +232,12 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
                     <p className="text-sm text-slate-50">
                       <span className="font-semibold">
                         {notif.type === "HOUSE_JOIN_REQUEST" ? "Gang Join Request" :
-                          notif.type === "FOLLOW_REQUEST" ? "Follow Request" :
+                          notif.type === "FOLLOW_REQUEST" ? "Gang Join Request" :
                             customTitle}
                       </span>
                       <span className="text-slate-500 mx-1">·</span>
                       <span className="text-slate-400">
-                        {notif.type === "HOUSE_JOIN_REQUEST" ? notif.message.replace("requested to join your house", "requested to join your gang") : customMessage}
+                        {(notif.type === "HOUSE_JOIN_REQUEST" || notif.type === "FOLLOW_REQUEST") ? notif.message.replace("requested to join your house", "requested to join your gang") : customMessage}
                       </span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">{formatTime(notif.createdAt)}</p>

@@ -53,8 +53,8 @@ exports.followUser = async (req, res) => {
       await Notification.create({
         user: targetUser._id,
         type: "FOLLOW_REQUEST",
-        title: "Follow request",
-        message: `${user.username} wants to follow you`,
+        title: "Gang Join Request",
+        message: `${user.username} requested to join your gang`,
         metadata: { requesterId: user._id },
         priority: "NORMAL",
         pinned: false,
