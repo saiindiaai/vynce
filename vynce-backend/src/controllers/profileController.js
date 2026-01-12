@@ -37,6 +37,7 @@ exports.getMe = async (req, res) => {
         energy: user.energy ?? 1000,
         celestium: user.celestium ?? 0,
       },
+      privacy: user.privacy,
       access: {
         roles: [user.accountType === "admin" ? "admin" : "user"],
         permissions: [],
@@ -200,12 +201,14 @@ exports.deleteAccount = async (req, res) => {
    ================================ */
 exports.updatePrivacy = async (req, res) => {
   try {
-    const { profileVisibility, searchVisibility, dataConsent } = req.body;
+    const { visibility, searchable, showActivity, showLastSeen, dataConsent } = req.body;
 
     const updates = {};
-    if (profileVisibility) updates.profileVisibility = profileVisibility;
-    if (typeof searchVisibility === "boolean") updates.searchVisibility = searchVisibility;
-    if (typeof dataConsent === "boolean") updates.dataConsent = dataConsent;
+    if (visibility) updates['privacy.visibility'] = visibility;
+    if (typeof searchable === "boolean") updates['privacy.searchable'] = searchable;
+    if (typeof showActivity === "boolean") updates['privacy.showActivity'] = showActivity;
+    if (typeof showLastSeen === "boolean") updates['privacy.showLastSeen'] = showLastSeen;
+    if (typeof dataConsent === "boolean") updates['privacy.dataConsent'] = dataConsent;
 
     const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select(
       "-password"
