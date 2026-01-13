@@ -96,7 +96,7 @@ exports.getCommentsByPost = async (req, res) => {
       commentMap.set(comment._id.toString(), commentObj);
     });
 
-    // Second pass: organize into hierarchy
+    // Second pass: organize into nested hierarchy (supports unlimited nesting)
     allComments.forEach(comment => {
       if (comment.parentComment) {
         const parent = commentMap.get(comment.parentComment.toString());

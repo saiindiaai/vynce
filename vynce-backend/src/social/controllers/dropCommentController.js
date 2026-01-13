@@ -61,6 +61,28 @@ exports.getDropCommentsByDrop = async (req, res) => {
       return res.status(404).json({ message: "Drop not found" });
     }
 
+    // Recursive function to fetch all nested replies
+    const fetchRepliesRecursively = async (parentCommentId) => {
+      const replies = await DropComment.find({
+        parentComment: parentCommentId,
+      })
+        .populate("author", "username displayName uid")
+        .sort({ createdAt: 1 });
+
+      // Recursively fetch replies for each reply
+      const repliesWithNested = await Promise.all(
+        replies.map(async (reply) => {
+          const nestedReplies = await fetchRepliesRecursively(reply._id);
+          return {
+            ...reply.toObject(),
+            replies: nestedReplies,
+          };
+        })
+      );
+
+      return repliesWithNested;
+    };
+
     // Get top-level comments with pagination
     const topLevelComments = await DropComment.find({
       drop: dropId,
@@ -71,15 +93,10 @@ exports.getDropCommentsByDrop = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    // Get replies for each top-level comment
+    // Get replies for each top-level comment (recursively)
     const commentsWithReplies = await Promise.all(
       topLevelComments.map(async (comment) => {
-        const replies = await DropComment.find({
-          parentComment: comment._id,
-        })
-          .populate("author", "username displayName uid")
-          .sort({ createdAt: 1 });
-
+        const replies = await fetchRepliesRecursively(comment._id);
         return {
           ...comment.toObject(),
           replies,

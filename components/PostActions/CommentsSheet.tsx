@@ -58,10 +58,10 @@ function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentIt
               onClick={() => onLike(comment.id)}
               disabled={comment.id.startsWith("temp-")}
               className={`flex items-center gap-1 text-xs transition-colors ${comment.id.startsWith("temp-")
-                  ? "opacity-50 cursor-not-allowed"
-                  : comment.userLiked
-                    ? "text-green-400"
-                    : "text-slate-400 hover:text-green-400"
+                ? "opacity-50 cursor-not-allowed"
+                : comment.userLiked
+                  ? "text-green-400"
+                  : "text-slate-400 hover:text-green-400"
                 }`}
             >
               <Heart size={14} fill={comment.userLiked ? "currentColor" : "none"} />
@@ -71,10 +71,10 @@ function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentIt
               onClick={() => onDislike(comment.id)}
               disabled={comment.id.startsWith("temp-")}
               className={`flex items-center gap-1 text-xs transition-colors ${comment.id.startsWith("temp-")
-                  ? "opacity-50 cursor-not-allowed"
-                  : comment.userDisliked
-                    ? "text-red-400"
-                    : "text-slate-400 hover:text-red-400"
+                ? "opacity-50 cursor-not-allowed"
+                : comment.userDisliked
+                  ? "text-red-400"
+                  : "text-slate-400 hover:text-red-400"
                 }`}
             >
               <HeartOff size={14} />
@@ -84,8 +84,8 @@ function CommentItem({ comment, onReply, onLike, onDislike, variant }: CommentIt
               onClick={() => onReply(comment.id)}
               disabled={comment.id.startsWith("temp-")}
               className={`text-xs transition-colors ${comment.id.startsWith("temp-")
-                  ? "opacity-50 cursor-not-allowed text-slate-500"
-                  : "text-slate-400 hover:text-slate-300"
+                ? "opacity-50 cursor-not-allowed text-slate-500"
+                : "text-slate-400 hover:text-slate-300"
                 }`}
             >
               Reply
@@ -189,6 +189,30 @@ export default function CommentsSheet({
 
   const isFight = variant === "fight";
 
+  // Helper function to recursively find a comment and add a reply to it
+  const addReplyToComment = (
+    comments: Comment[],
+    targetId: string,
+    newReply: Comment
+  ): Comment[] => {
+    return comments.map(comment => {
+      if (comment.id === targetId) {
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), newReply],
+        };
+      }
+      // Recursively search in nested replies
+      if (comment.replies && comment.replies.length > 0) {
+        return {
+          ...comment,
+          replies: addReplyToComment(comment.replies, targetId, newReply),
+        };
+      }
+      return comment;
+    });
+  };
+
   const handleSubmit = async () => {
     const trimmed = input.trim();
     if (!trimmed || submitting) return;
@@ -223,14 +247,8 @@ export default function CommentsSheet({
       };
 
       if (replyingTo) {
-        // Add as reply to parent comment
-        setComments((prev) =>
-          prev.map(comment =>
-            comment.id === replyingTo
-              ? { ...comment, replies: [...(comment.replies || []), newComment] }
-              : comment
-          )
-        );
+        // Add as reply to parent comment (at any nesting level)
+        setComments((prev) => addReplyToComment(prev, replyingTo, newComment));
       } else {
         // Add as top-level comment
         setComments((prev) => [...prev, newComment]);
