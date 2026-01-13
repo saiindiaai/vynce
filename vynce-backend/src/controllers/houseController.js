@@ -131,7 +131,7 @@ exports.joinHouse = async (req, res) => {
       user: house.foundedBy,
       type: "HOUSE_JOIN_REQUEST",
       title: "House join request",
-      message: `${requester.username} requested to join your house`,
+      message: `${requester.username} has requested to join your house`,
       metadata: { houseId: house._id, requesterId: userId },
       priority: "HIGH",
       pinned: true,

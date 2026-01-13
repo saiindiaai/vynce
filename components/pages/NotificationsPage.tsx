@@ -198,6 +198,9 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
                 customTitle = "New Gang Member Alert";
                 customMessage = `${username} has joined your gang.`;
               }
+            } else if (notif.type === "HOUSE_JOIN_REQUEST") {
+              customTitle = "House Join Request";
+              // Keep the original message
             } else if (notif.type === "FOLLOW_REQUEST") {
               customTitle = "Gang Join Request";
               // Keep the original message
@@ -232,13 +235,11 @@ export default function NotificationsPage({ filterTypes }: { filterTypes?: strin
                   <div className="flex-1 min-w-0 pt-0.5">
                     <p className="text-sm text-slate-50">
                       <span className="font-semibold">
-                        {notif.type === "HOUSE_JOIN_REQUEST" ? "Gang Join Request" :
-                          notif.type === "FOLLOW_REQUEST" ? "Gang Join Request" :
-                            customTitle}
+                        {customTitle}
                       </span>
                       <span className="text-slate-500 mx-1">·</span>
                       <span className="text-slate-400">
-                        {(notif.type === "HOUSE_JOIN_REQUEST" || notif.type === "FOLLOW_REQUEST") ? notif.message.replace("requested to join your house", "requested to join your gang") : customMessage}
+                        {customMessage}
                       </span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">{formatTime(notif.createdAt)}</p>
