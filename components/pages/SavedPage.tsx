@@ -1,8 +1,10 @@
 "use client";
 
+import { fetchSavedDrops } from "@/lib/drops";
 import { fetchSavedPosts } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
-import { Bookmark, Heart, Loader2, MessageCircle, Share2 } from "lucide-react";
+import { ArrowRight, Bookmark, Heart, Loader2, MessageCircle, Share2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface SavedPost {
@@ -20,9 +22,29 @@ interface SavedPost {
   createdAt: string;
 }
 
+interface SavedDrop {
+  _id: string;
+  id?: string;
+  content: string;
+  title?: string;
+  author?: {
+    username: string;
+    displayName: string;
+    avatar?: string;
+  };
+  likes?: { length: number };
+  dislikes?: { length: number };
+  commentsCount?: number;
+  shares?: number;
+  createdAt: string;
+}
+
 export default function SavedPage() {
-  const { toggleSave } = useAppStore();
+  const router = useRouter();
+  const { toggleSave, setCurrentPage } = useAppStore();
   const [posts, setPosts] = useState<SavedPost[]>([]);
+  const [drops, setDrops] = useState<SavedDrop[]>([]);
+  const [allItems, setAllItems] = useState<(SavedPost | SavedDrop)[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -41,32 +63,84 @@ export default function SavedPage() {
     return `${weeks}w`;
   };
 
-  const loadSavedPosts = async () => {
+  const loadSavedContent = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchSavedPosts(page, 20);
+      const [postsData, dropsData] = await Promise.all([
+        fetchSavedPosts(page, 20),
+        fetchSavedDrops(page, 20),
+      ]);
+
+      const newPosts = postsData.posts || [];
+      const newDrops = dropsData.drops || [];
+
       if (page === 1) {
-        setPosts(data.posts || []);
+        setPosts(newPosts);
+        setDrops(newDrops);
       } else {
-        setPosts((prev) => [...prev, ...(data.posts || [])]);
+        setPosts((prev) => [...prev, ...newPosts]);
+        setDrops((prev) => [...prev, ...newDrops]);
       }
-      setHasMore(data.hasMore ?? false);
+
+      // Merge and sort by date
+      const combined = [...newPosts, ...newDrops].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      if (page === 1) {
+        setAllItems(combined);
+      } else {
+        setAllItems((prev) => [
+          ...prev,
+          ...combined.filter((item) => !prev.some((p) => p._id === item._id)),
+        ]);
+      }
+
+      setHasMore(
+        (postsData.hasMore ?? false) || (dropsData.hasMore ?? false)
+      );
     } catch (err) {
-      console.error("Failed to load saved posts:", err);
-      setError("Failed to load saved posts");
+      console.error("Failed to load saved content:", err);
+      setError("Failed to load saved content");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSavedPosts();
+    loadSavedContent();
   }, [page]);
 
-  const handleUnsave = (postId: string) => {
-    toggleSave(postId, "home");
-    setPosts((prev) => prev.filter((p) => p._id !== postId));
+  const handleUnsave = (itemId: string, type: "post" | "drop") => {
+    toggleSave(itemId, type === "post" ? "home" : "drops");
+    if (type === "post") {
+      setPosts((prev) => prev.filter((p) => p._id !== itemId));
+    } else {
+      setDrops((prev) => prev.filter((d) => d._id !== itemId));
+    }
+    setAllItems((prev) => prev.filter((item) => item._id !== itemId));
+  };
+
+  const isPost = (item: SavedPost | SavedDrop): item is SavedPost => {
+    return !("id" in item && (item as any).id);
+  };
+
+  const isDrop = (item: SavedPost | SavedDrop): item is SavedDrop => {
+    return "id" in item || (item as any).id;
+  };
+
+  const navigateToDrop = (drop: SavedDrop) => {
+    setCurrentPage("drops");
+    const dropId = (drop as any).id || drop._id;
+    if (dropId) {
+      router.push(`/social?post=${dropId}`);
+    }
+  };
+
+  const navigateToPost = (postId: string) => {
+    setCurrentPage("home");
+    router.push(`/social?post=${postId}`);
   };
 
   if (loading && page === 1) {
@@ -91,7 +165,7 @@ export default function SavedPage() {
         <p className="text-sm sm:text-base text-slate-400">Posts you've bookmarked for later</p>
       </div>
 
-      {/* Saved Posts */}
+      {/* Saved Items */}
       <div className="max-w-2xl mx-auto w-full px-3 sm:px-6 py-6 space-y-1">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 text-red-300 mb-4">
@@ -99,50 +173,65 @@ export default function SavedPage() {
           </div>
         )}
 
-        {posts.length > 0 ? (
+        {allItems.length > 0 ? (
           <>
-            {posts.map((post, idx) => {
-              const aura = (post.likes?.length || 0) - (post.dislikes?.length || 0);
+            {allItems.map((item, idx) => {
+              const aura = (item.likes?.length || 0) - (item.dislikes?.length || 0);
+              const isDropItem = isDrop(item);
+              const isPostItem = isPost(item);
+
               return (
                 <article
-                  key={post._id}
+                  key={item._id}
                   className="clean-card animate-slideIn p-4"
                   style={{ animationDelay: `${idx * 100}ms` }}
                 >
-                  {/* Post Header */}
+                  {/* Item Header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex-shrink-0 flex items-center justify-center text-base font-bold text-white">
-                        {post.author?.username?.charAt(0).toUpperCase() || "?"}
+                        {item.author?.username?.charAt(0).toUpperCase() || "?"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-sm text-slate-50">
-                            {post.author?.displayName || post.author?.username || "Unknown"}
+                            {item.author?.displayName || item.author?.username || "Unknown"}
                           </span>
+                          {isDropItem && (
+                            <span className="text-xs bg-purple-600/30 text-purple-300 px-2 py-0.5 rounded-full">
+                              Drop
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                          <span>@{post.author?.username || "unknown"}</span>
+                          <span>@{item.author?.username || "unknown"}</span>
                           <span>·</span>
-                          <span>saved {timeAgo(post.createdAt)}</span>
+                          <span>saved {timeAgo(item.createdAt)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Post Content */}
+                  {/* Item Content */}
                   <div className="mb-3">
-                    <p className="text-sm text-slate-100 leading-relaxed">{post.content}</p>
+                    {isDropItem && (item as SavedDrop).title && (
+                      <div className="text-xs font-semibold text-purple-300 mb-1">
+                        {(item as SavedDrop).title}
+                      </div>
+                    )}
+                    <p className="text-sm text-slate-100 leading-relaxed">
+                      {item.content}
+                    </p>
                   </div>
 
                   {/* Engagement Stats */}
                   <div className="text-xs text-slate-400 flex gap-4 mb-3 pb-3 border-b border-slate-700/30">
                     <button className="hover:text-slate-200 transition-colors">{aura} Aura</button>
                     <button className="hover:text-slate-200 transition-colors">
-                      {post.commentsCount || 0} Comments
+                      {item.commentsCount || 0} Comments
                     </button>
                     <button className="hover:text-slate-200 transition-colors">
-                      {post.shares || 0} Shares
+                      {item.shares || 0} Shares
                     </button>
                   </div>
 
@@ -158,10 +247,23 @@ export default function SavedPage() {
                       <Share2 size={14} />
                     </button>
                     <button
-                      onClick={() => handleUnsave(post._id)}
+                      onClick={() =>
+                        handleUnsave(item._id, isDropItem ? "drop" : "post")
+                      }
                       className="flex-1 flex items-center justify-center py-2 px-1 rounded-md text-yellow-400 bg-slate-800 hover:bg-slate-700 transition-all duration-150 text-xs font-medium min-h-[36px] min-w-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500"
                     >
                       <Bookmark size={14} fill="currentColor" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        isDropItem
+                          ? navigateToDrop(item as SavedDrop)
+                          : navigateToPost(item._id)
+                      }
+                      className="flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md text-slate-400 hover:bg-slate-800/50 hover:text-purple-300 transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500"
+                      title={isDropItem ? "Go to Drop" : "Go to Post"}
+                    >
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </article>
@@ -183,8 +285,8 @@ export default function SavedPage() {
         ) : (
           <div className="text-center py-12">
             <Bookmark size={32} className="mx-auto text-slate-600 mb-4" />
-            <p className="text-slate-300 text-lg font-semibold">No saved posts yet</p>
-            <p className="text-slate-500 text-sm mt-1">Posts you save will appear here</p>
+            <p className="text-slate-300 text-lg font-semibold">No saved items yet</p>
+            <p className="text-slate-500 text-sm mt-1">Posts and drops you save will appear here</p>
           </div>
         )}
       </div>
