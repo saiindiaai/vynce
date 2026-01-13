@@ -370,7 +370,11 @@ exports.sendMessage = async (req, res) => {
     });
 
     await message.save();
-    res.status(201).json(message);
+
+    // Populate replyTo for the response
+    const populatedMessage = await HouseMessage.findById(message._id).populate('replyTo', 'userName content');
+
+    res.status(201).json(populatedMessage);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

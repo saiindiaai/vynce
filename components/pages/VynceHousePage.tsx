@@ -540,11 +540,17 @@ export default function VynceHousePage() {
         replyTo: replyingTo?._id,
       });
 
+      // Populate replyTo with the full message object for immediate display
+      const messageWithReply = {
+        ...res.data,
+        replyTo: replyingTo || res.data.replyTo,
+      };
+
       // Emit to socket
       socket.emit("send-house-message", {
         houseId: selectedHouseId,
         channelId: selectedChannelId,
-        message: res.data,
+        message: messageWithReply,
       });
 
       setMessageInput("");
@@ -964,8 +970,8 @@ export default function VynceHousePage() {
                                       }
                                     }}
                                     className={`px-2 py-1 rounded-full text-xs border transition-all ${reaction.hasReacted
-                                        ? 'bg-purple-600/20 border-purple-500 text-purple-300'
-                                        : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:bg-slate-600/50'
+                                      ? 'bg-purple-600/20 border-purple-500 text-purple-300'
+                                      : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:bg-slate-600/50'
                                       }`}
                                   >
                                     {reaction.emoji} {reaction.count}
