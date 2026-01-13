@@ -108,6 +108,10 @@ export interface HouseMessage {
   userName: string;
   content: string;
   timestamp: string;
+  replyTo?: string;
+  reactions?: { userId: string; emoji: string }[];
+  edited?: boolean;
+  editedAt?: string;
 }
 
 export interface Conversation {

@@ -89,7 +89,7 @@ app.use("/api/social/capsules", require("./src/social/routes/capsuleRoutes"));
 app.use("/api/social/explore", exploreRoutes);
 app.use("/api/social/explore", forYouRoutes);
 app.use("/api/social/explore", categoriesRoutes);
-app.use("/api/houses", houseRoutes);
+app.use("/api/houses", require("./src/routes/houseRoutes")(io));
 app.use("/api/social/chat", socialChatRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/creator", creatorRoutes);

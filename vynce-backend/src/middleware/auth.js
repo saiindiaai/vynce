@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const protect = (req, res, next) => {
+const protect = (io) => (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -14,6 +14,7 @@ const protect = (req, res, next) => {
 
     // IMPORTANT: support both id and uid
     req.userId = decoded.id || decoded._id || decoded.uid;
+    req.io = io; // Attach io to req
 
     if (!req.userId) {
       return res.status(401).json({ message: "Invalid token payload" });

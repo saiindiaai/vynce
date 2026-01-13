@@ -5,6 +5,7 @@ import socket from "@/lib/socket";
 import { useAppStore } from "@/lib/store";
 import { House, HouseMessage, HouseType } from "@/types";
 import {
+  Edit,
   Hash,
   Home,
   Menu,
@@ -12,10 +13,14 @@ import {
   MoreVertical,
   Plus,
   Radio,
+  Reply,
   Search,
   Send,
   Share2,
-  Users
+  Smile,
+  Trash2,
+  Users,
+  X
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -71,6 +76,11 @@ export default function VynceHousePage() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touching, setTouching] = useState(false);
+  // Message interaction state
+  const [replyingTo, setReplyingTo] = useState<HouseMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<HouseMessage | null>(null);
+  const [editInput, setEditInput] = useState("");
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
 
   // Load houses from API
   useEffect(() => {
@@ -214,8 +224,46 @@ export default function VynceHousePage() {
       }
     });
 
+    socket.on("message-edited", (message: HouseMessage) => {
+      if (message.houseId === selectedHouseId && message.channelId === selectedChannelId) {
+        setChannelMessages(prev => prev.map(msg => msg._id === message._id ? message : msg));
+      }
+    });
+
+    socket.on("message-deleted", (data: { messageId: string }) => {
+      setChannelMessages(prev => prev.filter(msg => msg._id !== data.messageId));
+    });
+
+    socket.on("reaction-added", (data: { messageId: string; reaction: { userId: string; emoji: string } }) => {
+      setChannelMessages(prev => prev.map(msg => {
+        if (msg._id === data.messageId) {
+          const updatedReactions = [...(msg.reactions || [])];
+          const existingReaction = updatedReactions.find(r => r.userId === data.reaction.userId && r.emoji === data.reaction.emoji);
+          if (!existingReaction) {
+            updatedReactions.push(data.reaction);
+          }
+          return { ...msg, reactions: updatedReactions };
+        }
+        return msg;
+      }));
+    });
+
+    socket.on("reaction-removed", (data: { messageId: string; emoji: string; userId: string }) => {
+      setChannelMessages(prev => prev.map(msg => {
+        if (msg._id === data.messageId) {
+          const updatedReactions = (msg.reactions || []).filter(r => !(r.userId === data.userId && r.emoji === data.emoji));
+          return { ...msg, reactions: updatedReactions };
+        }
+        return msg;
+      }));
+    });
+
     return () => {
       socket.off("new-house-message");
+      socket.off("message-edited");
+      socket.off("message-deleted");
+      socket.off("reaction-added");
+      socket.off("reaction-removed");
     };
   }, [selectedHouseId, selectedChannelId]);
 
@@ -233,10 +281,16 @@ export default function VynceHousePage() {
     };
   }, [selectedHouseId, selectedChannelId]);
 
-  // Auto-scroll to bottom
+  // Close reaction picker when clicking outside
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [channelMessages]);
+    const handleClickOutside = () => {
+      if (showReactionPicker) {
+        setShowReactionPicker(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showReactionPicker]);
 
   // Global house search
   useEffect(() => {
@@ -483,6 +537,7 @@ export default function VynceHousePage() {
     try {
       const res = await api.post(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages`, {
         content: messageInput.trim(),
+        replyTo: replyingTo?._id,
       });
 
       // Emit to socket
@@ -493,8 +548,63 @@ export default function VynceHousePage() {
       });
 
       setMessageInput("");
+      setReplyingTo(null);
     } catch (error) {
       console.error("Failed to send message:", error);
+    }
+  };
+
+  const editMessage = async (messageId: string) => {
+    if (!editInput.trim()) return;
+
+    try {
+      const res = await api.put(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages/${messageId}`, {
+        content: editInput.trim(),
+      });
+
+      // Update local state
+      setChannelMessages(prev => prev.map(msg => msg._id === messageId ? res.data : msg));
+      setEditingMessage(null);
+      setEditInput("");
+    } catch (error) {
+      console.error("Failed to edit message:", error);
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    try {
+      await api.delete(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages/${messageId}`);
+
+      // Update local state
+      setChannelMessages(prev => prev.filter(msg => msg._id !== messageId));
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+    }
+  };
+
+  const addReaction = async (messageId: string, emoji: string) => {
+    try {
+      const res = await api.post(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages/${messageId}/reactions`, {
+        emoji,
+      });
+
+      // Update local state
+      setChannelMessages(prev => prev.map(msg => msg._id === messageId ? res.data : msg));
+    } catch (error) {
+      console.error("Failed to add reaction:", error);
+    }
+  };
+
+  const removeReaction = async (messageId: string, emoji: string) => {
+    try {
+      const res = await api.delete(`/houses/${selectedHouseId}/channels/${selectedChannelId}/messages/${messageId}/reactions`, {
+        data: { emoji },
+      });
+
+      // Update local state
+      setChannelMessages(prev => prev.map(msg => msg._id === messageId ? res.data : msg));
+    } catch (error) {
+      console.error("Failed to remove reaction:", error);
     }
   };
 
@@ -758,45 +868,214 @@ export default function VynceHousePage() {
                     </p>
                   </div>
                 ) : (
-                  channelMessages.map((msg) => (
-                    <div key={msg._id} className="group">
-                      <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-800/30 transition-all">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                          {msg.userName.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <p className="font-semibold text-slate-50 text-sm">
-                              {msg.userName}
+                  channelMessages.map((msg) => {
+                    const isOwnMessage = msg.userId === localStorage.getItem("userId");
+                    const isEditing = editingMessage?._id === msg._id;
+
+                    return (
+                      <div key={msg._id} className="group relative">
+                        {/* Reply indicator */}
+                        {msg.replyTo && (
+                          <div className="ml-11 mb-2 p-2 bg-slate-800/50 rounded-lg border-l-2 border-purple-500">
+                            <p className="text-xs text-slate-400">
+                              Replying to <span className="text-purple-400 font-semibold">{(msg.replyTo as any)?.userName || 'Unknown'}</span>
                             </p>
-                            <p className="text-xs text-slate-500">
-                              {new Date(msg.timestamp).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
+                            <p className="text-xs text-slate-500 truncate">{(msg.replyTo as any)?.content || 'Message not found'}</p>
                           </div>
-                          <p className="text-sm text-slate-300 break-words">{msg.content}</p>
+                        )}
+
+                        <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-800/30 transition-all">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                            {msg.userName.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="font-semibold text-slate-50 text-sm">
+                                {msg.userName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {new Date(msg.timestamp).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                              {msg.edited && (
+                                <span className="text-xs text-slate-500">(edited)</span>
+                              )}
+                            </div>
+
+                            {/* Edit input */}
+                            {isEditing ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={editInput}
+                                  onChange={(e) => setEditInput(e.target.value)}
+                                  onKeyPress={(e) => {
+                                    if (e.key === "Enter") {
+                                      editMessage(msg._id);
+                                    } else if (e.key === "Escape") {
+                                      setEditingMessage(null);
+                                      setEditInput("");
+                                    }
+                                  }}
+                                  className="flex-1 px-2 py-1 bg-slate-700 border border-slate-600 rounded text-slate-50 text-sm focus:outline-none focus:border-purple-500"
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() => editMessage(msg._id)}
+                                  className="p-1 text-green-400 hover:text-green-300"
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingMessage(null);
+                                    setEditInput("");
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-300"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-slate-300 break-words">{msg.content}</p>
+                            )}
+
+                            {/* Reactions */}
+                            {msg.reactions && msg.reactions.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {msg.reactions.reduce((acc: any[], reaction) => {
+                                  const existing = acc.find(r => r.emoji === reaction.emoji);
+                                  if (existing) {
+                                    existing.count++;
+                                  } else {
+                                    acc.push({ emoji: reaction.emoji, count: 1, hasReacted: reaction.userId === localStorage.getItem("userId") });
+                                  }
+                                  return acc;
+                                }, []).map((reaction: any) => (
+                                  <button
+                                    key={reaction.emoji}
+                                    onClick={() => {
+                                      if (reaction.hasReacted) {
+                                        removeReaction(msg._id, reaction.emoji);
+                                      } else {
+                                        addReaction(msg._id, reaction.emoji);
+                                      }
+                                    }}
+                                    className={`px-2 py-1 rounded-full text-xs border transition-all ${reaction.hasReacted
+                                        ? 'bg-purple-600/20 border-purple-500 text-purple-300'
+                                        : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:bg-slate-600/50'
+                                      }`}
+                                  >
+                                    {reaction.emoji} {reaction.count}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                            <button
+                              onClick={() => setReplyingTo(msg)}
+                              className="p-1 text-slate-400 hover:text-slate-300 transition-colors"
+                              title="Reply"
+                            >
+                              <Reply size={14} />
+                            </button>
+                            <button
+                              onClick={() => setShowReactionPicker(msg._id)}
+                              className="p-1 text-slate-400 hover:text-slate-300 transition-colors"
+                              title="React"
+                            >
+                              <Smile size={14} />
+                            </button>
+                            {isOwnMessage && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditingMessage(msg);
+                                    setEditInput(msg.content);
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-slate-300 transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit size={14} />
+                                </button>
+                                <button
+                                  onClick={() => deleteMessage(msg._id)}
+                                  className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Reaction picker */}
+                        {showReactionPicker === msg._id && (
+                          <div
+                            className="absolute top-full right-0 mt-2 p-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex gap-1">
+                              {['👍', '❤️', '😂', '😮', '😢', '😡'].map(emoji => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => {
+                                    addReaction(msg._id, emoji);
+                                    setShowReactionPicker(null);
+                                  }}
+                                  className="p-2 hover:bg-slate-700 rounded transition-colors text-lg"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input */}
               <div className={`fixed bottom-16 left-0 right-0 px-4 py-3 border-t border-slate-700/20 bg-slate-900/70 transition-opacity duration-200 ${showHousesSidebar || showMembersDrawer || sidebarOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100'}`} style={{ zIndex: 50 }}>
+                {/* Reply indicator */}
+                {replyingTo && (
+                  <div className="mb-3 p-3 bg-slate-800/50 rounded-lg border-l-4 border-purple-500 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-400">
+                        Replying to <span className="text-purple-400 font-semibold">{replyingTo.userName}</span>
+                      </p>
+                      <p className="text-xs text-slate-500 truncate">{replyingTo.content}</p>
+                    </div>
+                    <button
+                      onClick={() => setReplyingTo(null)}
+                      className="p-1 text-slate-400 hover:text-slate-300 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-end gap-2">
                   <input
                     type="text"
-                    placeholder={`Message #${selectedChannel.name}`}
+                    placeholder={replyingTo ? `Reply to ${replyingTo.userName}...` : `Message #${selectedChannel.name}`}
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyPress={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         sendMessage();
+                      } else if (e.key === "Escape" && replyingTo) {
+                        setReplyingTo(null);
                       }
                     }}
                     className="flex-1 px-3 py-3 sm:py-2 bg-slate-800/50 border border-slate-700/40 rounded-2xl text-slate-50 placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"

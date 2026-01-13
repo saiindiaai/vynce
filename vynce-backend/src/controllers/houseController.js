@@ -328,7 +328,7 @@ exports.getChannels = async (req, res) => {
 // Send a message to a channel
 exports.sendMessage = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, replyTo } = req.body;
     const userId = req.userId;
     const { houseId, channelId } = req.params;
 
@@ -366,6 +366,7 @@ exports.sendMessage = async (req, res) => {
       userId,
       userName: user.username,
       content,
+      replyTo: replyTo || null,
     });
 
     await message.save();
@@ -410,7 +411,7 @@ exports.getMessages = async (req, res) => {
     const messages = await HouseMessage.find({
       houseId: req.params.houseId,
       channelId: req.params.channelId,
-    }).sort({ timestamp: 1 });
+    }).populate('replyTo', 'userName content').sort({ timestamp: 1 });
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -559,6 +560,100 @@ exports.removeMember = async (req, res) => {
     });
 
     res.json({ message: "Member removed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Edit message
+exports.editMessage = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { houseId, channelId, messageId } = req.params;
+    const { content } = req.body;
+
+    const message = await HouseMessage.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (String(message.userId) !== String(userId)) return res.status(403).json({ message: "Can only edit your own messages" });
+
+    message.content = content;
+    message.edited = true;
+    message.editedAt = new Date();
+    await message.save();
+
+    // Emit to all users in the channel
+    req.io.to(`house-${houseId}-channel-${channelId}`).emit("message-edited", message);
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete message
+exports.deleteMessage = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { houseId, channelId, messageId } = req.params;
+
+    const message = await HouseMessage.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (String(message.userId) !== String(userId)) return res.status(403).json({ message: "Can only delete your own messages" });
+
+    await HouseMessage.findByIdAndDelete(messageId);
+
+    // Emit to all users in the channel
+    req.io.to(`house-${houseId}-channel-${channelId}`).emit("message-deleted", { messageId });
+
+    res.json({ message: "Message deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Add reaction to message
+exports.addReaction = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { houseId, channelId, messageId } = req.params;
+    const { emoji } = req.body;
+
+    const message = await HouseMessage.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    // Check if user already reacted with this emoji
+    const existingReaction = message.reactions.find(r => String(r.userId) === String(userId) && r.emoji === emoji);
+    if (existingReaction) return res.status(400).json({ message: "Already reacted with this emoji" });
+
+    message.reactions.push({ userId, emoji });
+    await message.save();
+
+    // Emit to all users in the channel
+    req.io.to(`house-${houseId}-channel-${channelId}`).emit("reaction-added", { messageId, reaction: { userId, emoji } });
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Remove reaction from message
+exports.removeReaction = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { houseId, channelId, messageId } = req.params;
+    const { emoji } = req.body;
+
+    const message = await HouseMessage.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    message.reactions = message.reactions.filter(r => !(String(r.userId) === String(userId) && r.emoji === emoji));
+    await message.save();
+
+    // Emit to all users in the channel
+    req.io.to(`house-${houseId}-channel-${channelId}`).emit("reaction-removed", { messageId, emoji, userId });
+
+    res.json(message);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
