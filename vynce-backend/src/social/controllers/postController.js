@@ -395,3 +395,41 @@ exports.getUserPosts = async (req, res) => {
     res.status(500).json({ message: "Failed to get user posts" });
   }
 };
+
+/* ================================
+   GET SAVED POSTS (BOOKMARKS)
+================================ */
+exports.getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { page = 1, limit = 20 } = req.query;
+
+    const user = await User.findById(userId).select("savedPosts");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get saved posts with pagination
+    const skip = (page - 1) * limit;
+    const savedPostIds = user.savedPosts.slice(skip, skip + limit);
+
+    const posts = await Post.find({ _id: { $in: savedPostIds } })
+      .populate("author", "username displayName uid avatar")
+      .sort({ _id: -1 });
+
+    // Get total count
+    const totalCount = user.savedPosts.length;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      posts,
+      savedCount: totalCount,
+      currentPage: parseInt(page),
+      totalPages,
+      hasMore: page < totalPages,
+    });
+  } catch (err) {
+    console.error("getSavedPosts error:", err);
+    res.status(500).json({ message: "Failed to get saved posts" });
+  }
+};

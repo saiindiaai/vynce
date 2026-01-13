@@ -27,6 +27,8 @@ export declare function sharePost(postId: string | number): Promise<{ postId: st
 
 export declare function toggleBookmark(postId: string | number): Promise<{ postId: string; bookmarked: boolean; savedCount: number }>;
 
+export declare function fetchSavedPosts(page?: number, limit?: number): Promise<{ posts: any[]; savedCount: number; currentPage: number; totalPages: number; hasMore: boolean }>;
+
 export declare function followUser(targetUserId: string): Promise<{ message: string; followingCount: number; followersCount: number }>;
 
 export declare function reportPost(postId: string | number, reason?: string): Promise<{ message: string; reportId: string }>;

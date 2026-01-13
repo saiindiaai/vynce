@@ -6,6 +6,7 @@ const {
   createDrop,
   getDropFeed,
   getUserDrops,
+  getSavedDrops,
   toggleDropLike,
   toggleDropDislike,
   toggleBookmark,
@@ -25,6 +26,7 @@ const {
 router.post("/", protect, createDrop);
 router.get("/feed", protect, getDropFeed);
 router.get("/user", protect, getUserDrops);
+router.get("/saved", protect, getSavedDrops);
 router.post("/:id/like", protect, toggleDropLike);
 router.post("/:id/dislike", protect, toggleDropDislike);
 router.post("/:id/bookmark", protect, toggleBookmark);

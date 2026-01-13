@@ -6,6 +6,7 @@ const {
   createPost,
   getFeed,
   getUserPosts,
+  getSavedPosts,
   toggleLike,
   toggleDislike,
   toggleBookmark,
@@ -25,6 +26,7 @@ const {
 router.post("/", protect, createPost);
 router.get("/feed", protect, getFeed);
 router.get("/user", protect, getUserPosts);
+router.get("/saved", protect, getSavedPosts);
 router.post("/:id/like", protect, toggleLike);
 router.post("/:id/dislike", protect, toggleDislike);
 router.post("/:id/bookmark", protect, toggleBookmark);

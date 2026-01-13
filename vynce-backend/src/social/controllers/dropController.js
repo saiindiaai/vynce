@@ -317,3 +317,41 @@ exports.getUserDrops = async (req, res) => {
     res.status(500).json({ message: "Failed to get user drops" });
   }
 };
+
+/* ================================
+   GET SAVED DROPS (BOOKMARKS)
+================================ */
+exports.getSavedDrops = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { page = 1, limit = 20 } = req.query;
+
+    const user = await User.findById(userId).select("savedPosts");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get saved drops with pagination
+    const skip = (page - 1) * limit;
+    const savedDropIds = user.savedPosts.slice(skip, skip + limit);
+
+    const drops = await Drop.find({ _id: { $in: savedDropIds } })
+      .populate("author", "username displayName uid avatar")
+      .sort({ _id: -1 });
+
+    // Get total count
+    const totalCount = user.savedPosts.length;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      drops,
+      savedCount: totalCount,
+      currentPage: parseInt(page),
+      totalPages,
+      hasMore: page < totalPages,
+    });
+  } catch (err) {
+    console.error("getSavedDrops error:", err);
+    res.status(500).json({ message: "Failed to get saved drops" });
+  }
+};

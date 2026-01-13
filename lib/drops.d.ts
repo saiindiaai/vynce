@@ -28,3 +28,5 @@ export declare function shareDrop(dropId: string | number): Promise<{ dropId: st
 export declare function deleteDrop(dropId: string | number): Promise<any>;
 
 export declare function toggleBookmark(dropId: string | number): Promise<{ dropId: string; bookmarked: boolean; savedCount: number }>;
+
+export declare function fetchSavedDrops(page?: number, limit?: number): Promise<{ drops: any[]; savedCount: number; currentPage: number; totalPages: number; hasMore: boolean }>;
