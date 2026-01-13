@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { toggleDislike as apiToggleDislike, toggleLike as apiToggleLike, toggleBookmark } from "./social";
 import { toggleBookmark as toggleDropBookmark } from "./drops";
+import { toggleDislike as apiToggleDislike, toggleLike as apiToggleLike, toggleBookmark } from "./social";
 
 export type PageType =
   | "home"
@@ -44,7 +44,7 @@ interface AppState {
   setLikedPosts: (likedPosts: Record<string, boolean>) => void;
   toggleLike: (postId: string) => Promise<{ postId: string; liked: boolean; aura: number } | null>;
   toggleDislike: (postId: string) => Promise<{ postId: string; disliked: boolean; aura: number } | null>;
-  toggleSave: (postId: string) => void;
+  toggleSave: (postId: string, variant?: "home" | "drops") => void;
 
   // User
   currentUser: {

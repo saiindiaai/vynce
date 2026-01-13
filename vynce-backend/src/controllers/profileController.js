@@ -55,14 +55,32 @@ exports.getMe = async (req, res) => {
 exports.getPublicProfile = async (req, res) => {
   try {
     const { username } = req.params;
+    const currentUserId = req.userId; // May be undefined if not logged in
 
     const user = await User.findOne({ username }).select(
-      "username displayName uid level bio energy"
+      "username displayName uid level bio energy followers following accountType"
     );
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json(user);
+    let isFollowing = false;
+    let hasPendingRequest = false;
+
+    if (currentUserId && currentUserId !== user._id.toString()) {
+      // Check if current user is following this user
+      const currentUser = await User.findById(currentUserId).select("following pendingFollowRequests");
+      if (currentUser) {
+        isFollowing = currentUser.following.includes(user._id);
+        hasPendingRequest = currentUser.pendingFollowRequests.some(id => id.toString() === user._id.toString());
+      }
+    }
+
+    res.json({
+      ...user.toObject(),
+      isFollowing,
+      hasPendingRequest,
+      isOwnProfile: currentUserId === user._id.toString()
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

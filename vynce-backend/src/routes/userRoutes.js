@@ -53,7 +53,7 @@ router.post("/follow/reject", protect, rejectFollowRequest);
 router.post("/logout", protect, logoutUser);
 
 // public username
-router.get("/public/:username", getPublicProfile);
+router.get("/public/:username", protect, getPublicProfile);
 
 // search
 router.get("/search", protect, searchUsers);

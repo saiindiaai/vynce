@@ -1,8 +1,9 @@
 // eslint.config.mjs
 
-import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 import prettier from "eslint-config-prettier";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   {
@@ -29,10 +30,15 @@ export default [
 
     plugins: {
       "@typescript-eslint": tsPlugin,
+      "react-hooks": reactHooksPlugin,
     },
 
     rules: {
       ...tsPlugin.configs.recommended.rules,
+
+      // React hooks rules
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
 
       // Make linting quieter & developer-friendly
       "no-console": "off",
