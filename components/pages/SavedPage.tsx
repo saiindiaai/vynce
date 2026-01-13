@@ -1,9 +1,11 @@
 "use client";
 
+import DropPreviewSheet from "@/components/drops/DropPreviewSheet";
+import PostPreviewSheet from "@/components/posts/PostPreviewSheet";
 import { fetchSavedDrops } from "@/lib/drops";
 import { fetchSavedPosts } from "@/lib/social";
 import { useAppStore } from "@/lib/store";
-import { ArrowRight, Bookmark, Heart, Loader2, MessageCircle, Share2 } from "lucide-react";
+import { Bookmark, Heart, Loader2, MessageCircle, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -39,9 +41,9 @@ interface SavedDrop {
   createdAt: string;
 }
 
-export default function SavedPage() {
-  const router = useRouter();
+const SavedPage = () => {
   const { toggleSave, setCurrentPage } = useAppStore();
+  const router = useRouter();
   const [posts, setPosts] = useState<SavedPost[]>([]);
   const [drops, setDrops] = useState<SavedDrop[]>([]);
   const [allItems, setAllItems] = useState<(SavedPost | SavedDrop)[]>([]);
@@ -49,6 +51,8 @@ export default function SavedPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [previewPost, setPreviewPost] = useState<SavedPost | null>(null);
+  const [previewDrop, setPreviewDrop] = useState<SavedDrop | null>(null);
 
   const timeAgo = (dateString: string) => {
     const now = new Date();
@@ -110,10 +114,11 @@ export default function SavedPage() {
 
   useEffect(() => {
     loadSavedContent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   const handleUnsave = (itemId: string, type: "post" | "drop") => {
-    toggleSave(itemId, type === "post" ? "home" : "drops");
+    toggleSave(itemId);
     if (type === "post") {
       setPosts((prev) => prev.filter((p) => p._id !== itemId));
     } else {
@@ -128,19 +133,6 @@ export default function SavedPage() {
 
   const isDrop = (item: SavedPost | SavedDrop): item is SavedDrop => {
     return "id" in item || (item as any).id;
-  };
-
-  const navigateToDrop = (drop: SavedDrop) => {
-    setCurrentPage("drops");
-    const dropId = (drop as any).id || drop._id;
-    if (dropId) {
-      router.push(`/social?post=${dropId}`);
-    }
-  };
-
-  const navigateToPost = (postId: string) => {
-    setCurrentPage("home");
-    router.push(`/social?post=${postId}`);
   };
 
   if (loading && page === 1) {
@@ -183,8 +175,15 @@ export default function SavedPage() {
               return (
                 <article
                   key={item._id}
-                  className="clean-card animate-slideIn p-4"
+                  className="clean-card animate-slideIn p-4 cursor-pointer hover:bg-slate-800/40 transition"
                   style={{ animationDelay: `${idx * 100}ms` }}
+                  onClick={() => {
+                    if (isDropItem) {
+                      setPreviewDrop(item as SavedDrop);
+                    } else {
+                      setPreviewPost(item as SavedPost);
+                    }
+                  }}
                 >
                   {/* Item Header */}
                   <div className="flex items-center justify-between mb-3">
@@ -236,7 +235,7 @@ export default function SavedPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
                     <button className="flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md text-slate-400 hover:bg-slate-800/50 hover:text-red-300 transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500">
                       <Heart size={14} />
                     </button>
@@ -247,23 +246,17 @@ export default function SavedPage() {
                       <Share2 size={14} />
                     </button>
                     <button
-                      onClick={() =>
-                        handleUnsave(item._id, isDropItem ? "drop" : "post")
-                      }
+                      onClick={() => {
+                        // Always check both id and _id for drops, only _id for posts
+                        if (isDropItem) {
+                          handleUnsave((item as any).id || item._id, "drop");
+                        } else {
+                          handleUnsave(item._id, "post");
+                        }
+                      }}
                       className="flex-1 flex items-center justify-center py-2 px-1 rounded-md text-yellow-400 bg-slate-800 hover:bg-slate-700 transition-all duration-150 text-xs font-medium min-h-[36px] min-w-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500"
                     >
                       <Bookmark size={14} fill="currentColor" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        isDropItem
-                          ? navigateToDrop(item as SavedDrop)
-                          : navigateToPost(item._id)
-                      }
-                      className="flex-1 flex items-center justify-center gap-1 py-2 px-1 rounded-md text-slate-400 hover:bg-slate-800/50 hover:text-purple-300 transition-all duration-150 text-xs font-medium min-h-[36px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500"
-                      title={isDropItem ? "Go to Drop" : "Go to Post"}
-                    >
-                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </article>
@@ -290,6 +283,22 @@ export default function SavedPage() {
           </div>
         )}
       </div>
+
+      {/* Post Preview Sheet */}
+      <PostPreviewSheet
+        open={!!previewPost}
+        onClose={() => setPreviewPost(null)}
+        post={previewPost}
+      />
+
+      {/* Drop Preview Sheet */}
+      <DropPreviewSheet
+        open={!!previewDrop}
+        onClose={() => setPreviewDrop(null)}
+        drop={previewDrop}
+      />
     </div>
   );
-}
+};
+
+export default SavedPage;
