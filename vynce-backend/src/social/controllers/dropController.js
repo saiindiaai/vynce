@@ -83,6 +83,7 @@ exports.getDropFeed = async (req, res) => {
         content: drop.content,
         author: drop.author,
         createdAt: drop.createdAt,
+        media: drop.media,
         aura: drop.likes.length - drop.dislikes.length,
         isLikedByMe,
         isDislikedByMe,

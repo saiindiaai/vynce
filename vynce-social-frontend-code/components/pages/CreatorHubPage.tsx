@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import { useAppStore } from "@/lib/store";
+import { uploadFile } from "@/lib/upload";
 import {
   BarChart3,
+  FileText,
+  Flame,
+  Image as ImageIcon,
   TrendingUp,
   Users,
-  Zap,
-  FileText,
-  Image as ImageIcon,
   Video,
-  Flame,
   X,
+  Zap,
 } from "lucide-react";
-import { useAppStore } from "@/lib/store";
+import { useEffect, useRef, useState } from "react";
 
 type ContentType = "drop" | "capsule" | "fight";
 
@@ -49,6 +50,8 @@ export default function CreatorHubPage() {
   const [tags, setTags] = useState("");
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [visibility, setVisibility] = useState<"public" | "private" | "draft">("public");
   const [scheduledAt, setScheduledAt] = useState<string>("");
@@ -75,23 +78,45 @@ export default function CreatorHubPage() {
     }
   }, [posts]);
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file) return;
+
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
+
     if (!isImage && !isVideo) {
       showToast?.("Unsupported file type. Please upload an image or video.", "warning");
       return;
     }
-    // basic file size validation: 40MB limit
+
+    // Basic file size validation: 40MB limit
     const maxBytes = 40 * 1024 * 1024;
     if (file.size > maxBytes) {
       showToast?.("File too large — max 40MB allowed.", "warning");
       return;
     }
-    const url = URL.createObjectURL(file);
-    setMediaPreview(url);
+
+    // Create preview URL for display
+    const previewUrl = URL.createObjectURL(file);
+    setMediaPreview(previewUrl);
     setMediaType(isImage ? "image" : "video");
+    setIsUploading(true);
+
+    try {
+      // Upload the file to get the permanent URL
+      const uploadResult = await uploadFile(file);
+      setMediaUrl(uploadResult.url);
+      showToast?.("File uploaded successfully!", "success");
+    } catch (error) {
+      console.error("Upload failed:", error);
+      showToast?.("Failed to upload file. Please try again.", "error");
+      // Reset on upload failure
+      setMediaPreview(null);
+      setMediaType(null);
+      setMediaUrl(null);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const clearForm = () => {
@@ -100,12 +125,18 @@ export default function CreatorHubPage() {
     setTags("");
     setMediaPreview(null);
     setMediaType(null);
+    setMediaUrl(null);
     setOpponent("");
     setFightType("visual");
     if (fileRef.current) fileRef.current.value = "";
   };
 
   const publish = () => {
+    if (isUploading) {
+      showToast?.("Please wait for the file to finish uploading.", "warning");
+      return;
+    }
+
     if (!title.trim()) {
       showToast?.("Please add a title for your content", "warning");
       return;
@@ -132,7 +163,7 @@ export default function CreatorHubPage() {
       contentType,
       title: title.trim(),
       description: description.trim(),
-      media: mediaPreview ? { url: mediaPreview, type: mediaType as "image" | "video" } : undefined,
+      media: mediaUrl ? { url: mediaUrl, type: mediaType as "image" | "video" } : undefined,
       tags: parsedTags,
       visibility: vis,
       scheduledAt: scheduledTimestamp,
@@ -237,11 +268,10 @@ export default function CreatorHubPage() {
                         setContentType(type);
                         clearForm();
                       }}
-                      className={`relative group py-3 px-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base flex items-center justify-center gap-2 overflow-hidden ${
-                        contentType === type
+                      className={`relative group py-3 px-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base flex items-center justify-center gap-2 overflow-hidden ${contentType === type
                           ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/50"
                           : "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60 border border-slate-700/50 hover:border-slate-600"
-                      }`}
+                        }`}
                     >
                       {type === "drop" && <FileText size={18} />}
                       {type === "capsule" && <Video size={18} />}
@@ -299,21 +329,19 @@ export default function CreatorHubPage() {
                       <div className="flex gap-3">
                         <button
                           onClick={() => setFightType("visual")}
-                          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${
-                            fightType === "visual"
+                          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${fightType === "visual"
                               ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
                               : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
-                          }`}
+                            }`}
                         >
                           🎥 Visual
                         </button>
                         <button
                           onClick={() => setFightType("text")}
-                          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${
-                            fightType === "text"
+                          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${fightType === "text"
                               ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
                               : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
-                          }`}
+                            }`}
                         >
                           💬 Debate
                         </button>
@@ -354,17 +382,30 @@ export default function CreatorHubPage() {
                     />
                     <label
                       htmlFor="media-upload"
-                      className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-slate-700/50 rounded-xl hover:border-purple-500/50 hover:bg-slate-900/30 cursor-pointer transition-all group"
+                      className={`flex items-center justify-center w-full px-4 py-8 border-2 border-dashed rounded-xl transition-all group ${isUploading
+                          ? "border-blue-500/50 bg-blue-900/10 cursor-not-allowed"
+                          : "border-slate-700/50 hover:border-purple-500/50 hover:bg-slate-900/30 cursor-pointer"
+                        }`}
                     >
                       <div className="text-center">
-                        <ImageIcon
-                          className="mx-auto mb-2 text-slate-500 group-hover:text-purple-400 transition-colors"
-                          size={28}
-                        />
-                        <p className="text-sm font-semibold text-slate-400">
-                          Click to upload or drag and drop
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">PNG, JPG, MP4 up to 40MB</p>
+                        {isUploading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                            <p className="text-sm font-semibold text-blue-400">Uploading...</p>
+                            <p className="text-xs text-slate-500 mt-1">Please wait</p>
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon
+                              className="mx-auto mb-2 text-slate-500 group-hover:text-purple-400 transition-colors"
+                              size={28}
+                            />
+                            <p className="text-sm font-semibold text-slate-400">
+                              Click to upload or drag and drop
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, MP4 up to 40MB</p>
+                          </>
+                        )}
                       </div>
                     </label>
                   </div>
@@ -379,6 +420,7 @@ export default function CreatorHubPage() {
                         onClick={() => {
                           setMediaPreview(null);
                           setMediaType(null);
+                          setMediaUrl(null);
                         }}
                         className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black rounded-full transition-all"
                       >
@@ -397,6 +439,7 @@ export default function CreatorHubPage() {
                         onClick={() => {
                           setMediaPreview(null);
                           setMediaType(null);
+                          setMediaUrl(null);
                         }}
                         className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black rounded-full transition-all"
                       >
@@ -481,13 +524,12 @@ export default function CreatorHubPage() {
                       {/* Content Type Badge + Media */}
                       <div className="flex-shrink-0 flex flex-col gap-2">
                         <div
-                          className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl font-bold ${
-                            p.contentType === "drop"
+                          className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl font-bold ${p.contentType === "drop"
                               ? "bg-blue-600/20 text-blue-400"
                               : p.contentType === "capsule"
                                 ? "bg-purple-600/20 text-purple-400"
                                 : "bg-red-600/20 text-red-400"
-                          }`}
+                            }`}
                         >
                           {p.contentType === "drop" && <FileText size={24} />}
                           {p.contentType === "capsule" && <Video size={24} />}
@@ -510,13 +552,12 @@ export default function CreatorHubPage() {
                           <div className="flex items-center gap-2">
                             <div className="font-semibold text-slate-50 truncate">{p.title}</div>
                             <span
-                              className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                p.contentType === "drop"
+                              className={`text-xs font-semibold px-2 py-0.5 rounded ${p.contentType === "drop"
                                   ? "bg-blue-600/30 text-blue-300"
                                   : p.contentType === "capsule"
                                     ? "bg-purple-600/30 text-purple-300"
                                     : "bg-red-600/30 text-red-300"
-                              }`}
+                                }`}
                             >
                               {p.contentType === "fight" && p.opponent
                                 ? `vs ${p.opponent}`
@@ -540,15 +581,14 @@ export default function CreatorHubPage() {
                         )}
                         <div className="flex gap-2 flex-wrap">
                           <span
-                            className={`text-xs px-2 py-1 rounded ${
-                              p.visibility === "public"
+                            className={`text-xs px-2 py-1 rounded ${p.visibility === "public"
                                 ? "bg-green-600/30 text-green-300"
                                 : p.visibility === "private"
                                   ? "bg-slate-600/30 text-slate-300"
                                   : p.visibility === "draft"
                                     ? "bg-yellow-600/30 text-yellow-300"
                                     : "bg-blue-600/30 text-blue-300"
-                            }`}
+                              }`}
                           >
                             {p.visibility === "public" && "🌍 Public"}
                             {p.visibility === "private" && "🔒 Private"}

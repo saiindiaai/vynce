@@ -5,6 +5,7 @@ const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 const connectDB = require("./src/config/db");
 const startExpiryJob = require("./src/cron/expireInventory");
 const House = require("./src/models/House");
@@ -75,6 +76,7 @@ const categoriesRoutes = require("./src/social/routes/categoriesRoutes");
 const creatorRoutes = require("./src/routes/creatorRoutes");
 
 const savedRoutes = require("./src/social/routes/savedRoutes");
+const uploadRoutes = require("./src/routes/uploadRoutes");
 
 
 app.use("/api/inventory", inventoryRoutes);
@@ -96,6 +98,10 @@ app.use("/api/social/chat", socialChatRoutes);
 app.use("/api/notifications", require("./src/routes/notificationRoutes")(io));
 app.use("/api/creator", creatorRoutes);
 app.use("/api/social/saved", savedRoutes);
+app.use("/api/upload", uploadRoutes);
+
+// Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 // Socket.IO setup

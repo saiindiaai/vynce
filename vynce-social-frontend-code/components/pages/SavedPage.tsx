@@ -14,6 +14,7 @@ interface SavedItem {
     uid: string;
     avatar?: string;
   };
+  media?: { url: string; type: string };
   type: "post" | "drop" | "capsule";
   likes?: number;
   dislikes?: number;
@@ -110,6 +111,25 @@ export default function SavedPage() {
               <div className="mb-3">
                 <p className="text-sm text-slate-100 leading-relaxed">{item.content}</p>
               </div>
+
+              {/* Media Display */}
+              {item.media && (
+                <div className="mb-3">
+                  {item.media.type === "image" ? (
+                    <img
+                      src={item.media.url}
+                      alt="Saved item media"
+                      className="w-full rounded-xl max-h-64 object-cover shadow-lg"
+                    />
+                  ) : item.media.type === "video" ? (
+                    <video
+                      src={item.media.url}
+                      controls
+                      className="w-full rounded-xl max-h-64 object-cover shadow-lg"
+                    />
+                  ) : null}
+                </div>
+              )}
 
               {/* Engagement Stats */}
               {(item.likes || item.dislikes || item.commentsCount || item.shares) && (

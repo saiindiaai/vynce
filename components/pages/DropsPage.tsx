@@ -20,6 +20,7 @@ interface Drop {
   content: string;
   createdAt: string;
   author: Author;
+  media?: { url: string; type: string };
   aura: number;
   isLikedByMe: boolean;
   isDislikedByMe: boolean;
@@ -344,6 +345,25 @@ const DropsPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* Media Display */}
+              {drop.media && (
+                <div className="px-5 pb-3">
+                  {drop.media.type === "image" ? (
+                    <img
+                      src={drop.media.url}
+                      alt="Drop media"
+                      className="w-full rounded-xl max-h-96 object-cover shadow-lg"
+                    />
+                  ) : drop.media.type === "video" ? (
+                    <video
+                      src={drop.media.url}
+                      controls
+                      className="w-full rounded-xl max-h-96 object-cover shadow-lg"
+                    />
+                  ) : null}
+                </div>
+              )}
 
               {/* Engagement Stats */}
               <div className="px-5 py-3 text-xs text-slate-400 flex gap-6 font-semibold border-t border-slate-700/40">
