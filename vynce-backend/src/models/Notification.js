@@ -8,7 +8,18 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    required: true,
+    enum: ["actionable", "informational"],
+    required: true
+  },
+  category: {
+    type: String,
+    enum: ["house_join", "fight_request", "gang_add", "reaction", "comment", "follow", "level_up", "milestone"],
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ["pending", "resolved"],
+    default: "pending"
   },
   title: {
     type: String,
@@ -18,9 +29,20 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  actionData: {
+    // For actionable notifications
+    requestId: String, // ID of the request (house join, fight, etc.)
+    requesterId: mongoose.Schema.Types.ObjectId, // Who made the request
+    targetId: mongoose.Schema.Types.ObjectId, // Target of the action (house, fight, etc.)
+    actionType: String, // "approve" or "reject"
+  },
   metadata: {
-    type: Object,
-    default: {},
+    // Additional data for display/context
+    dropId: mongoose.Schema.Types.ObjectId,
+    houseId: mongoose.Schema.Types.ObjectId,
+    fightId: mongoose.Schema.Types.ObjectId,
+    reactionType: String,
+    level: Number,
   },
   priority: {
     type: String,
@@ -35,6 +57,7 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  resolvedAt: Date, // When actionable notification was resolved
   createdAt: {
     type: Date,
     default: Date.now,

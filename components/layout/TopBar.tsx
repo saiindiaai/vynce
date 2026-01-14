@@ -13,7 +13,7 @@ export default function TopBar() {
     const fetchUnreadCount = async () => {
       try {
         const res = await api.get("/notifications");
-        const unread = res.data.filter((n: any) => !n.isRead).length;
+        const unread = res.data.notifications.filter((n: any) => !n.isRead).length;
         setUnreadCount(unread);
       } catch (error) {
         console.error("Failed to fetch unread count:", error);

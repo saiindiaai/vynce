@@ -12,7 +12,6 @@ const {
   removeInstalledApp,
   getEnergy,
   updateEnergy,
-  updateNotifications,
   updatePrivacy,
   searchUsers,
   getPublicProfile,
@@ -31,8 +30,6 @@ const {
   approveFollowRequest,
   rejectFollowRequest,
 } = require("../controllers/socialController");
-
-const { getNotifications } = require("../controllers/notificationController");
 
 const { protect } = require("../middleware/authMiddleware");
 
@@ -73,10 +70,9 @@ router.patch("/bio", protect, updateBio);
 // ACCOUNT INFO (email, phone)
 router.patch("/account", protect, updateAccountInfo);
 
-// notification
-router.patch("/notifications", protect, updateNotifications);
-
-router.get("/notifications", protect, getNotifications);
+// notification routes moved to dedicated /api/notifications endpoint
+// router.patch("/notifications", protect, updateNotifications);
+// router.get("/notifications", protect, getNotifications);
 
 // DELETE ACCOUNT
 router.delete("/me", protect, deleteAccount);

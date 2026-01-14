@@ -36,6 +36,14 @@ exports.createDrop = async (req, res) => {
     const processedTags = tags ? tags.map(tag => tag.trim()).filter(tag => tag) : [];
     const topics = mapTagsToTopics(processedTags);
 
+    // Map visibility to visibilityScope
+    let visibilityScope = 'global'; // Default
+    if (visibility === 'following') {
+      visibilityScope = 'following';
+    } else if (visibility === 'private') {
+      visibilityScope = 'following'; // Private drops only visible to followers
+    }
+
     const drop = await Drop.create({
       author: req.userId,
       content,
@@ -46,6 +54,7 @@ exports.createDrop = async (req, res) => {
       tags: processedTags,
       topics,
       visibility,
+      visibilityScope,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       opponent,
       fightType,
