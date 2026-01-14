@@ -79,21 +79,41 @@ exports.getDropFeed = async (req, res) => {
       };
     }
 
+    // Fetch drops (fetch more than needed for proper ranking)
+    const fetchLimit = Math.max(limit * 3, 50); // Fetch more to ensure good ranking
     const drops = await Drop.find(query)
       .populate("author", "username displayName uid avatar")
-      .sort({ _id: -1 })
-      .limit(limit + 1);
+      .sort({ _id: -1 }) // Still sort by time first to get recent ones
+      .limit(fetchLimit);
 
-    let hasMore = false;
-    let nextCursor = null;
+    // Calculate scores and sort by score
+    const dropsWithScores = drops.map(drop => ({
+      ...drop.toObject(),
+      score: (drop.likes.length - drop.dislikes.length) + drop.commentsCount
+    }));
 
-    if (drops.length > limit) {
-      hasMore = true;
-      drops.pop();
-      nextCursor = drops[drops.length - 1]._id;
+    // Sort by score DESC, then by createdAt DESC
+    dropsWithScores.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    // Apply cursor-based pagination after sorting
+    let startIndex = 0;
+    if (cursor) {
+      const cursorIndex = dropsWithScores.findIndex(d => d._id.toString() === cursor);
+      if (cursorIndex !== -1) {
+        startIndex = cursorIndex + 1;
+      }
     }
 
-    const enrichedDrops = drops.map((drop) => {
+    const paginatedDrops = dropsWithScores.slice(startIndex, startIndex + limit);
+    const hasMore = startIndex + limit < dropsWithScores.length;
+    const nextCursor = hasMore ? paginatedDrops[paginatedDrops.length - 1]._id : null;
+
+    const enrichedDrops = paginatedDrops.map((drop) => {
       const isLikedByMe = drop.likes.some(
         (id) => id.toString() === userId
       );
