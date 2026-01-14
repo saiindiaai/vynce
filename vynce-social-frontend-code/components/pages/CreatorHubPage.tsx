@@ -2,6 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { uploadFile } from "@/lib/upload";
+import { createCreatorPost } from "@/lib/creator";
 import {
   BarChart3,
   FileText,
@@ -154,38 +155,36 @@ export default function CreatorHubPage() {
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    const postId = `post_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const scheduledTimestamp = scheduledAt ? new Date(scheduledAt).getTime() : null;
-    const vis = scheduledTimestamp && scheduledTimestamp > Date.now() ? "scheduled" : visibility;
 
-    const post: CreatorPost = {
-      id: postId,
+    const postData = {
       contentType,
       title: title.trim(),
       description: description.trim(),
-      media: mediaUrl ? { url: mediaUrl, type: mediaType as "image" | "video" } : undefined,
+      media: mediaUrl ? { url: mediaUrl, type: mediaType } : undefined,
       tags: parsedTags,
-      visibility: vis,
+      visibility,
       scheduledAt: scheduledTimestamp,
-      createdAt: Date.now(),
       ...(contentType === "fight" && {
         opponent: opponent.trim(),
         fightType,
       }),
     };
 
-    // quick local persist
-    setPosts((p) => [post, ...p]);
+    try {
+      // Actually create the post on the backend
+      const createdPost = await createCreatorPost(postData);
 
-    // small UX: simulate upload/publish time
-    setTimeout(() => {
       showToast?.(
         vis === "scheduled" ? "Content scheduled successfully." : "Content published successfully!",
         "success"
       );
       clearForm();
       setIsPublishing(false);
-    }, 600);
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      showToast?.("Failed to publish content. Please try again.", "error");
+      setIsPublishing(false);
+    }
   };
 
   const removePost = (id: string) => {

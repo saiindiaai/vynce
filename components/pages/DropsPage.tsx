@@ -74,6 +74,7 @@ const DropsPage = () => {
         time: timeAgo(d.createdAt),
         avatar: "👤",
         content: d.content,
+        media: d.media,
         aura: d.aura,
         isLikedByMe: d.isLikedByMe,
         isDislikedByMe: d.isDislikedByMe,
