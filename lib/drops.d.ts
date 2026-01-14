@@ -7,6 +7,7 @@ export interface DropFeedResponse {
 export interface DropFetchOptions {
   cursor?: string | null;
   limit?: number;
+  feedType?: 'global' | 'following';
 }
 
 export declare function fetchDropFeed(options?: DropFetchOptions): Promise<DropFeedResponse>;

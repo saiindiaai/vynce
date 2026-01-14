@@ -51,13 +51,36 @@ exports.createDrop = async (req, res) => {
 exports.getDropFeed = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    const { cursor } = req.query;
+    const { cursor, feedType = 'global' } = req.query; // feedType: 'global' or 'following'
     const userId = req.userId;
 
-    const query = cursor ? { _id: { $lt: cursor } } : {};
+    let query = cursor ? { _id: { $lt: cursor } } : {};
+
+    // Add visibility filtering based on feed type
+    if (feedType === 'following') {
+      // Get user's following list
+      const User = require("../../models/User");
+      const user = await User.findById(userId).select("following");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Only show drops from followed users
+      query = {
+        ...query,
+        author: { $in: user.following },
+        visibilityScope: { $in: ['global', 'following'] } // Can be either, but from followed users
+      };
+    } else {
+      // Global feed - show all drops
+      query = {
+        ...query,
+        visibilityScope: 'global'
+      };
+    }
 
     const drops = await Drop.find(query)
-      .populate("author", "username displayName uid")
+      .populate("author", "username displayName uid avatar")
       .sort({ _id: -1 })
       .limit(limit + 1);
 

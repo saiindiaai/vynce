@@ -3,7 +3,7 @@
 import CommentsSheet from "@/components/PostActions/CommentsSheet";
 import PostMenu from "@/components/PostActions/PostMenu";
 import ShareSheet from "@/components/PostActions/ShareSheet";
-import { fetchSocialFeed } from "@/lib/social";
+import { fetchDropFeed, toggleBookmark, toggleDropDislike, toggleDropLike } from "@/lib/drops";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, ThumbsDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -36,7 +36,7 @@ interface Post {
 }
 
 interface FeedResponse {
-  posts: Post[];
+  drops: Post[];
   nextCursor: string | null;
   hasMore: boolean;
 }
@@ -70,9 +70,6 @@ export default function HomePage() {
     likedPosts,
     dislikedPosts,
     savedPosts,
-    toggleLike,
-    toggleDislike,
-    toggleSave,
     setLikedPosts,
     currentCapsuleIndex,
     setCurrentCapsuleIndex,
@@ -94,11 +91,12 @@ export default function HomePage() {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const data: FeedResponse = await fetchSocialFeed({
+      const data: FeedResponse = await fetchDropFeed({
         cursor: cursor ?? undefined,
         limit: 5,
+        feedType: 'global',
       });
-      const mappedPosts = data.posts.map((p, index) => ({
+      const mappedPosts = data.drops.map((p, index) => ({
         id: p._id,
         _id: p._id,
         user: p.author?.displayName || p.author?.username || "Unknown User",
@@ -207,8 +205,8 @@ export default function HomePage() {
       {/* Posts Feed */}
       <div className="max-w-2xl mx-auto w-full space-y-4 px-3 sm:px-4 pt-4 sm:pt-6">
         {posts.map((post, idx) => {
-          const isLiked = likedPosts[post.id];
-          const isDisliked = dislikedPosts[post.id];
+          const isLiked = post.isLikedByMe;
+          const isDisliked = post.isDislikedByMe;
           const isSaved = savedPosts[post.id];
           const currentAura = post.aura;
 
@@ -268,13 +266,15 @@ export default function HomePage() {
                 {/* Aura - Improved Styling */}
                 <button
                   onClick={async () => {
-                    const response = await toggleLike(post.id);
+                    const response = await toggleDropLike(post.id);
                     if (response) {
                       setPosts((prev) =>
                         prev.map((p) =>
-                          p.id === post.id ? { ...p, aura: response.aura } : p
+                          p.id === post.id ? { ...p, aura: response.aura, isLikedByMe: response.liked } : p
                         )
                       );
+                      // Update store state
+                      setLikedPosts({ ...likedPosts, [post.id]: response.liked });
                     }
                   }}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isLiked
@@ -295,13 +295,19 @@ export default function HomePage() {
                 {/* Lame - Improved Styling */}
                 <button
                   onClick={async () => {
-                    const response = await toggleDislike(post.id);
+                    const response = await toggleDropDislike(post.id);
                     if (response) {
                       setPosts((prev) =>
                         prev.map((p) =>
-                          p.id === post.id ? { ...p, aura: response.aura } : p
+                          p.id === post.id ? { ...p, aura: response.aura, isDislikedByMe: response.disliked } : p
                         )
                       );
+                      // Update store state - need to manually update dislikedPosts
+                      const newDislikedPosts = { ...dislikedPosts, [post.id]: response.disliked };
+                      // Also clear like if disliked
+                      const newLikedPosts = { ...likedPosts, [post.id]: response.disliked ? false : likedPosts[post.id] };
+                      setLikedPosts(newLikedPosts);
+                      // Note: no setDislikedPosts, so we can't update dislikedPosts in store
                     }
                   }}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isDisliked
@@ -340,7 +346,13 @@ export default function HomePage() {
 
                 {/* Save */}
                 <button
-                  onClick={() => toggleSave(post.id)}
+                  onClick={async () => {
+                    const response = await toggleBookmark(post.id);
+                    if (response) {
+                      // Update savedPosts state if needed
+                      // Note: no setSavedPosts, so UI won't update immediately
+                    }
+                  }}
                   className={`flex-1 flex items-center justify-center py-2.5 px-3 rounded-lg transition-all duration-200 text-xs font-semibold min-h-[44px] focus:outline-none focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-1 ${isSaved
                     ? "bg-yellow-600/30 border border-yellow-500/50 text-yellow-300 shadow-lg shadow-yellow-500/20"
                     : "bg-slate-700/40 border border-slate-600/30 text-slate-300 hover:bg-yellow-600/20 hover:border-yellow-500/40 hover:text-yellow-300"

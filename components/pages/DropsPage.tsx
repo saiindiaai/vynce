@@ -63,6 +63,7 @@ const DropsPage = () => {
       const data: DropFeedResponse = await fetchDropFeed({
         cursor: cursor ?? undefined,
         limit: 5,
+        feedType: 'following',
       });
       const mappedDrops = data.drops.map((d, index) => ({
         id: d._id,

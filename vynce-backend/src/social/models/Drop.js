@@ -36,6 +36,11 @@ const dropSchema = new mongoose.Schema(
       type: String,
       trim: true,
     }],
+    visibilityScope: {
+      type: String,
+      enum: ["global", "following"],
+      default: "global",
+    },
     visibility: {
       type: String,
       enum: ["public", "private", "draft", "scheduled"],
