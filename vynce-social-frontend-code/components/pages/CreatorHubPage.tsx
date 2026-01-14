@@ -1,8 +1,8 @@
 "use client";
 
+import { createCreatorPost } from "@/lib/creator";
 import { useAppStore } from "@/lib/store";
 import { uploadFile } from "@/lib/upload";
-import { createCreatorPost } from "@/lib/creator";
 import {
   BarChart3,
   FileText,
@@ -268,8 +268,8 @@ export default function CreatorHubPage() {
                         clearForm();
                       }}
                       className={`relative group py-3 px-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base flex items-center justify-center gap-2 overflow-hidden ${contentType === type
-                          ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/50"
-                          : "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60 border border-slate-700/50 hover:border-slate-600"
+                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/50"
+                        : "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60 border border-slate-700/50 hover:border-slate-600"
                         }`}
                     >
                       {type === "drop" && <FileText size={18} />}
@@ -329,8 +329,8 @@ export default function CreatorHubPage() {
                         <button
                           onClick={() => setFightType("visual")}
                           className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${fightType === "visual"
-                              ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                              : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
+                            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                            : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
                             }`}
                         >
                           🎥 Visual
@@ -338,8 +338,8 @@ export default function CreatorHubPage() {
                         <button
                           onClick={() => setFightType("text")}
                           className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${fightType === "text"
-                              ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
-                              : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
+                            ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
+                            : "bg-slate-800/50 text-slate-400 hover:bg-slate-800 border border-slate-700/50"
                             }`}
                         >
                           💬 Debate
@@ -382,8 +382,8 @@ export default function CreatorHubPage() {
                     <label
                       htmlFor="media-upload"
                       className={`flex items-center justify-center w-full px-4 py-8 border-2 border-dashed rounded-xl transition-all group ${isUploading
-                          ? "border-blue-500/50 bg-blue-900/10 cursor-not-allowed"
-                          : "border-slate-700/50 hover:border-purple-500/50 hover:bg-slate-900/30 cursor-pointer"
+                        ? "border-blue-500/50 bg-blue-900/10 cursor-not-allowed"
+                        : "border-slate-700/50 hover:border-purple-500/50 hover:bg-slate-900/30 cursor-pointer"
                         }`}
                     >
                       <div className="text-center">
@@ -524,10 +524,10 @@ export default function CreatorHubPage() {
                       <div className="flex-shrink-0 flex flex-col gap-2">
                         <div
                           className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl font-bold ${p.contentType === "drop"
-                              ? "bg-blue-600/20 text-blue-400"
-                              : p.contentType === "capsule"
-                                ? "bg-purple-600/20 text-purple-400"
-                                : "bg-red-600/20 text-red-400"
+                            ? "bg-blue-600/20 text-blue-400"
+                            : p.contentType === "capsule"
+                              ? "bg-purple-600/20 text-purple-400"
+                              : "bg-red-600/20 text-red-400"
                             }`}
                         >
                           {p.contentType === "drop" && <FileText size={24} />}
@@ -552,10 +552,10 @@ export default function CreatorHubPage() {
                             <div className="font-semibold text-slate-50 truncate">{p.title}</div>
                             <span
                               className={`text-xs font-semibold px-2 py-0.5 rounded ${p.contentType === "drop"
-                                  ? "bg-blue-600/30 text-blue-300"
-                                  : p.contentType === "capsule"
-                                    ? "bg-purple-600/30 text-purple-300"
-                                    : "bg-red-600/30 text-red-300"
+                                ? "bg-blue-600/30 text-blue-300"
+                                : p.contentType === "capsule"
+                                  ? "bg-purple-600/30 text-purple-300"
+                                  : "bg-red-600/30 text-red-300"
                                 }`}
                             >
                               {p.contentType === "fight" && p.opponent
@@ -581,12 +581,12 @@ export default function CreatorHubPage() {
                         <div className="flex gap-2 flex-wrap">
                           <span
                             className={`text-xs px-2 py-1 rounded ${p.visibility === "public"
-                                ? "bg-green-600/30 text-green-300"
-                                : p.visibility === "private"
-                                  ? "bg-slate-600/30 text-slate-300"
-                                  : p.visibility === "draft"
-                                    ? "bg-yellow-600/30 text-yellow-300"
-                                    : "bg-blue-600/30 text-blue-300"
+                              ? "bg-green-600/30 text-green-300"
+                              : p.visibility === "private"
+                                ? "bg-slate-600/30 text-slate-300"
+                                : p.visibility === "draft"
+                                  ? "bg-yellow-600/30 text-yellow-300"
+                                  : "bg-blue-600/30 text-blue-300"
                               }`}
                           >
                             {p.visibility === "public" && "🌍 Public"}
