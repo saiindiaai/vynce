@@ -156,6 +156,15 @@ const userSchema = new mongoose.Schema(
       ref: "Capsule",
     }],
 
+    /* -------------------------
+       USER INTERESTS (STEP 4)
+    ------------------------- */
+    interests: {
+      type: Map,
+      of: Number, // topic -> score
+      default: new Map(),
+    },
+
     installedApps: {
       type: [String],
       default: [],

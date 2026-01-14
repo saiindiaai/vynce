@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const { trackFollowInterest } = require("../social/utils/interestTracker");
 
 /* ================================
    FOLLOW USER
@@ -71,6 +72,9 @@ exports.followUser = async (req, res) => {
     // Add to target's followers list
     targetUser.followers.push(user._id);
     await targetUser.save();
+
+    // Track interest based on followed user's content
+    await trackFollowInterest(userId, targetUser._id);
 
     // Notify the target user
     await Notification.create({

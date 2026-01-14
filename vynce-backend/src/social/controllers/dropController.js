@@ -1,6 +1,8 @@
 const Drop = require("../models/Drop");
 const User = require("../../models/User");
 const { mapTagsToTopics } = require("../utils/topicMapper");
+const { trackInterest, getUserInterests, calculateInterestBoost } = require("../utils/interestTracker");
+const { checkPostingLimits, calculateTimeDecay, calculateEngagementDecay, getCachedFeed, setCachedFeed } = require("../utils/feedControls");
 
 /* CREATE DROP */
 exports.createDrop = async (req, res) => {
@@ -20,6 +22,15 @@ exports.createDrop = async (req, res) => {
 
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Content required" });
+    }
+
+    // Check posting limits (STEP 6: Anti-noise controls)
+    const limitCheck = await checkPostingLimits(req.userId);
+    if (!limitCheck.canPost) {
+      return res.status(429).json({
+        message: limitCheck.message,
+        waitTime: limitCheck.waitTime
+      });
     }
 
     const processedTags = tags ? tags.map(tag => tag.trim()).filter(tag => tag) : [];
@@ -59,6 +70,15 @@ exports.getDropFeed = async (req, res) => {
     const { cursor, feedType = 'global' } = req.query; // feedType: 'global' or 'following'
     const userId = req.userId;
 
+    // Create cache key for feed stickiness (STEP 6)
+    const cacheKey = `feed_${feedType}_${userId}_${cursor || 'start'}_${limit}`;
+
+    // Check for cached feed (STEP 6: Feed stickiness)
+    const cachedFeed = getCachedFeed(cacheKey);
+    if (cachedFeed && !cursor) { // Only use cache for initial requests
+      return res.json(cachedFeed);
+    }
+
     let query = cursor ? { _id: { $lt: cursor } } : {};
 
     // Add visibility filtering based on feed type
@@ -91,11 +111,32 @@ exports.getDropFeed = async (req, res) => {
       .sort({ _id: -1 }) // Still sort by time first to get recent ones
       .limit(fetchLimit);
 
-    // Calculate scores and sort by score
-    const dropsWithScores = drops.map(drop => ({
-      ...drop.toObject(),
-      score: (drop.likes.length - drop.dislikes.length) + drop.commentsCount
-    }));
+    // Get user interests for personalization
+    const userInterests = await getUserInterests(userId);
+
+    // Calculate scores with decay factors (STEP 6: Soft downranking)
+    const dropsWithScores = drops.map(drop => {
+      const baseEngagement = (drop.likes.length - drop.dislikes.length) + drop.commentsCount;
+      const interestBoost = calculateInterestBoost(drop.topics, userInterests);
+
+      // Apply time decay (STEP 6)
+      const timeDecay = calculateTimeDecay(drop.createdAt);
+
+      // Apply engagement decay (STEP 6)
+      const engagementDecay = calculateEngagementDecay(baseEngagement, drop.createdAt);
+
+      // Final score with decay factors
+      const finalScore = (baseEngagement + interestBoost) * timeDecay * engagementDecay;
+
+      return {
+        ...drop.toObject(),
+        score: finalScore,
+        baseEngagement,
+        interestBoost,
+        timeDecay,
+        engagementDecay
+      };
+    });
 
     // Sort by score DESC, then by createdAt DESC
     dropsWithScores.sort((a, b) => {
@@ -139,14 +180,26 @@ exports.getDropFeed = async (req, res) => {
         isDislikedByMe,
         commentsCount: drop.commentsCount,
         shares: drop.shares,
+        baseEngagement: drop.baseEngagement,
+        interestBoost: drop.interestBoost,
+        timeDecay: drop.timeDecay,
+        engagementDecay: drop.engagementDecay,
+        finalScore: drop.score
       };
     });
 
-    res.json({
+    const responseData = {
       drops: enrichedDrops,
       nextCursor,
       hasMore,
-    });
+    };
+
+    // Cache the feed response (STEP 6: Feed stickiness)
+    if (!cursor) { // Only cache initial requests
+      setCachedFeed(cacheKey, responseData);
+    }
+
+    res.json(responseData);
   } catch (err) {
     console.error("getDropFeed error:", err);
     res.status(500).json({ message: "Failed to fetch drop feed" });
@@ -190,7 +243,10 @@ exports.toggleDropLike = async (req, res) => {
       liked = true;
     }
 
-    await drop.save();
+    if (liked) {
+      // Track interest when user likes
+      await trackInterest(userId, drop.topics, 'LIKE');
+    }
 
     res.json({
       dropId,
@@ -286,6 +342,7 @@ exports.deleteDrop = async (req, res) => {
 exports.shareDrop = async (req, res) => {
   try {
     const { id: dropId } = req.params;
+    const userId = req.userId;
 
     const drop = await Drop.findById(dropId);
     if (!drop) {
@@ -294,6 +351,9 @@ exports.shareDrop = async (req, res) => {
 
     drop.shares += 1;
     await drop.save();
+
+    // Track interest when user shares
+    await trackInterest(userId, drop.topics, 'SHARE');
 
     res.json({
       dropId,
@@ -337,6 +397,11 @@ exports.toggleBookmark = async (req, res) => {
       // Add bookmark
       user.savedDrops.push(dropId);
       bookmarked = true;
+    }
+
+    if (bookmarked) {
+      // Track interest when user saves
+      await trackInterest(userId, drop.topics, 'SAVE');
     }
 
     await user.save();
