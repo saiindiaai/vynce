@@ -1,5 +1,6 @@
 const Drop = require("../models/Drop");
 const User = require("../../models/User");
+const { mapTagsToTopics } = require("../utils/topicMapper");
 
 /* CREATE DROP */
 exports.createDrop = async (req, res) => {
@@ -21,6 +22,9 @@ exports.createDrop = async (req, res) => {
       return res.status(400).json({ message: "Content required" });
     }
 
+    const processedTags = tags ? tags.map(tag => tag.trim()).filter(tag => tag) : [];
+    const topics = mapTagsToTopics(processedTags);
+
     const drop = await Drop.create({
       author: req.userId,
       content,
@@ -28,7 +32,8 @@ exports.createDrop = async (req, res) => {
       title,
       description,
       media,
-      tags: tags ? tags.map(tag => tag.trim()).filter(tag => tag) : [],
+      tags: processedTags,
+      topics,
       visibility,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       opponent,
@@ -127,6 +132,8 @@ exports.getDropFeed = async (req, res) => {
         author: drop.author,
         createdAt: drop.createdAt,
         media: drop.media,
+        tags: drop.tags,
+        topics: drop.topics,
         aura: drop.likes.length - drop.dislikes.length,
         isLikedByMe,
         isDislikedByMe,

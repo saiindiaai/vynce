@@ -36,6 +36,11 @@ const dropSchema = new mongoose.Schema(
       type: String,
       trim: true,
     }],
+    topics: [{
+      type: String,
+      enum: ["Tech", "Business", "Design", "Fitness", "Gaming", "AI", "Finance", "Lifestyle", "Memes", "Other"],
+      default: [],
+    }],
     visibilityScope: {
       type: String,
       enum: ["global", "following"],
