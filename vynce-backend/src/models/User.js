@@ -146,6 +146,16 @@ const userSchema = new mongoose.Schema(
       ref: "Post",
     }],
 
+    savedDrops: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Drop",
+    }],
+
+    savedCapsules: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Capsule",
+    }],
+
     installedApps: {
       type: [String],
       default: [],

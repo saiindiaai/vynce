@@ -9,6 +9,8 @@ const {
   toggleCapsuleLike,
   toggleCapsuleDislike,
   shareCapsule,
+  toggleBookmark,
+  getSavedCapsules,
   deleteCapsule,
 } = require("../controllers/capsuleController");
 
@@ -16,8 +18,10 @@ const {
 router.post("/", protect, createCapsule);
 router.get("/feed", protect, getCapsuleFeed);
 router.get("/user", protect, getUserCapsules);
+router.get("/saved", protect, getSavedCapsules);
 router.post("/:id/like", protect, toggleCapsuleLike);
 router.post("/:id/dislike", protect, toggleCapsuleDislike);
+router.post("/:id/bookmark", protect, toggleBookmark);
 router.post("/:id/share", protect, shareCapsule);
 router.delete("/:id", protect, deleteCapsule);
 

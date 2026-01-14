@@ -1,4 +1,5 @@
 const Capsule = require("../models/Capsule");
+const User = require("../../models/User");
 
 /* CREATE CAPSULE */
 exports.createCapsule = async (req, res) => {
@@ -168,6 +169,91 @@ exports.shareCapsule = async (req, res) => {
   } catch (err) {
     console.error("Share capsule error:", err);
     res.status(500).json({ message: "Failed to share capsule" });
+  }
+};
+
+/* ================================
+   TOGGLE BOOKMARK / SAVE CAPSULE
+================================ */
+exports.toggleBookmark = async (req, res) => {
+  try {
+    const { id: capsuleId } = req.params;
+    const userId = req.userId;
+
+    const capsule = await Capsule.findById(capsuleId);
+    if (!capsule) {
+      return res.status(404).json({ message: "Capsule not found" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const bookmarkIndex = user.savedCapsules.findIndex((pid) =>
+      pid.equals(capsuleId)
+    );
+
+    let bookmarked;
+
+    if (bookmarkIndex > -1) {
+      // Remove bookmark
+      user.savedCapsules.splice(bookmarkIndex, 1);
+      bookmarked = false;
+    } else {
+      // Add bookmark
+      user.savedCapsules.push(capsuleId);
+      bookmarked = true;
+    }
+
+    await user.save();
+
+    res.json({
+      capsuleId,
+      bookmarked,
+      savedCount: user.savedCapsules.length,
+    });
+  } catch (err) {
+    console.error("toggleBookmark error:", err);
+    res.status(500).json({ message: "Failed to toggle bookmark" });
+  }
+};
+
+/* ================================
+   GET SAVED CAPSULES (BOOKMARKS)
+================================ */
+exports.getSavedCapsules = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { page = 1, limit = 20 } = req.query;
+
+    const user = await User.findById(userId).select("savedCapsules");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get saved capsules with pagination
+    const skip = (page - 1) * limit;
+    const savedCapsuleIds = user.savedCapsules.slice(skip, skip + limit);
+
+    const capsules = await Capsule.find({ _id: { $in: savedCapsuleIds } })
+      .populate("author", "username displayName uid avatar")
+      .sort({ _id: -1 });
+
+    // Get total count
+    const totalCount = user.savedCapsules.length;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      capsules,
+      savedCount: totalCount,
+      currentPage: parseInt(page),
+      totalPages,
+      hasMore: page < totalPages,
+    });
+  } catch (err) {
+    console.error("getSavedCapsules error:", err);
+    res.status(500).json({ message: "Failed to get saved capsules" });
   }
 };
 

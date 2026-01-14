@@ -1,95 +1,141 @@
 "use client";
 
-import React from "react";
-import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
+import { fetchSavedItems } from "@/lib/social";
+import { Bookmark, Heart, MessageCircle, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface SavedItem {
+  _id: string;
+  content: string;
+  createdAt: string;
+  author: {
+    username: string;
+    displayName?: string;
+    uid: string;
+    avatar?: string;
+  };
+  type: "post" | "drop" | "capsule";
+  likes?: number;
+  dislikes?: number;
+  commentsCount?: number;
+  shares?: number;
+}
 
 export default function SavedPage() {
-  // This would normally come from the store, but for now we'll show a placeholder
-  const savedPosts = [
-    {
-      id: 1,
-      user: "Tech Insider",
-      username: "techinsider",
-      content: "New AI breakthrough just dropped! This changes everything 🤯",
-      aura: 3421,
-      comments: 567,
-      shares: 234,
-      savedAt: "2 hours ago",
-    },
-    {
-      id: 2,
-      user: "Design Daily",
-      username: "designdaily",
-      content:
-        "Color theory masterclass: Understanding contrast and harmony in modern UI design 🎨",
-      aura: 2156,
-      comments: 389,
-      shares: 178,
-      savedAt: "1 day ago",
-    },
-    {
-      id: 3,
-      user: "Code Academy",
-      username: "codeacademy",
-      content: "TypeScript vs JavaScript: Which should you learn first in 2025? Full breakdown 👇",
-      aura: 4892,
-      comments: 891,
-      shares: 445,
-      savedAt: "3 days ago",
-    },
-  ];
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+
+  useEffect(() => {
+    loadSavedItems();
+  }, []);
+
+  const loadSavedItems = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchSavedItems(page, 20);
+      setSavedItems(response.items || []);
+      setHasMore(response.hasMore || false);
+    } catch (error) {
+      console.error("Failed to load saved items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInDays = diffInHours / 24;
+
+    if (diffInHours < 1) {
+      return "Just now";
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else {
+      return `${Math.floor(diffInDays)}d ago`;
+    }
+  };
 
   return (
     <div className="animate-fadeIn pb-24 sm:pb-0 w-full">
       {/* Header */}
       <div className="px-4 sm:px-6 py-6 border-b border-slate-700/50 bg-slate-900">
         <h1 className="text-3xl sm:text-4xl font-black text-slate-50 mb-2">Saved</h1>
-        <p className="text-sm sm:text-base text-slate-400">Posts you've bookmarked for later</p>
+        <p className="text-sm sm:text-base text-slate-400">Your saved posts, drops, and capsules</p>
       </div>
 
-      {/* Saved Posts */}
+      {/* Saved Items */}
       <div className="max-w-2xl mx-auto w-full px-3 sm:px-6 py-6 space-y-1">
-        {savedPosts.length > 0 ? (
-          savedPosts.map((post, idx) => (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-slate-400">Loading saved items...</p>
+          </div>
+        ) : savedItems.length > 0 ? (
+          savedItems.map((item, idx) => (
             <article
-              key={post.id}
+              key={item._id}
               className="clean-card animate-slideIn p-4"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
-              {/* Post Header */}
+              {/* Item Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex-shrink-0 flex items-center justify-center text-base font-bold">
-                    {post.username.charAt(0).toUpperCase()}
+                    {item.author.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-sm text-slate-50">{post.user}</span>
+                      <span className="font-semibold text-sm text-slate-50">
+                        {item.author.displayName || item.author.username}
+                      </span>
+                      <span className="text-xs text-slate-400 capitalize px-2 py-0.5 bg-slate-800 rounded-full">
+                        {item.type}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                      <span>@{post.username}</span>
+                      <span>@{item.author.username}</span>
                       <span>·</span>
-                      <span>saved {post.savedAt}</span>
+                      <span>saved {formatTimeAgo(item.createdAt)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Post Content */}
+              {/* Item Content */}
               <div className="mb-3">
-                <p className="text-sm text-slate-100 leading-relaxed">{post.content}</p>
+                <p className="text-sm text-slate-100 leading-relaxed">{item.content}</p>
               </div>
 
               {/* Engagement Stats */}
-              <div className="text-xs text-slate-400 flex gap-4 mb-3 pb-3 border-b border-slate-700/30">
-                <button className="hover:text-slate-200 transition-colors">{post.aura} Aura</button>
-                <button className="hover:text-slate-200 transition-colors">
-                  {post.comments} Comments
-                </button>
-                <button className="hover:text-slate-200 transition-colors">
-                  {post.shares} Shares
-                </button>
-              </div>
+              {(item.likes || item.dislikes || item.commentsCount || item.shares) && (
+                <div className="text-xs text-slate-400 flex gap-4 mb-3 pb-3 border-b border-slate-700/30">
+                  {item.likes !== undefined && (
+                    <button className="hover:text-slate-200 transition-colors">
+                      {item.likes} Likes
+                    </button>
+                  )}
+                  {item.dislikes !== undefined && (
+                    <button className="hover:text-slate-200 transition-colors">
+                      {item.dislikes} Dislikes
+                    </button>
+                  )}
+                  {item.commentsCount !== undefined && (
+                    <button className="hover:text-slate-200 transition-colors">
+                      {item.commentsCount} Comments
+                    </button>
+                  )}
+                  {item.shares !== undefined && (
+                    <button className="hover:text-slate-200 transition-colors">
+                      {item.shares} Shares
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between gap-2">
@@ -111,8 +157,8 @@ export default function SavedPage() {
         ) : (
           <div className="text-center py-12">
             <Bookmark size={32} className="mx-auto text-slate-600 mb-4" />
-            <p className="text-slate-300 text-lg font-semibold">No saved posts yet</p>
-            <p className="text-slate-500 text-sm mt-1">Posts you save will appear here</p>
+            <p className="text-slate-300 text-lg font-semibold">No saved items yet</p>
+            <p className="text-slate-500 text-sm mt-1">Items you save will appear here</p>
           </div>
         )}
       </div>

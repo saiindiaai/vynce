@@ -74,6 +74,8 @@ const categoriesRoutes = require("./src/social/routes/categoriesRoutes");
 
 const creatorRoutes = require("./src/routes/creatorRoutes");
 
+const savedRoutes = require("./src/social/routes/savedRoutes");
+
 
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/store", storeRoutes);
@@ -93,6 +95,7 @@ app.use("/api/houses", require("./src/routes/houseRoutes")(io));
 app.use("/api/social/chat", socialChatRoutes);
 app.use("/api/notifications", require("./src/routes/notificationRoutes")(io));
 app.use("/api/creator", creatorRoutes);
+app.use("/api/social/saved", savedRoutes);
 
 
 // Socket.IO setup

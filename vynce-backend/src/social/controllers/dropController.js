@@ -272,7 +272,7 @@ exports.toggleBookmark = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const bookmarkIndex = user.savedPosts.findIndex((pid) =>
+    const bookmarkIndex = user.savedDrops.findIndex((pid) =>
       pid.equals(dropId)
     );
 
@@ -280,11 +280,11 @@ exports.toggleBookmark = async (req, res) => {
 
     if (bookmarkIndex > -1) {
       // Remove bookmark
-      user.savedPosts.splice(bookmarkIndex, 1);
+      user.savedDrops.splice(bookmarkIndex, 1);
       bookmarked = false;
     } else {
       // Add bookmark
-      user.savedPosts.push(dropId);
+      user.savedDrops.push(dropId);
       bookmarked = true;
     }
 
@@ -293,7 +293,7 @@ exports.toggleBookmark = async (req, res) => {
     res.json({
       dropId,
       bookmarked,
-      savedCount: user.savedPosts.length,
+      savedCount: user.savedDrops.length,
     });
   } catch (err) {
     console.error("toggleBookmark error:", err);
@@ -326,21 +326,21 @@ exports.getSavedDrops = async (req, res) => {
     const userId = req.userId;
     const { page = 1, limit = 20 } = req.query;
 
-    const user = await User.findById(userId).select("savedPosts");
+    const user = await User.findById(userId).select("savedDrops");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Get saved drops with pagination
     const skip = (page - 1) * limit;
-    const savedDropIds = user.savedPosts.slice(skip, skip + limit);
+    const savedDropIds = user.savedDrops.slice(skip, skip + limit);
 
     const drops = await Drop.find({ _id: { $in: savedDropIds } })
       .populate("author", "username displayName uid avatar")
       .sort({ _id: -1 });
 
     // Get total count
-    const totalCount = user.savedPosts.length;
+    const totalCount = user.savedDrops.length;
     const totalPages = Math.ceil(totalCount / limit);
 
     res.json({
