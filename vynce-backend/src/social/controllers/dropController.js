@@ -76,17 +76,15 @@ exports.createDrop = async (req, res) => {
 exports.getDropFeed = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    const { cursor, feedType = 'global' } = req.query; // feedType: 'global' or 'following'
+    const { cursor, feedType = 'global' } = req.query;
     const userId = req.userId;
 
-    // Create cache key for feed stickiness (STEP 6)
-    const cacheKey = `feed_${feedType}_${userId}_${cursor || 'start'}_${limit}`;
-
-    // Check for cached feed (STEP 6: Feed stickiness)
-    const cachedFeed = getCachedFeed(cacheKey);
-    if (cachedFeed && !cursor) { // Only use cache for initial requests
-      return res.json(cachedFeed);
-    }
+    // Temporarily disable cache for debugging
+    // const cacheKey = `feed_${feedType}_${userId}_${cursor || 'start'}_${limit}`;
+    // const cachedFeed = getCachedFeed(cacheKey);
+    // if (cachedFeed && !cursor) {
+    //   return res.json(cachedFeed);
+    // }
 
     let query = cursor ? { _id: { $lt: cursor } } : {};
 
@@ -103,38 +101,32 @@ exports.getDropFeed = async (req, res) => {
       query = {
         ...query,
         author: { $in: user.following },
-        visibilityScope: { $in: ['global', 'following'] } // Can be either, but from followed users
+        visibilityScope: { $in: ['global', 'following'] }
       };
     } else {
-      // Global feed - show all drops
+      // Global feed - show all public drops
       query = {
         ...query,
         visibilityScope: 'global'
       };
     }
 
-    // Fetch drops (fetch more than needed for proper ranking)
-    const fetchLimit = Math.max(limit * 3, 50); // Fetch more to ensure good ranking
+    // Fetch drops with limit
+    const fetchLimit = limit || 10;
     const drops = await Drop.find(query)
       .populate("author", "username displayName uid avatar")
-      .sort({ _id: -1 }) // Still sort by time first to get recent ones
+      .sort({ createdAt: -1 })
       .limit(fetchLimit);
 
     // Get user interests for personalization
     const userInterests = await getUserInterests(userId);
 
-    // Calculate scores with decay factors (STEP 6: Soft downranking)
+    // Calculate scores with decay factors
     const dropsWithScores = drops.map(drop => {
       const baseEngagement = (drop.likes.length - drop.dislikes.length) + drop.commentsCount;
       const interestBoost = calculateInterestBoost(drop.topics, userInterests);
-
-      // Apply time decay (STEP 6)
       const timeDecay = calculateTimeDecay(drop.createdAt);
-
-      // Apply engagement decay (STEP 6)
       const engagementDecay = calculateEngagementDecay(baseEngagement, drop.createdAt);
-
-      // Final score with decay factors
       const finalScore = (baseEngagement + interestBoost) * timeDecay * engagementDecay;
 
       return {
@@ -147,7 +139,7 @@ exports.getDropFeed = async (req, res) => {
       };
     });
 
-    // Sort by score DESC, then by createdAt DESC
+    // Sort by score
     dropsWithScores.sort((a, b) => {
       if (b.score !== a.score) {
         return b.score - a.score;
@@ -155,7 +147,7 @@ exports.getDropFeed = async (req, res) => {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
-    // Apply cursor-based pagination after sorting
+    // Apply cursor-based pagination
     let startIndex = 0;
     if (cursor) {
       const cursorIndex = dropsWithScores.findIndex(d => d._id.toString() === cursor);
@@ -169,6 +161,65 @@ exports.getDropFeed = async (req, res) => {
     const nextCursor = hasMore ? paginatedDrops[paginatedDrops.length - 1]._id : null;
 
     const enrichedDrops = paginatedDrops.map((drop) => {
+      const isLikedByMe = drop.likes.some(id => id.toString() === userId);
+      const isDislikedByMe = drop.dislikes.some(id => id.toString() === userId);
+
+      return {
+        _id: drop._id,
+        content: drop.content,
+        author: drop.author,
+        createdAt: drop.createdAt,
+        media: drop.media,
+        tags: drop.tags,
+        topics: drop.topics,
+        aura: drop.likes.length - drop.dislikes.length,
+        isLikedByMe,
+        isDislikedByMe,
+        commentsCount: drop.commentsCount,
+        shares: drop.shares,
+      };
+    });
+
+    const responseData = {
+      drops: enrichedDrops,
+      nextCursor,
+      hasMore,
+    };
+
+    // Disable cache temporarily
+    // if (!cursor) {
+    //   setCachedFeed(cacheKey, responseData);
+    // }
+
+    res.json(responseData);
+  } catch (err) {
+    console.error("getDropFeed error:", err);
+    res.status(500).json({ message: "Failed to fetch drop feed" });
+  }
+};
+
+/* ================================
+   GET USER DROPS (USER'S OWN DROPS PAGE)
+================================ */
+exports.getUserDrops = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get user's drops
+    const drops = await Drop.find({ author: userId })
+      .populate("author", "username displayName uid avatar")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalCount = await Drop.countDocuments({ author: userId });
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Enrich drops with user interaction data
+    const enrichedDrops = drops.map((drop) => {
       const isLikedByMe = drop.likes.some(
         (id) => id.toString() === userId
       );
@@ -184,41 +235,30 @@ exports.getDropFeed = async (req, res) => {
         media: drop.media,
         tags: drop.tags,
         topics: drop.topics,
+        visibility: drop.visibility,
+        visibilityScope: drop.visibilityScope,
         aura: drop.likes.length - drop.dislikes.length,
         isLikedByMe,
         isDislikedByMe,
         commentsCount: drop.commentsCount,
         shares: drop.shares,
-        baseEngagement: drop.baseEngagement,
-        interestBoost: drop.interestBoost,
-        timeDecay: drop.timeDecay,
-        engagementDecay: drop.engagementDecay,
-        finalScore: drop.score
       };
     });
 
-    const responseData = {
+    res.json({
       drops: enrichedDrops,
-      nextCursor,
-      hasMore,
-    };
-
-    // Cache the feed response (STEP 6: Feed stickiness)
-    if (!cursor) { // Only cache initial requests
-      setCachedFeed(cacheKey, responseData);
-    }
-
-    res.json(responseData);
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+      hasMore: page < Math.ceil(totalCount / limit),
+    });
   } catch (err) {
-    console.error("getDropFeed error:", err);
-    res.status(500).json({ message: "Failed to fetch drop feed" });
+    console.error("getUserDrops error:", err);
+    res.status(500).json({ message: "Failed to fetch user drops" });
   }
 };
 
 
-/* ================================
-   TOGGLE LIKE / UNLIKE DROP
-================================ */
 exports.toggleDropLike = async (req, res) => {
   try {
     const { id: dropId } = req.params;
@@ -413,7 +453,11 @@ exports.toggleBookmark = async (req, res) => {
       await trackInterest(userId, drop.topics, 'SAVE');
     }
 
-    await user.save();
+    // Use updateOne instead of save to avoid versioning issues
+    await User.updateOne(
+      { _id: userId },
+      { $set: { savedDrops: user.savedDrops } }
+    );
 
     res.json({
       dropId,
@@ -423,23 +467,6 @@ exports.toggleBookmark = async (req, res) => {
   } catch (err) {
     console.error("toggleBookmark error:", err);
     res.status(500).json({ message: "Failed to toggle bookmark" });
-  }
-};
-
-/* ================================
-   GET USER DROPS
-================================ */
-exports.getUserDrops = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const drops = await Drop.find({ author: userId })
-      .populate("author", "username displayName uid")
-      .sort({ _id: -1 })
-      .limit(20); // limit for profile
-
-    res.json(drops);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to get user drops" });
   }
 };
 

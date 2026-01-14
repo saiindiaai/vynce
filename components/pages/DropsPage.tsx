@@ -3,7 +3,7 @@
 import CommentsSheet from "@/components/PostActions/CommentsSheet";
 import PostMenu from "@/components/PostActions/PostMenu";
 import ShareSheet from "@/components/PostActions/ShareSheet";
-import { fetchDropFeed, toggleDropDislike, toggleDropLike } from "@/lib/drops";
+import { fetchUserDrops, toggleDropDislike, toggleDropLike } from "@/lib/drops";
 import { useAppStore } from "@/lib/store";
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, ThumbsDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -40,6 +40,7 @@ const DropsPage = () => {
 
   const [drops, setDrops] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -60,17 +61,23 @@ const DropsPage = () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const data: DropFeedResponse = await fetchDropFeed({
-        cursor: cursor ?? undefined,
-        limit: 5,
-        feedType: 'following',
-      });
+      // Fetch user's own drops (drops page shows user's drops)
+      const data = await fetchUserDrops(page, 10);
+
+      // Ensure data structure is correct
+      if (!data || !data.drops) {
+        console.error("Invalid response structure:", data);
+        setHasMore(false);
+        setLoading(false);
+        return;
+      }
+
       const mappedDrops = data.drops.map((d, index) => ({
         id: d._id,
         _id: d._id,
         user: d.author?.displayName || d.author?.username || "Unknown User",
         username: d.author?.username || "unknown",
-        author: d.author, // Preserve the full author object
+        author: d.author,
         verified: false,
         time: timeAgo(d.createdAt),
         avatar: "👤",
@@ -80,24 +87,23 @@ const DropsPage = () => {
         isLikedByMe: d.isLikedByMe,
         isDislikedByMe: d.isDislikedByMe,
         comments: d.commentsCount || 0,
-        shares: 0,
-        tags: [], // For now, no tags
+        shares: d.shares || 0,
+        tags: [],
       }));
+
       setDrops((prev) => {
         const existing = new Set(prev.map((d) => d._id));
         const toAdd = mappedDrops.filter((d) => !existing.has(d._id));
         return [...prev, ...toAdd];
       });
-      // Update liked posts state from backend data
-      const newLikedPosts: Record<string, boolean> = {};
-      mappedDrops.forEach((drop) => {
-        newLikedPosts[drop.id] = drop.isLikedByMe;
-      });
-      // Note: We need to handle dislikedPosts similarly, but for now let's focus on likes
-      setCursor(data.nextCursor || undefined);
+
+      // Update pagination properly
+      const nextPage = data.currentPage + 1;
+      setPage(nextPage);
       setHasMore(data.hasMore);
     } catch (err) {
       console.error("Drop feed load error:", err);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
